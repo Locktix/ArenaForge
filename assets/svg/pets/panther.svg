@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-label="Panthere">
+  <g fill="#2a2028" stroke="#1a1410" stroke-width="1.5">
+    <ellipse cx="36" cy="44" rx="22" ry="10"/>
+    <circle cx="16" cy="30" r="10"/>
+    <path d="M10 24 L8 14 L18 22 Z"/>
+    <path d="M20 24 L22 14 L28 22 Z"/>
+    <path d="M56 40 C64 32 64 50 58 50" fill="#2a2028"/>
+    <rect x="22" y="50" width="4" height="11" rx="1"/>
+    <rect x="44" y="50" width="4" height="11" rx="1"/>
+  </g>
+  <circle cx="13" cy="30" r="1.6" fill="#ffdd44"/>
+  <circle cx="21" cy="30" r="1.6" fill="#ffdd44"/>
+  <circle cx="13" cy="30" r="0.6" fill="#1a1410"/>
+  <circle cx="21" cy="30" r="0.6" fill="#1a1410"/>
+  <path d="M12 35 L16 37 L20 35" stroke="#c98" stroke-width="1" fill="none"/>
+</svg>

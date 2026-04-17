@@ -40,18 +40,20 @@ $log = json_decode((string)$f['log_json'], true) ?: [];
     <section class="card arena-card">
         <div class="arena" id="arena">
             <div class="arena-bg"></div>
-            <div class="fighter fighter-left" id="fighter1">
+            <div class="fighter fighter-left" id="fighter1" data-slot="L0">
                 <div class="name-tag"><?= h($f['n1']) ?></div>
                 <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
                 <?php $appearance = json_decode((string)$f['a1'], true) ?: []; ?>
                 <div class="sprite"><?php include __DIR__ . '/_gladiator.php'; ?></div>
             </div>
-            <div class="fighter fighter-right" id="fighter2">
+            <div class="fighter fighter-right" id="fighter2" data-slot="R0">
                 <div class="name-tag"><?= h($f['n2']) ?></div>
                 <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
                 <?php $appearance = json_decode((string)$f['a2'], true) ?: []; ?>
                 <div class="sprite flip"><?php include __DIR__ . '/_gladiator.php'; ?></div>
             </div>
+            <div class="pet-container pet-left" id="pet-left"></div>
+            <div class="pet-container pet-right" id="pet-right"></div>
             <div class="arena-flash" id="flash"></div>
         </div>
 

@@ -10,6 +10,8 @@ if ($brute) {
     header('Location: brute.php?id=' . (int)$brute['id']);
     exit;
 }
+
+$prefilledMaster = (string)($_GET['master'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -31,7 +33,7 @@ if ($brute) {
         <form id="create-form">
             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
             <label>Nom du gladiateur <input type="text" name="name" minlength="3" maxlength="20" pattern="[A-Za-z0-9_\-]+" required></label>
-            <label>Maître (optionnel) <input type="text" name="master_name" maxlength="20" placeholder="Nom d'un gladiateur existant"></label>
+            <label>Maître (optionnel) <input type="text" name="master_name" maxlength="20" placeholder="Nom d'un gladiateur existant" value="<?= h($prefilledMaster) ?>"></label>
             <button type="submit" class="btn btn-primary">Entrer dans l'arène</button>
             <p class="form-msg" data-msg></p>
         </form>

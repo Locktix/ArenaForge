@@ -252,6 +252,16 @@ h1, h2, h3 {
 .stats strong { font-size: 1.4em; color: var(--accent-2); }
 
 .fights-left { color: var(--muted); margin: 8px 0; }
+.fights-left .bonus-count {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background: var(--accent);
+    color: #2a1a10;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
 .levelup-alert { color: var(--accent-2); font-weight: bold; }
 
 /* ---------- Icon grids ---------- */
@@ -388,6 +398,7 @@ h1, h2, h3 {
 .combat-log .line.dodge { color: #88c0d0; }
 .combat-log .line.counter { color: #f0a070; }
 .combat-log .line.regen, .combat-log .line.lifesteal { color: #9ee389; }
+.combat-log .line.down { color: #ff9a88; font-style: italic; }
 .combat-log .line.end { color: var(--accent-2); font-weight: bold; font-size: 1.1em; }
 @keyframes logLine { to { opacity: 1; transform: translateY(0); } }
 
@@ -408,3 +419,319 @@ code {
     color: var(--accent-2);
     font-family: 'Consolas', monospace;
 }
+
+.inline-icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.15em;
+    margin-right: 4px;
+}
+
+.small { font-size: 0.85em; }
+
+.tag-ctx {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #2a1a10;
+    font-size: 0.7em;
+    font-style: normal;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* ---------- Pets (page gladiateur) ---------- */
+.pet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+}
+.pet-item {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.pet-item img { width: 64px; height: 64px; flex-shrink: 0; }
+.pet-item strong { color: var(--accent-2); display: block; }
+.pet-item p { margin: 4px 0; font-size: 0.85em; }
+.pet-item small { color: var(--muted); }
+
+/* ---------- Pets (arène combat) ---------- */
+.pet-container {
+    position: absolute;
+    bottom: 20px;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+}
+.pet-left  { left: calc(10% + 150px); }
+.pet-right { right: calc(10% + 150px); flex-direction: row-reverse; }
+.pet-sprite {
+    position: static;
+    width: 70px;
+    text-align: center;
+}
+.pet-sprite .pet-tag { font-size: 0.7em; }
+.pet-sprite .sprite { width: 60px; height: 60px; display: inline-block; }
+.pet-sprite .sprite img, .pet-sprite img.sprite { width: 60px; height: 60px; }
+
+/* ---------- Quêtes ---------- */
+.quest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.quest-tile {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: 16px;
+    padding: 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    align-items: center;
+}
+.quest-tile.quest-done { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.quest-tile.quest-claimed { opacity: 0.55; }
+.quest-icon { width: 60px; height: 60px; }
+.quest-body h3 { margin: 0 0 4px; font-size: 1.05em; color: var(--accent-2); }
+.quest-body p { margin: 0 0 8px; font-size: 0.9em; }
+.quest-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.quest-progress .bar { flex: 1; height: 10px; }
+.quest-progress span { font-size: 0.85em; color: var(--muted); min-width: 60px; text-align: right; }
+.quest-reward {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+.quest-reward .reward-xp {
+    background: var(--accent);
+    color: #2a1a10;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85em;
+}
+.quest-reward .reward-bonus {
+    background: var(--danger);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85em;
+}
+.quest-status { font-size: 0.8em; color: var(--muted); }
+
+/* Quêtes mini (sur la page gladiateur) */
+.quests-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+.quest-mini {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    align-items: center;
+}
+.quest-mini img { width: 36px; height: 36px; flex-shrink: 0; }
+.quest-mini strong { display: block; font-size: 0.9em; color: var(--accent-2); margin-bottom: 3px; }
+.quest-mini > div { flex: 1; min-width: 0; }
+.quest-mini .bar { height: 6px; margin: 2px 0; }
+.quest-mini small { color: var(--muted); font-size: 0.75em; }
+.quest-mini.quest-done { border-color: var(--accent); }
+.quest-mini.quest-claimed { opacity: 0.5; }
+
+/* ---------- Tournoi ---------- */
+.tournament-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.tournament-status {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    font-size: 0.95em;
+}
+.tournament-status.status-open     { border-color: var(--success); color: #9ee389; }
+.tournament-status.status-running  { border-color: var(--accent);  color: var(--accent-2); }
+.tournament-status.status-finished { border-color: var(--accent-2); color: var(--accent-2); font-weight: bold; }
+
+.entry-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 8px;
+}
+.entry-list a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+}
+.entry-list a:hover { background: var(--panel-2); }
+.entry-slot  { color: var(--muted); font-family: 'Consolas', monospace; }
+.entry-name  { flex: 1; font-weight: bold; }
+.entry-level { color: var(--muted); font-size: 0.85em; }
+.entry-ai {
+    background: var(--panel);
+    color: var(--muted);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.7em;
+    text-transform: uppercase;
+}
+.entry-place {
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+.entry-place.first  { background: var(--accent);   color: #2a1a10; }
+.entry-place.second { background: #b0b0b0; color: #1a1410; }
+.entry-place.third  { background: #c77a2a; color: #1a1410; }
+
+.bracket {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+.bracket-round {
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 14px;
+}
+.bracket-round h3 {
+    margin: 0;
+    font-size: 0.95em;
+    text-align: center;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.bracket-match {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text);
+    gap: 2px;
+}
+.bracket-match:hover { border-color: var(--accent); }
+.match-vs { font-size: 0.7em; color: var(--muted); text-align: center; }
+.match-fighter.winner { color: var(--accent-2); font-weight: bold; }
+.match-fighter.loser  { color: var(--muted); text-decoration: line-through; }
+
+/* ---------- Pupilles (page dédiée) ---------- */
+.pupil-stats {
+    display: flex;
+    gap: 12px;
+    margin: 14px 0;
+}
+.stat-tile {
+    flex: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+.stat-tile .stat-label { display: block; color: var(--muted); font-size: 0.85em; margin-bottom: 4px; }
+.stat-tile strong { font-size: 1.8em; color: var(--accent-2); }
+
+.sponsor-link label { color: var(--muted); font-size: 0.9em; display: block; margin-top: 14px; }
+.sponsor-link input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 10px;
+    background: var(--bg-2);
+    color: var(--accent-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.9em;
+}
+
+.ancestor-chain {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.ancestor-node {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    min-width: 100px;
+    text-align: center;
+}
+.ancestor-node.current {
+    background: var(--accent);
+    color: #2a1a10;
+    border-color: var(--accent-2);
+    font-weight: bold;
+}
+.ancestor-node small { color: var(--muted); font-size: 0.75em; }
+.ancestor-node.current small { color: #5a3a1a; }
+.ancestor-arrow { color: var(--muted); font-size: 1.2em; }
+
+.pupil-tree {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.pupil-tree-sub {
+    margin-left: 30px;
+    margin-top: 8px;
+    padding-left: 14px;
+    border-left: 2px dashed var(--border);
+}
+.pupil-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+}
+.pupil-node:hover { border-color: var(--accent); }
+.pupil-name { font-weight: bold; }
+.pupil-level { color: var(--muted); font-size: 0.85em; }

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-label="Loup">
+  <g fill="#6b6b75" stroke="#1a1410" stroke-width="1.5">
+    <ellipse cx="36" cy="42" rx="20" ry="12"/>
+    <circle cx="16" cy="28" r="11"/>
+    <path d="M8 22 L6 8 L18 22 Z"/>
+    <path d="M20 22 L22 8 L28 22 Z"/>
+    <path d="M54 38 L62 30 L58 46 Z"/>
+    <rect x="22" y="50" width="4" height="11" rx="1"/>
+    <rect x="44" y="50" width="4" height="11" rx="1"/>
+  </g>
+  <circle cx="12" cy="28" r="1.8" fill="#ffcc44"/>
+  <circle cx="20" cy="28" r="1.8" fill="#ffcc44"/>
+  <path d="M10 34 L16 38 L22 34 L18 36 Z" fill="#1a1410"/>
+  <path d="M14 37 L13 40 M18 37 L19 40" stroke="#fff" stroke-width="1"/>
+</svg>

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/includes/combat_engine.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/includes/tournament_engine.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/includes/quest_engine.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/includes/pupil_helper.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/api/level_up.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/api/start_fight.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/api/tournament_join.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/api/tournament_run.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/api/quest_claim.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/tournament.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/pupils.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/quests.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/brute.php)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/dashboard.php)",
+      "Bash(/c/xampp/php/php.exe -r ' *)"
+    ]
+  }
+}

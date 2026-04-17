@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Epee">
+  <g stroke="#1a1410" stroke-width="1">
+    <path d="M12 2 L14 4 L14 16 L10 16 L10 4 Z" fill="#d4a355"/>
+    <rect x="7" y="16" width="10" height="2" fill="#8b5a2b"/>
+    <rect x="11" y="18" width="2" height="4" fill="#6b4a2e"/>
+  </g>
+</svg>

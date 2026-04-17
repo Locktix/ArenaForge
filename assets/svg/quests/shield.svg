@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Bouclier">
+  <g stroke="#1a1410" stroke-width="1">
+    <path d="M12 2 L20 5 V12 Q20 18 12 22 Q4 18 4 12 V5 Z" fill="#d4a355"/>
+    <path d="M12 6 L16 8 V13 Q16 16 12 19 Q8 16 8 13 V8 Z" fill="#9e2a1f"/>
+  </g>
+</svg>

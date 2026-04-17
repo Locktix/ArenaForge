@@ -4,8 +4,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
 require_once __DIR__ . '/../includes/combat_engine.php';
+require_once __DIR__ . '/../includes/quest_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
+
+const PUPIL_BONUS_THRESHOLD = 10;
 
 $uid = current_user_id();
 if ($uid === null) {
@@ -45,8 +48,11 @@ if ($brute['last_fight_date'] !== $today) {
     $brute['last_fight_date'] = $today;
 }
 
-if ((int)$brute['fights_today'] >= 6) {
-    echo json_encode(['ok' => false, 'error' => 'Limite de 6 combats par jour atteinte']);
+$baseLeft  = max(0, 6 - (int)$brute['fights_today']);
+$bonusAvail = (int)$brute['bonus_fights_available'];
+
+if ($baseLeft + $bonusAvail <= 0) {
+    echo json_encode(['ok' => false, 'error' => 'Plus aucun combat disponible (gagnez des bonus via les quêtes et le tournoi)']);
     exit;
 }
 
@@ -68,16 +74,32 @@ try {
     $xpGained = $isWinner ? 3 : 1;
 
     // Bonus pupille : si la brute a un maître, celui-ci gagne 1 XP passif
+    // + progression vers un combat bonus (seuil à PUPIL_BONUS_THRESHOLD)
     $masterBonus = 0;
+    $masterGainedBonusFight = false;
     if ($brute['master_id']) {
-        $pdo->prepare('UPDATE brutes SET xp = xp + 1 WHERE id = ?')
-            ->execute([$brute['master_id']]);
+        $stmt = $pdo->prepare('SELECT pupil_bonus_progress FROM brutes WHERE id = ? LIMIT 1');
+        $stmt->execute([(int)$brute['master_id']]);
+        $masterProg = (int)$stmt->fetchColumn() + 1;
+        $bonusFightForMaster = 0;
+        if ($masterProg >= PUPIL_BONUS_THRESHOLD) {
+            $bonusFightForMaster = 1;
+            $masterProg = 0;
+            $masterGainedBonusFight = true;
+        }
+        $pdo->prepare('
+            UPDATE brutes
+            SET xp = xp + 1,
+                pupil_bonus_progress = ?,
+                bonus_fights_available = bonus_fights_available + ?
+            WHERE id = ?
+        ')->execute([$masterProg, $bonusFightForMaster, (int)$brute['master_id']]);
         $masterBonus = 1;
     }
 
     $pdo->prepare('
-        INSERT INTO fights (brute1_id, brute2_id, winner_id, log_json, xp_gained)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO fights (brute1_id, brute2_id, winner_id, log_json, xp_gained, context)
+        VALUES (?, ?, ?, ?, ?, "arena")
     ')->execute([
         $bruteId, (int)$opp['id'], $result['winner_id'],
         json_encode($result['log'], JSON_UNESCAPED_UNICODE),
@@ -86,28 +108,52 @@ try {
     $fightId = (int)$pdo->lastInsertId();
 
     // Mise à jour XP / compteur combats
-    $newXp     = (int)$brute['xp'] + $xpGained;
-    $newLevel  = (int)$brute['level'];
-    $levelUp   = false;
+    $newXp      = (int)$brute['xp'] + $xpGained;
+    $newLevel   = (int)$brute['level'];
+    $levelUp    = false;
     while ($newXp >= xp_for_level($newLevel + 1)) {
         $newLevel++;
         $levelUp = true;
     }
 
-    $pdo->prepare('
-        UPDATE brutes
-        SET xp = ?, level = ?, fights_today = fights_today + 1, pending_levelup = ?
-        WHERE id = ?
-    ')->execute([$newXp, $newLevel, $levelUp ? 1 : (int)$brute['pending_levelup'], $bruteId]);
+    $useBonus       = ($baseLeft === 0);
+    $newFightsToday = $useBonus ? (int)$brute['fights_today'] : (int)$brute['fights_today'] + 1;
+
+    if ($useBonus) {
+        $pdo->prepare('
+            UPDATE brutes
+            SET xp = ?, level = ?, pending_levelup = ?,
+                bonus_fights_available = bonus_fights_available - 1
+            WHERE id = ?
+        ')->execute([$newXp, $newLevel, $levelUp ? 1 : (int)$brute['pending_levelup'], $bruteId]);
+    } else {
+        $pdo->prepare('
+            UPDATE brutes
+            SET xp = ?, level = ?, fights_today = ?, pending_levelup = ?
+            WHERE id = ?
+        ')->execute([$newXp, $newLevel, $newFightsToday, $levelUp ? 1 : (int)$brute['pending_levelup'], $bruteId]);
+    }
+
+    // Mise à jour des quêtes journalières
+    $questChanges = update_quests_after_fight(
+        $bruteId,
+        (int)$opp['level'],
+        $isWinner,
+        $result['log'],
+        $newFightsToday
+    );
 
     echo json_encode([
-        'ok'            => true,
-        'fight_id'      => $fightId,
-        'redirect'      => '/ArenaForge/public/fight.php?id=' . $fightId,
-        'winner_id'     => $result['winner_id'],
-        'xp_gained'     => $xpGained,
-        'level_up'      => $levelUp,
-        'master_bonus'  => $masterBonus,
+        'ok'                      => true,
+        'fight_id'                => $fightId,
+        'redirect'                => '/ArenaForge/public/fight.php?id=' . $fightId,
+        'winner_id'               => $result['winner_id'],
+        'xp_gained'               => $xpGained,
+        'level_up'                => $levelUp,
+        'master_bonus'            => $masterBonus,
+        'master_gained_bonus_fight' => $masterGainedBonusFight,
+        'used_bonus'              => $useBonus,
+        'quest_changes'           => $questChanges,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);

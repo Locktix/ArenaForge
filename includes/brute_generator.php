@@ -105,5 +105,6 @@ function level_up_bonuses_pool(): array
         ['type' => 'stat',   'key' => 'endurance', 'value' => 1, 'label' => '+1 Endurance'],
         ['type' => 'weapon'],
         ['type' => 'skill'],
+        ['type' => 'pet'],
     ];
 }

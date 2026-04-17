@@ -14,12 +14,18 @@ $navBrute = current_brute();
             <li><a href="/ArenaForge/public/brute.php?id=<?= (int)$navBrute['id'] ?>">
                 <img src="/ArenaForge/assets/svg/ui/nav_fight.svg" alt=""> Combat
             </a></li>
+            <li><a href="/ArenaForge/public/tournament.php">
+                <img src="/ArenaForge/assets/svg/ui/trophy.svg" alt=""> Tournoi
+            </a></li>
+            <li><a href="/ArenaForge/public/quests.php">
+                <img src="/ArenaForge/assets/svg/ui/scroll.svg" alt=""> Quêtes
+            </a></li>
         <?php endif; ?>
         <li><a href="/ArenaForge/public/ranking.php">
             <img src="/ArenaForge/assets/svg/ui/nav_ranking.svg" alt=""> Classement
         </a></li>
         <?php if ($navBrute): ?>
-            <li><a href="/ArenaForge/public/brute.php?id=<?= (int)$navBrute['id'] ?>#pupils">
+            <li><a href="/ArenaForge/public/pupils.php">
                 <img src="/ArenaForge/assets/svg/ui/nav_pupils.svg" alt=""> Pupilles
             </a></li>
         <?php endif; ?>

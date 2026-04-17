@@ -47,12 +47,38 @@ try {
         $stmt->execute([$allowed[$key], $bruteId]);
     } elseif ($type === 'weapon') {
         $wid = (int)$key;
+        // Vérifier que l'arme existe
+        $chk = $pdo->prepare('SELECT 1 FROM weapons WHERE id = ? LIMIT 1');
+        $chk->execute([$wid]);
+        if (!$chk->fetchColumn()) {
+            throw new RuntimeException('Arme invalide');
+        }
         $pdo->prepare('INSERT IGNORE INTO brute_weapons (brute_id, weapon_id) VALUES (?, ?)')
             ->execute([$bruteId, $wid]);
     } elseif ($type === 'skill') {
         $sid = (int)$key;
+        $chk = $pdo->prepare('SELECT 1 FROM skills WHERE id = ? LIMIT 1');
+        $chk->execute([$sid]);
+        if (!$chk->fetchColumn()) {
+            throw new RuntimeException('Compétence invalide');
+        }
         $pdo->prepare('INSERT IGNORE INTO brute_skills (brute_id, skill_id) VALUES (?, ?)')
             ->execute([$bruteId, $sid]);
+    } elseif ($type === 'pet') {
+        $pid = (int)$key;
+        $chk = $pdo->prepare('SELECT 1 FROM pets WHERE id = ? LIMIT 1');
+        $chk->execute([$pid]);
+        if (!$chk->fetchColumn()) {
+            throw new RuntimeException('Animal invalide');
+        }
+        // Un seul pet par brute : vérifier qu'elle n'en a pas déjà
+        $chk = $pdo->prepare('SELECT COUNT(*) FROM brute_pets WHERE brute_id = ?');
+        $chk->execute([$bruteId]);
+        if ((int)$chk->fetchColumn() > 0) {
+            throw new RuntimeException('Ce gladiateur possède déjà un animal');
+        }
+        $pdo->prepare('INSERT IGNORE INTO brute_pets (brute_id, pet_id) VALUES (?, ?)')
+            ->execute([$bruteId, $pid]);
     } else {
         throw new RuntimeException('Type de bonus inconnu');
     }

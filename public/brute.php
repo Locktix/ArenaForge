@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
+require_once __DIR__ . '/../includes/quest_engine.php';
 require_login();
 
 $id = (int)($_GET['id'] ?? 0);
@@ -26,6 +27,11 @@ $skills = db()->prepare('SELECT s.* FROM skills s JOIN brute_skills bs ON bs.ski
 $skills->execute([$id]);
 $skills = $skills->fetchAll();
 
+// Compagnon animal
+$pets = db()->prepare('SELECT p.* FROM pets p JOIN brute_pets bp ON bp.pet_id = p.id WHERE bp.brute_id = ? ORDER BY bp.acquired_at');
+$pets->execute([$id]);
+$pets = $pets->fetchAll();
+
 // Historique des 10 derniers combats
 $history = db()->prepare('
     SELECT f.*, b1.name AS n1, b2.name AS n2
@@ -49,6 +55,12 @@ $pupils = db()->prepare('
 $pupils->execute([$id]);
 $pupils = $pupils->fetchAll();
 
+// Quêtes du jour (pour le joueur propriétaire)
+$dailyQuests = [];
+if ($isOwner) {
+    $dailyQuests = get_daily_quests($id);
+}
+
 // Proposition de bonus level-up
 $bonusChoices = [];
 if ($isOwner && (int)$brute['pending_levelup'] === 1) {
@@ -70,6 +82,13 @@ if ($isOwner && (int)$brute['pending_levelup'] === 1) {
     foreach ($allS as $s) {
         if (!in_array((int)$s['id'], array_map('intval', $ownedS), true)) {
             $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $s['name'] . ' — ' . $s['description'], 'icon' => '/ArenaForge/' . $s['icon_path']];
+        }
+    }
+    // Animaux : uniquement si le joueur n'en a pas encore (1 pet max)
+    if (empty($pets)) {
+        $allPets = db()->query('SELECT * FROM pets')->fetchAll();
+        foreach ($allPets as $p) {
+            $pool[] = ['key' => 'pet:' . $p['id'], 'label' => 'Compagnon : ' . $p['name'] . ' — ' . $p['description'], 'icon' => '/ArenaForge/' . $p['icon_path']];
         }
     }
     shuffle($pool);
@@ -123,18 +142,29 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
 
             <?php if ($isOwner): ?>
                 <?php
-                  $fightsLeft = 6 - ((int)$brute['fights_today']);
-                  if ($brute['last_fight_date'] !== date('Y-m-d')) { $fightsLeft = 6; }
+                  $baseLeft = 6 - ((int)$brute['fights_today']);
+                  if ($brute['last_fight_date'] !== date('Y-m-d')) { $baseLeft = 6; }
+                  $baseLeft  = max(0, $baseLeft);
+                  $bonusLeft = (int)$brute['bonus_fights_available'];
+                  $totalLeft = $baseLeft + $bonusLeft;
                 ?>
-                <p class="fights-left"><?= max(0,$fightsLeft) ?> combat(s) restant(s) aujourd'hui</p>
+                <p class="fights-left">
+                    <?= $baseLeft ?> combat(s) du jour
+                    <?php if ($bonusLeft > 0): ?>
+                        <span class="bonus-count" title="Gagn&eacute;s via qu&ecirc;tes, tournoi et pupilles">+ <?= $bonusLeft ?> bonus ⚔</span>
+                    <?php endif; ?>
+                </p>
                 <?php if ((int)$brute['pending_levelup'] === 1): ?>
                     <p class="levelup-alert">Niveau gagné ! Choisis ton bonus ci-dessous.</p>
                 <?php else: ?>
                     <form id="fight-form">
                         <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                         <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                        <button class="btn btn-primary btn-large" <?= $fightsLeft <= 0 ? 'disabled' : '' ?>>
+                        <button class="btn btn-primary btn-large" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
                             ⚔ Lancer un combat
+                            <?php if ($baseLeft === 0 && $bonusLeft > 0): ?>
+                                <small>(bonus)</small>
+                            <?php endif; ?>
                         </button>
                         <p class="form-msg" data-msg></p>
                     </form>
@@ -156,6 +186,49 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                         <span><?= h($b['label']) ?></span>
                         <button class="btn btn-secondary">Choisir</button>
                     </form>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    <?php endif; ?>
+
+    <?php if ($isOwner && !empty($dailyQuests)): ?>
+        <section class="card quests-preview">
+            <h2><img src="/ArenaForge/assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Quêtes du jour</h2>
+            <div class="quests-preview-grid">
+                <?php foreach ($dailyQuests as $q):
+                    $target   = (int)$q['target'];
+                    $progress = (int)$q['progress'];
+                    $claimed  = (int)$q['claimed'] === 1;
+                    $done     = $progress >= $target;
+                    $pct      = $target > 0 ? min(100, (int)round($progress * 100 / $target)) : 0;
+                ?>
+                    <div class="quest-mini <?= $claimed ? 'quest-claimed' : ($done ? 'quest-done' : '') ?>">
+                        <img src="/ArenaForge/<?= h($q['icon_path']) ?>" alt="">
+                        <div>
+                            <strong><?= h($q['label']) ?></strong>
+                            <div class="bar xp"><div class="bar-fill" style="width:<?= $pct ?>%"></div></div>
+                            <small><?= min($target, $progress) ?>/<?= $target ?> • +<?= (int)$q['reward_xp'] ?> XP</small>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <p><a href="/ArenaForge/public/quests.php">Voir toutes les quêtes →</a></p>
+        </section>
+    <?php endif; ?>
+
+    <?php if (!empty($pets)): ?>
+        <section class="card">
+            <h2>Compagnon</h2>
+            <div class="pet-grid">
+                <?php foreach ($pets as $p): ?>
+                    <div class="pet-item" title="<?= h($p['description']) ?>">
+                        <img src="/ArenaForge/<?= h($p['icon_path']) ?>" alt="<?= h($p['name']) ?>">
+                        <div>
+                            <strong><?= h($p['name']) ?></strong>
+                            <p class="muted small"><?= h($p['description']) ?></p>
+                            <small><?= (int)$p['hp_max'] ?> PV · <?= (int)$p['damage_min'] ?>-<?= (int)$p['damage_max'] ?> dég. · <?= (int)$p['agility'] ?> agi.</small>
+                        </div>
+                    </div>
                 <?php endforeach; ?>
             </div>
         </section>
@@ -199,7 +272,12 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                     <?php $won = (int)$f['winner_id'] === $id; ?>
                     <li class="<?= $won ? 'win' : 'loss' ?>">
                         <a href="fight.php?id=<?= (int)$f['id'] ?>">
-                            <?= h($f['n1']) ?> vs <?= h($f['n2']) ?>
+                            <span>
+                                <?= h($f['n1']) ?> vs <?= h($f['n2']) ?>
+                                <?php if (($f['context'] ?? 'arena') === 'tournament'): ?>
+                                    <em class="tag-ctx">Tournoi</em>
+                                <?php endif; ?>
+                            </span>
                             <span class="result"><?= $won ? 'Victoire' : 'Défaite' ?></span>
                         </a>
                     </li>
@@ -211,13 +289,16 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
     <section class="card" id="pupils">
         <h2>Pupilles</h2>
         <?php if (empty($pupils)): ?>
-            <p class="muted">Aucun pupille pour l'instant.</p>
+            <p class="muted">Aucun pupille pour l'instant. <?php if ($isOwner): ?><a href="/ArenaForge/public/pupils.php">Obtenir votre lien de parrainage →</a><?php endif; ?></p>
         <?php else: ?>
             <ul class="pupil-list">
                 <?php foreach ($pupils as $p): ?>
                     <li><a href="brute.php?id=<?= (int)$p['id'] ?>"><?= h($p['name']) ?> (Niv. <?= (int)$p['level'] ?>)</a></li>
                 <?php endforeach; ?>
             </ul>
+            <?php if ($isOwner): ?>
+                <p><a href="/ArenaForge/public/pupils.php">Voir l'arbre complet →</a></p>
+            <?php endif; ?>
         <?php endif; ?>
     </section>
 </main>

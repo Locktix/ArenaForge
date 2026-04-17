@@ -7,23 +7,70 @@
     const arena   = document.getElementById('arena');
     const f1El    = document.getElementById('fighter1');
     const f2El    = document.getElementById('fighter2');
-    const hp1Bar  = f1El.querySelector('[data-hp-bar]');
-    const hp2Bar  = f2El.querySelector('[data-hp-bar]');
     const flash   = document.getElementById('flash');
     const logEl   = document.getElementById('combat-log');
     const replayBtn = document.getElementById('replay-btn');
+    const petLeftBox  = document.getElementById('pet-left');
+    const petRightBox = document.getElementById('pet-right');
 
-    // Résolution du "côté" d'un nom de combattant
-    function side(name) {
-        return name === F.n1 ? 'left' : 'right';
+    // Map slot -> { el, hpBar, hpMax }
+    const slots = new Map();
+
+    function registerMaster(slot, el, hpMax) {
+        const bar = el.querySelector('[data-hp-bar]');
+        slots.set(slot, { el, hpBar: bar, hpMax, role: 'master' });
+    }
+    registerMaster('L0', f1El, F.hp1Max);
+    registerMaster('R0', f2El, F.hp2Max);
+
+    function buildPetSprite(pet, sideBox, side) {
+        const wrap = document.createElement('div');
+        wrap.className = 'fighter pet-sprite';
+        wrap.dataset.slot = pet.slot;
+        wrap.innerHTML = `
+            <div class="name-tag pet-tag">${escapeHtml(pet.name)}</div>
+            <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
+            <img class="sprite ${side === 'right' ? 'flip' : ''}" src="/ArenaForge/${escapeAttr(pet.icon_path)}" alt="">
+        `;
+        sideBox.appendChild(wrap);
+        const bar = wrap.querySelector('[data-hp-bar]');
+        slots.set(pet.slot, { el: wrap, hpBar: bar, hpMax: pet.hp_max, role: 'pet' });
     }
 
-    function setHp(name, hpVal, hpMax) {
-        const bar = name === F.n1 ? hp1Bar : hp2Bar;
-        const max = name === F.n1 ? F.hp1Max : F.hp2Max;
-        const cur = typeof hpVal === 'number' ? hpVal : max;
-        const pct = Math.max(0, Math.min(100, (cur / max) * 100));
-        bar.style.width = pct + '%';
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function escapeAttr(s) {
+        return escapeHtml(s);
+    }
+
+    function slotToSide(slot) {
+        if (!slot) return null;
+        return slot.charAt(0) === 'L' ? 'left' : 'right';
+    }
+
+    function nameToSide(name) {
+        if (name === F.n1) return 'left';
+        if (name === F.n2) return 'right';
+        return null;
+    }
+
+    function resolveSlot(ev, field) {
+        return ev[field + '_slot'] || null;
+    }
+
+    function setHp(slot, hpVal) {
+        const meta = slots.get(slot);
+        if (!meta) return;
+        const cur = typeof hpVal === 'number' ? hpVal : meta.hpMax;
+        const pct = Math.max(0, Math.min(100, (cur / meta.hpMax) * 100));
+        meta.hpBar.style.width = pct + '%';
+    }
+
+    function setHpByName(name, hpVal) {
+        // Fallback pour vieux logs sans slot
+        const slot = name === F.n1 ? 'L0' : (name === F.n2 ? 'R0' : null);
+        if (slot) setHp(slot, hpVal);
     }
 
     function appendLine(cls, text) {
@@ -34,21 +81,29 @@
         logEl.scrollTop = logEl.scrollHeight;
     }
 
-    function wait(ms) {
-        return new Promise((r) => setTimeout(r, ms));
+    function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+    function elForSlot(slot) {
+        const meta = slots.get(slot);
+        return meta ? meta.el : null;
     }
 
-    async function doAttackAnim(attackerName) {
-        const s = side(attackerName);
-        const el = s === 'left' ? f1El : f2El;
-        el.classList.add(s === 'left' ? 'attack-left' : 'attack-right');
+    function elByNameFallback(name) {
+        return name === F.n1 ? f1El : (name === F.n2 ? f2El : null);
+    }
+
+    async function doAttackAnim(slot, nameFallback) {
+        const el = elForSlot(slot) || elByNameFallback(nameFallback);
+        if (!el) return;
+        const side = slotToSide(slot) || nameToSide(nameFallback);
+        el.classList.add(side === 'left' ? 'attack-left' : 'attack-right');
         await wait(220);
         el.classList.remove('attack-left', 'attack-right');
     }
 
-    async function doHurtAnim(defenderName, isCrit) {
-        const s = side(defenderName);
-        const el = s === 'left' ? f1El : f2El;
+    async function doHurtAnim(slot, nameFallback, isCrit) {
+        const el = elForSlot(slot) || elByNameFallback(nameFallback);
+        if (!el) return;
         el.classList.add('hurt');
         if (isCrit) {
             flash.classList.add('active');
@@ -58,70 +113,110 @@
         el.classList.remove('hurt');
     }
 
-    async function doDodgeAnim(defenderName) {
-        const s = side(defenderName);
-        const el = s === 'left' ? f1El : f2El;
-        el.classList.add(s === 'left' ? 'dodge-left' : 'dodge-right');
+    async function doDodgeAnim(slot, nameFallback) {
+        const el = elForSlot(slot) || elByNameFallback(nameFallback);
+        if (!el) return;
+        const side = slotToSide(slot) || nameToSide(nameFallback);
+        el.classList.add(side === 'left' ? 'dodge-left' : 'dodge-right');
         await wait(260);
         el.classList.remove('dodge-left', 'dodge-right');
     }
 
-    async function doKOAnim(name) {
-        const s = side(name);
-        const el = s === 'left' ? f1El : f2El;
+    async function doKOAnim(slot, nameFallback) {
+        const el = elForSlot(slot) || elByNameFallback(nameFallback);
+        if (!el) return;
         el.classList.add('ko');
+    }
+
+    function resetArena() {
+        [f1El, f2El].forEach((el) => el.classList.remove('ko', 'hurt', 'attack-left', 'attack-right', 'dodge-left', 'dodge-right'));
+        // Réinitialise les pets (efface et reconstruira si `start` event)
+        petLeftBox.innerHTML = '';
+        petRightBox.innerHTML = '';
+        // Retire du registre les pets précédemment créés
+        for (const slot of Array.from(slots.keys())) {
+            if (slot !== 'L0' && slot !== 'R0') slots.delete(slot);
+        }
+        setHp('L0', F.hp1Max);
+        setHp('R0', F.hp2Max);
     }
 
     async function play(log) {
         logEl.innerHTML = '';
-        // Reset sprites
-        f1El.classList.remove('ko', 'hurt', 'attack-left', 'attack-right', 'dodge-left', 'dodge-right');
-        f2El.classList.remove('ko', 'hurt', 'attack-left', 'attack-right', 'dodge-left', 'dodge-right');
-        setHp(F.n1, F.hp1Max);
-        setHp(F.n2, F.hp2Max);
+        resetArena();
 
         for (const ev of log) {
             switch (ev.event) {
                 case 'start':
                     appendLine('start', `Début du combat : ${F.n1} contre ${F.n2} !`);
+                    // Créer les pets s'ils sont présents dans l'event
+                    if (ev.teams) {
+                        (ev.teams.L && ev.teams.L.pets || []).forEach((p) => buildPetSprite(p, petLeftBox, 'left'));
+                        (ev.teams.R && ev.teams.R.pets || []).forEach((p) => buildPetSprite(p, petRightBox, 'right'));
+                    }
                     break;
-                case 'hit':
-                    await doAttackAnim(ev.attacker);
-                    appendLine(ev.crit ? 'crit' : 'hit',
+
+                case 'hit': {
+                    const attSlot = resolveSlot(ev, 'attacker');
+                    const defSlot = resolveSlot(ev, 'defender');
+                    await doAttackAnim(attSlot, ev.attacker);
+                    const kind = ev.crit ? 'crit' : 'hit';
+                    appendLine(kind,
                         `T${ev.turn} • ${ev.attacker} frappe ${ev.defender} avec ${ev.weapon}` +
                         (ev.crit ? ' (CRITIQUE)' : '') +
                         ` → -${ev.damage} PV`);
-                    await doHurtAnim(ev.defender, !!ev.crit);
-                    setHp(ev.defender, ev.def_hp);
-                    setHp(ev.attacker, ev.att_hp);
+                    await doHurtAnim(defSlot, ev.defender, !!ev.crit);
+                    if (defSlot) setHp(defSlot, ev.def_hp); else setHpByName(ev.defender, ev.def_hp);
+                    if (attSlot) setHp(attSlot, ev.att_hp); else setHpByName(ev.attacker, ev.att_hp);
                     if (ev.def_hp <= 0) {
-                        await doKOAnim(ev.defender);
+                        await doKOAnim(defSlot, ev.defender);
                     }
                     await wait(260);
                     break;
-                case 'dodge':
+                }
+
+                case 'dodge': {
+                    const defSlot = resolveSlot(ev, 'defender');
                     appendLine('dodge', `T${ev.turn} • ${ev.defender} esquive ${ev.attacker} !`);
-                    await doDodgeAnim(ev.defender);
+                    await doDodgeAnim(defSlot, ev.defender);
                     await wait(120);
                     break;
+                }
+
                 case 'counter':
                     appendLine('counter', `T${ev.turn} • ${ev.attacker} contre-attaque !`);
                     await wait(120);
                     break;
-                case 'regen':
+
+                case 'regen': {
+                    const slot = ev.actor_slot || null;
                     appendLine('regen', `T${ev.turn} • ${ev.actor} régénère ${ev.heal} PV`);
-                    setHp(ev.actor, ev.actor_hp);
+                    if (slot) setHp(slot, ev.actor_hp); else setHpByName(ev.actor, ev.actor_hp);
                     await wait(180);
                     break;
-                case 'lifesteal':
+                }
+
+                case 'lifesteal': {
+                    const slot = ev.actor_slot || null;
                     appendLine('lifesteal', `T${ev.turn} • ${ev.actor} draine ${ev.heal} PV`);
-                    setHp(ev.actor, ev.actor_hp);
+                    if (slot) setHp(slot, ev.actor_hp); else setHpByName(ev.actor, ev.actor_hp);
                     await wait(180);
                     break;
+                }
+
+                case 'down': {
+                    const slot = ev.actor_slot || null;
+                    appendLine('down', `T${ev.turn} • ${ev.actor} est mis hors de combat !`);
+                    await doKOAnim(slot, ev.actor);
+                    await wait(200);
+                    break;
+                }
+
                 case 'timeout':
                     appendLine('end', 'Combat interrompu (trop de tours).');
                     await wait(250);
                     break;
+
                 case 'end':
                     appendLine('end', `🏆 Vainqueur : ${ev.winner} !`);
                     break;

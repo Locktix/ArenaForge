@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Parchemin">
+  <g stroke="#1a1410" stroke-width="1">
+    <rect x="5" y="5" width="14" height="14" rx="2" fill="#efe3d0"/>
+    <line x1="8"  y1="9"  x2="16" y2="9"  stroke="#8b5a2b"/>
+    <line x1="8"  y1="12" x2="16" y2="12" stroke="#8b5a2b"/>
+    <line x1="8"  y1="15" x2="14" y2="15" stroke="#8b5a2b"/>
+    <path d="M3 5 Q3 19 5 19 Q7 19 5 5 Z" fill="#d4a355"/>
+    <path d="M21 5 Q21 19 19 19 Q17 19 19 5 Z" fill="#d4a355"/>
+  </g>
+</svg>

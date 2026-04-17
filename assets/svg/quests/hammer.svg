@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Marteau">
+  <g stroke="#1a1410" stroke-width="1">
+    <rect x="2"  y="4"  width="14" height="8" rx="1" fill="#6b6b75"/>
+    <rect x="4"  y="5"  width="10" height="6" fill="#8b8b95"/>
+    <rect x="15" y="7"  width="7"  height="2" fill="#8b5a2b"/>
+    <rect x="14" y="12" width="3" height="10" fill="#6b4a2e"/>
+  </g>
+</svg>
