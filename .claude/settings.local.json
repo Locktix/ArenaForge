@@ -15,7 +15,12 @@
       "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/quests.php)",
       "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/brute.php)",
       "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/dashboard.php)",
-      "Bash(/c/xampp/php/php.exe -r ' *)"
+      "Bash(/c/xampp/php/php.exe -r ' *)",
+      "Bash(mv public/_gladiator.php .)",
+      "Bash(mv public/_nav.php .)",
+      "Bash(mv public/brute.php .)",
+      "Bash(mv public/dashboard.php .)",
+      "Bash(mv public/fight.php .)"
     ]
   }
 }

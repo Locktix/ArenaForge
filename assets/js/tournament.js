@@ -27,7 +27,7 @@ const joinForm = document.getElementById('tournament-join-form');
 if (joinForm) {
     joinForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        postForm(joinForm, '/ArenaForge/api/tournament_join.php');
+        postForm(joinForm, 'api/tournament_join.php');
     });
 }
 
@@ -37,6 +37,6 @@ if (runForm) {
         e.preventDefault();
         const btn = runForm.querySelector('button');
         if (btn) { btn.disabled = true; btn.textContent = 'Résolution...'; }
-        postForm(runForm, '/ArenaForge/api/tournament_run.php');
+        postForm(runForm, 'api/tournament_run.php');
     });
 }

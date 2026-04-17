@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/includes/auth.php';
 require_login();
 
 $id = (int)($_GET['id'] ?? 0);
@@ -30,8 +30,8 @@ $log = json_decode((string)$f['log_json'], true) ?: [];
 <meta charset="utf-8">
 <title>Combat #<?= (int)$f['id'] ?> – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
+<link rel="icon" href="assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body class="fight-page">
 <?php include __DIR__ . '/_nav.php'; ?>
@@ -79,6 +79,6 @@ window.FIGHT = {
     log: <?= json_encode($log, JSON_UNESCAPED_UNICODE) ?>
 };
 </script>
-<script src="/ArenaForge/assets/js/fight.js"></script>
+<script src="assets/js/fight.js"></script>
 </body>
 </html>

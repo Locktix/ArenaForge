@@ -1,0 +1,8 @@
+# Bloque l'accès direct aux fichiers de logique métier.
+# Les fichiers ici ne doivent être chargés que via require_once depuis les pages/APIs.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

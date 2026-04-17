@@ -31,5 +31,5 @@ function bindForm(formId, endpoint) {
     });
 }
 
-bindForm('login-form', '/ArenaForge/api/login.php');
-bindForm('register-form', '/ArenaForge/api/register.php');
+bindForm('login-form', 'api/login.php');
+bindForm('register-form', 'api/register.php');

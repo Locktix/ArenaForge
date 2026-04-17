@@ -30,7 +30,7 @@
         wrap.innerHTML = `
             <div class="name-tag pet-tag">${escapeHtml(pet.name)}</div>
             <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
-            <img class="sprite ${side === 'right' ? 'flip' : ''}" src="/ArenaForge/${escapeAttr(pet.icon_path)}" alt="">
+            <img class="sprite ${side === 'right' ? 'flip' : ''}" src="${escapeAttr(pet.icon_path)}" alt="">
         `;
         sideBox.appendChild(wrap);
         const bar = wrap.querySelector('[data-hp-bar]');

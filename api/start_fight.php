@@ -146,7 +146,7 @@ try {
     echo json_encode([
         'ok'                      => true,
         'fight_id'                => $fightId,
-        'redirect'                => '/ArenaForge/public/fight.php?id=' . $fightId,
+        'redirect'                => 'fight.php?id=' . $fightId,
         'winner_id'               => $result['winner_id'],
         'xp_gained'               => $xpGained,
         'level_up'                => $levelUp,
