@@ -27,13 +27,13 @@ const fightForm = document.getElementById('fight-form');
 if (fightForm) {
     fightForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        postForm(fightForm, 'api/start_fight.php');
+        postForm(fightForm, '/ArenaForge/api/start_fight.php');
     });
 }
 
 document.querySelectorAll('.levelup-form').forEach((f) => {
     f.addEventListener('submit', (e) => {
         e.preventDefault();
-        postForm(f, 'api/level_up.php');
+        postForm(f, '/ArenaForge/api/level_up.php');
     });
 });

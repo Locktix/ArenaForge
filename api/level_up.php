@@ -86,7 +86,7 @@ try {
     $pdo->prepare('UPDATE brutes SET pending_levelup = 0 WHERE id = ?')->execute([$bruteId]);
     $pdo->commit();
 
-    echo json_encode(['ok' => true, 'redirect' => 'brute.php?id=' . $bruteId]);
+    echo json_encode(['ok' => true, 'redirect' => '/ArenaForge/public/brute.php?id=' . $bruteId]);
 } catch (Throwable $e) {
     $pdo->rollBack();
     http_response_code(500);

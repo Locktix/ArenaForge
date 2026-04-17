@@ -18,7 +18,7 @@ function require_login(): int
 {
     $uid = current_user_id();
     if ($uid === null) {
-        header('Location: index.php');
+        header('Location: /ArenaForge/public/index.php');
         exit;
     }
     return $uid;

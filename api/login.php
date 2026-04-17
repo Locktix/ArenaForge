@@ -31,7 +31,7 @@ try {
     }
 
     login_user((int)$u['id']);
-    echo json_encode(['ok' => true, 'redirect' => 'dashboard.php']);
+    echo json_encode(['ok' => true, 'redirect' => '/ArenaForge/public/dashboard.php']);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Erreur serveur']);

@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/brute_generator.php';
-require_once __DIR__ . '/includes/quest_engine.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/brute_generator.php';
+require_once __DIR__ . '/../includes/quest_engine.php';
 require_login();
 
 $id = (int)($_GET['id'] ?? 0);
@@ -66,14 +66,14 @@ $bonusChoices = [];
 if ($isOwner && (int)$brute['pending_levelup'] === 1) {
     $pool = [];
     foreach (['hp_max' => '+5 PV max', 'strength' => '+1 Force', 'agility' => '+1 Agilité', 'endurance' => '+1 Endurance'] as $k => $lbl) {
-        $pool[] = ['key' => "stat:$k", 'label' => $lbl, 'icon' => 'assets/svg/ui/nav_fight.svg'];
+        $pool[] = ['key' => "stat:$k", 'label' => $lbl, 'icon' => '/ArenaForge/assets/svg/ui/nav_fight.svg'];
     }
     // Armes non possédées
     $ownedW = array_column($weapons, 'id');
     $allW = db()->query('SELECT * FROM weapons')->fetchAll();
     foreach ($allW as $w) {
         if (!in_array((int)$w['id'], array_map('intval', $ownedW), true)) {
-            $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '' . $w['icon_path']];
+            $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '/ArenaForge/' . $w['icon_path']];
         }
     }
     // Compétences non possédées
@@ -81,14 +81,14 @@ if ($isOwner && (int)$brute['pending_levelup'] === 1) {
     $allS = db()->query('SELECT * FROM skills')->fetchAll();
     foreach ($allS as $s) {
         if (!in_array((int)$s['id'], array_map('intval', $ownedS), true)) {
-            $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $s['name'] . ' — ' . $s['description'], 'icon' => '' . $s['icon_path']];
+            $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $s['name'] . ' — ' . $s['description'], 'icon' => '/ArenaForge/' . $s['icon_path']];
         }
     }
     // Animaux : uniquement si le joueur n'en a pas encore (1 pet max)
     if (empty($pets)) {
         $allPets = db()->query('SELECT * FROM pets')->fetchAll();
         foreach ($allPets as $p) {
-            $pool[] = ['key' => 'pet:' . $p['id'], 'label' => 'Compagnon : ' . $p['name'] . ' — ' . $p['description'], 'icon' => '' . $p['icon_path']];
+            $pool[] = ['key' => 'pet:' . $p['id'], 'label' => 'Compagnon : ' . $p['name'] . ' — ' . $p['description'], 'icon' => '/ArenaForge/' . $p['icon_path']];
         }
     }
     shuffle($pool);
@@ -109,8 +109,8 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
 <meta charset="utf-8">
 <title><?= h($brute['name']) ?> – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/main.css">
+<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>
@@ -193,7 +193,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
 
     <?php if ($isOwner && !empty($dailyQuests)): ?>
         <section class="card quests-preview">
-            <h2><img src="assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Quêtes du jour</h2>
+            <h2><img src="/ArenaForge/assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Quêtes du jour</h2>
             <div class="quests-preview-grid">
                 <?php foreach ($dailyQuests as $q):
                     $target   = (int)$q['target'];
@@ -203,7 +203,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                     $pct      = $target > 0 ? min(100, (int)round($progress * 100 / $target)) : 0;
                 ?>
                     <div class="quest-mini <?= $claimed ? 'quest-claimed' : ($done ? 'quest-done' : '') ?>">
-                        <img src="<?= h($q['icon_path']) ?>" alt="">
+                        <img src="/ArenaForge/<?= h($q['icon_path']) ?>" alt="">
                         <div>
                             <strong><?= h($q['label']) ?></strong>
                             <div class="bar xp"><div class="bar-fill" style="width:<?= $pct ?>%"></div></div>
@@ -212,7 +212,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                     </div>
                 <?php endforeach; ?>
             </div>
-            <p><a href="quests.php">Voir toutes les quêtes →</a></p>
+            <p><a href="/ArenaForge/public/quests.php">Voir toutes les quêtes →</a></p>
         </section>
     <?php endif; ?>
 
@@ -222,7 +222,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
             <div class="pet-grid">
                 <?php foreach ($pets as $p): ?>
                     <div class="pet-item" title="<?= h($p['description']) ?>">
-                        <img src="<?= h($p['icon_path']) ?>" alt="<?= h($p['name']) ?>">
+                        <img src="/ArenaForge/<?= h($p['icon_path']) ?>" alt="<?= h($p['name']) ?>">
                         <div>
                             <strong><?= h($p['name']) ?></strong>
                             <p class="muted small"><?= h($p['description']) ?></p>
@@ -239,7 +239,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
         <div class="icon-grid">
             <?php foreach ($weapons as $w): ?>
                 <div class="icon-item" title="<?= h($w['name']) ?> (<?= (int)$w['damage_min'] ?>-<?= (int)$w['damage_max'] ?> dég.)">
-                    <img src="<?= h($w['icon_path']) ?>" alt="<?= h($w['name']) ?>">
+                    <img src="/ArenaForge/<?= h($w['icon_path']) ?>" alt="<?= h($w['name']) ?>">
                     <span><?= h($w['name']) ?></span>
                 </div>
             <?php endforeach; ?>
@@ -254,7 +254,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
             <div class="icon-grid">
                 <?php foreach ($skills as $s): ?>
                     <div class="icon-item" title="<?= h($s['description']) ?>">
-                        <img src="<?= h($s['icon_path']) ?>" alt="<?= h($s['name']) ?>">
+                        <img src="/ArenaForge/<?= h($s['icon_path']) ?>" alt="<?= h($s['name']) ?>">
                         <span><?= h($s['name']) ?></span>
                     </div>
                 <?php endforeach; ?>
@@ -289,7 +289,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
     <section class="card" id="pupils">
         <h2>Pupilles</h2>
         <?php if (empty($pupils)): ?>
-            <p class="muted">Aucun pupille pour l'instant. <?php if ($isOwner): ?><a href="pupils.php">Obtenir votre lien de parrainage →</a><?php endif; ?></p>
+            <p class="muted">Aucun pupille pour l'instant. <?php if ($isOwner): ?><a href="/ArenaForge/public/pupils.php">Obtenir votre lien de parrainage →</a><?php endif; ?></p>
         <?php else: ?>
             <ul class="pupil-list">
                 <?php foreach ($pupils as $p): ?>
@@ -297,13 +297,13 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                 <?php endforeach; ?>
             </ul>
             <?php if ($isOwner): ?>
-                <p><a href="pupils.php">Voir l'arbre complet →</a></p>
+                <p><a href="/ArenaForge/public/pupils.php">Voir l'arbre complet →</a></p>
             <?php endif; ?>
         <?php endif; ?>
     </section>
 </main>
 
 <script>window.APPEARANCE = <?= json_encode($appearance) ?>;</script>
-<script src="assets/js/brute.js"></script>
+<script src="/ArenaForge/assets/js/brute.js"></script>
 </body>
 </html>

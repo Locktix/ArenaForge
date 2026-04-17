@@ -15,6 +15,7 @@
       "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/quests.php)",
       "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/brute.php)",
       "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/public/dashboard.php)",
+<<<<<<< HEAD
       "Bash(/c/xampp/php/php.exe -r ' *)",
       "Bash(mv public/_gladiator.php .)",
       "Bash(mv public/_nav.php .)",
@@ -22,6 +23,9 @@
       "Bash(mv public/dashboard.php .)",
       "Bash(mv public/fight.php .)",
       "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/includes/db.php)"
+=======
+      "Bash(/c/xampp/php/php.exe -r ' *)"
+>>>>>>> parent of ae4573b (Relocate public pages and switch to relative paths)
     ]
   }
 }

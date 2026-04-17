@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_login();
 
 $rows = db()->query('
@@ -18,8 +18,8 @@ $rows = db()->query('
 <meta charset="utf-8">
 <title>Classement – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/main.css">
+<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>

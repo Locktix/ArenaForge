@@ -8,7 +8,7 @@ ArenaForge — jeu navigateur 1v1 automatisé inspiré de *La Brute*. Stack : XA
 
 ## Commandes courantes
 
-Aucun build ni bundler. Le projet vit dans `C:\xampp\htdocs\ArenaForge\` et est servi à http://localhost/ArenaForge/. Les pages HTML PHP sont à la racine (déploiement o2switch-friendly), l'`index.php` est donc le point d'entrée direct.
+Aucun build ni bundler. Le projet vit dans `C:\xampp\htdocs\ArenaForge\` et est servi à http://localhost/ArenaForge/public/.
 
 - **Lint PHP** (syntaxe, obligatoire après toute modif PHP) :
   ```bash
@@ -21,16 +21,16 @@ Aucun build ni bundler. Le projet vit dans `C:\xampp\htdocs\ArenaForge\` et est 
   /c/xampp/php/php.exe -r "echo password_hash('monMotDePasse', PASSWORD_BCRYPT);"
   ```
 - **Installer / réinitialiser la BDD** : importer `sql/schema.sql` puis `sql/seed_demo.sql` via phpMyAdmin (http://localhost/phpmyadmin). `schema.sql` fait `DROP TABLE IF EXISTS` en tête, donc rejouable.
-- **Pas de tests automatisés** à ce jour — valider manuellement via http://localhost/ArenaForge/ avec le compte `demo@arenaforge.local` / `demodemo`.
+- **Pas de tests automatisés** à ce jour — valider manuellement via http://localhost/ArenaForge/public/ avec le compte `demo@arenaforge.local` / `demodemo`.
 
 ## Architecture
 
 ### Séparation des rôles
 
-- **Racine** : toutes les pages HTML PHP (`index.php`, `dashboard.php`, `brute.php`, `fight.php`, `tournament.php`, `quests.php`, `pupils.php`, `ranking.php`, `logout.php`, `register.php`) + partials (`_nav.php`, `_gladiator.php`). Formulaires soumis via `fetch()` en JS vers `api/`.
-- `api/` : endpoints POST renvoyant du JSON (`{ ok, error?, redirect?, ... }`). Chaque endpoint vérifie session + CSRF + ownership. Le client suit `data.redirect` à la main (URLs relatives).
+- `public/` : pages HTML rendues par PHP, accessibles en GET. Formulaires soumis via `fetch()` en JS vers `api/`. Pas de mélange HTML/logique lourde dans `public/` — les pages sont des vues qui appellent les helpers.
+- `api/` : endpoints POST renvoyant du JSON (`{ ok, error?, redirect?, ... }`). Chaque endpoint vérifie session + CSRF + ownership. Le client suit `data.redirect` à la main.
 - `includes/` : toute la logique métier réutilisable. `db.php` expose un singleton PDO via `db()`. `auth.php` gère sessions, `require_login()`, `csrf_token()` / `csrf_check()`, `current_brute()`, et l'helper `h()` pour l'échappement HTML.
-- `assets/` : statiques (CSS, JS, SVG). **Tous les chemins sont relatifs** (ex. `assets/css/main.css`, `api/start_fight.php`) pour que le projet fonctionne déployé à la racine d'un domaine ou dans un sous-dossier, sans configuration.
+- `assets/` : statiques (CSS, JS, SVG). Les chemins dans le code sont **absolus depuis la racine web** (`/ArenaForge/assets/...`, `/ArenaForge/api/...`) car Apache sert `htdocs` comme racine.
 
 ### Moteur de combat — `includes/combat_engine.php`
 

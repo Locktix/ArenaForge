@@ -4,12 +4,12 @@ Jeu navigateur 1v1 automatisé — inspiré de *La Brute*. Forge ton gladiateur,
 
 ## Stack
 
-- **Serveur** : PHP 8+ (XAMPP en local, hébergement mutualisé type o2switch en prod)
+- **Serveur** : XAMPP (Apache + PHP 8+)
 - **BDD** : MySQL via phpMyAdmin
 - **Frontend** : HTML5 + CSS3 + JavaScript vanilla
 - **Auth** : sessions PHP + `password_hash()` / `password_verify()`
 
-## Installation locale (XAMPP)
+## Installation sur XAMPP
 
 1. **Cloner / copier** le dossier dans `C:\xampp\htdocs\ArenaForge\`.
 
@@ -19,10 +19,11 @@ Jeu navigateur 1v1 automatisé — inspiré de *La Brute*. Forge ton gladiateur,
    - Ouvrir phpMyAdmin : http://localhost/phpmyadmin
    - Créer une BDD nommée `arenaforge` (utf8mb4_unicode_ci) et **la sélectionner dans la sidebar**
    - Onglet **Importer** → sélectionner [sql/schema.sql](sql/schema.sql) → **Exécuter**
-   - (Optionnel) Importer [sql/seed_demo.sql](sql/seed_demo.sql) pour créer le compte de démo et des adversaires IA
+   - (Optionnel) Importer [sql/seed_demo.sql](sql/seed_demo.sql) pour créer le compte de démo et quelques adversaires IA
 
 4. **Configurer la connexion** : éditer [includes/db.php](includes/db.php). Pour XAMPP par défaut : `DB_USER = 'root'`, `DB_PASS = ''`, `DB_NAME = 'arenaforge'`.
 
+<<<<<<< HEAD
 5. **Accéder au jeu** : http://localhost/ArenaForge/
 
 ## Déploiement sur hébergement mutualisé (o2switch, etc.)
@@ -36,6 +37,9 @@ Tous les chemins sont relatifs et l'`index.php` est à la racine — le projet s
 5. Accéder à `https://votre-domaine.tld/`.
 
 Le jeu fonctionne aussi dans un sous-dossier (`public_html/jeu/`) sans modification — les chemins relatifs s'adaptent.
+=======
+5. **Accéder au jeu** : http://localhost/ArenaForge/public/
+>>>>>>> parent of ae4573b (Relocate public pages and switch to relative paths)
 
 ## Compte de démonstration
 
@@ -44,44 +48,39 @@ Après avoir importé `seed_demo.sql` :
 - **E-mail** : `demo@arenaforge.local`
 - **Mot de passe** : `demodemo`
 - Gladiateur pré-créé : **Maximus** (niveau 1)
-- 25 adversaires IA dont 13 recrues niveau 1 pour les débutants
+- Adversaires IA disponibles : **Brutus**, **Agilo**, **Varenis**
 
 ## Structure du projet
 
 ```
-/
-├── index.php, dashboard.php, brute.php, fight.php,
-│   tournament.php, quests.php, pupils.php, ranking.php,
-│   logout.php, register.php   (pages web à la racine)
-├── _nav.php, _gladiator.php   (partials PHP inclus par les pages)
-├── /api                       Endpoints POST (JSON)
-├── /includes                  Logique métier : db, auth, combat, tournoi, quêtes, pupilles
+/ArenaForge
+├── /public              Pages accessibles (auth, dashboard, brute, fight, ranking)
+├── /api                 Endpoints POST (JSON) : login, register, create_brute, start_fight, level_up
+├── /includes            db.php, auth.php, combat_engine.php, brute_generator.php
 ├── /assets
-│   ├── /css, /js
-│   └── /svg                   logos, gladiateur, armes, compétences, pets, quêtes, UI
-└── /sql                       schema.sql, seed_demo.sql
+│   ├── /css             main.css
+│   ├── /js              auth.js, create.js, brute.js, fight.js
+│   └── /svg             logo, gladiator, weapons, skills, ui, decor
+└── /sql                 schema.sql, seed_demo.sql
 ```
 
 ## Boucle de jeu
 
 1. **Inscription** → création d'un gladiateur (nom unique, apparence + stats dérivées du nom).
-2. **Combat** : matchmaking automatique (niveau ± 2). Résolution serveur, log stocké en JSON, rejoué côté client.
-3. **XP** : +3 en cas de victoire, +1 sinon. +1 XP passive au maître pour chaque combat du pupille.
-4. **Level-up** : à chaque niveau gagné, choix entre 3 bonus aléatoires (stat / arme / compétence / compagnon animal).
-5. **Limites** : 6 combats/jour + un compteur de **combats bonus** persistant alimenté par :
-   - Quêtes journalières (certaines donnent +1 combat)
-   - Placement au tournoi (champion +3, finaliste +1)
-   - Palier de 10 combats cumulés par les pupilles → +1 combat
+2. **Lancer un combat** : matchmaking automatique (niveau ± 2). Résolution serveur, log stocké en JSON.
+3. **Replay animé** côté client : attaques, esquives, crits, régénération, fin de combat.
+4. **XP** : +3 en cas de victoire, +1 sinon. +1 XP passive au maître pour chaque combat du pupille.
+5. **Level-up** : à chaque niveau gagné, choix entre 3 bonus aléatoires (stat, arme ou compétence).
+6. **Limite** : 6 combats par jour et par gladiateur.
 
 ## Moteur de combat (résumé)
 
-- Ordre d'attaque selon agilité (+ aléa) recalculé chaque round. Maître + pets jouent tous.
+- Ordre d'attaque selon agilité (+ aléa).
 - Dégâts : `rand(weapon.min, weapon.max) + strength/2`, modifiés par skills (force brute, rage, crit).
 - Esquive : base 5 % + écart d'agilité, plafond 75 %.
-- Compétences : **Force brute, Esquive, Contre-attaque, Régénération, Coup critique, Armure, Rage, Vol de vie**.
+- Compétences couvertes : **Force brute, Esquive, Contre-attaque, Régénération, Coup critique, Armure, Rage, Vol de vie**.
 - Armes : **Poings nus, Dague, Épée, Hache, Masse, Lance, Arc, Bouclier**.
-- Compagnons : **Chien, Loup, Panthère, Ours** (combattent aux côtés du maître).
-- Événements log : `start / hit / dodge / counter / regen / lifesteal / down / timeout / end`.
+- Log structuré : événements `start / hit / dodge / counter / regen / lifesteal / timeout / end`.
 
 ## Crédits / licence
 

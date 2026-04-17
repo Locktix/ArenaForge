@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/tournament_engine.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/tournament_engine.php';
 require_login();
 
 $myBrute = current_brute();
@@ -38,8 +38,8 @@ if ($rounds === 3) {
 <meta charset="utf-8">
 <title>Tournoi – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/main.css">
+<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>
@@ -48,7 +48,7 @@ if ($rounds === 3) {
     <section class="card tournament-header">
         <div>
             <h1>
-                <img src="assets/svg/ui/trophy.svg" alt="" class="inline-icon">
+                <img src="/ArenaForge/assets/svg/ui/trophy.svg" alt="" class="inline-icon">
                 Tournoi du <?= h(date('d/m/Y', strtotime($tournament['tour_date']))) ?>
             </h1>
             <p class="muted">
@@ -148,6 +148,6 @@ if ($rounds === 3) {
     <?php endif; ?>
 </main>
 
-<script src="assets/js/tournament.js"></script>
+<script src="/ArenaForge/assets/js/tournament.js"></script>
 </body>
 </html>

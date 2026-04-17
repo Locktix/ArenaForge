@@ -46,5 +46,5 @@ if (!$res['ok']) {
 
 echo json_encode([
     'ok'       => true,
-    'redirect' => 'tournament.php',
+    'redirect' => '/ArenaForge/public/tournament.php',
 ]);

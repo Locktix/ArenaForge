@@ -8,7 +8,7 @@ if (form) {
         msg.className = 'form-msg';
         msg.textContent = 'Création en cours…';
         try {
-            const res = await fetch('api/create_brute.php', {
+            const res = await fetch('/ArenaForge/api/create_brute.php', {
                 method: 'POST',
                 body: new FormData(form),
             });
