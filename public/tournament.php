@@ -103,18 +103,18 @@ if ($rounds === 3) {
                 <?php foreach ($entries as $e): ?>
                     <li>
                         <a href="brute.php?id=<?= (int)$e['brute_id'] ?>">
-                            <span class="entry-slot">#<?= (int)$e['slot'] + 1 ?></span>
+                            <span class="entry-slot"><?= (int)$e['slot'] + 1 ?></span>
                             <span class="entry-name"><?= h($e['brute_name']) ?></span>
                             <span class="entry-level">Niv. <?= (int)$e['brute_level'] ?></span>
                             <?php if ((int)$e['is_ai'] === 1): ?>
                                 <span class="entry-ai">IA</span>
                             <?php endif; ?>
                             <?php if ((int)$e['placement'] === 1): ?>
-                                <span class="entry-place first">🏆 Champion</span>
+                                <span class="entry-place first">Champion</span>
                             <?php elseif ((int)$e['placement'] === 2): ?>
-                                <span class="entry-place second">🥈 Finaliste</span>
+                                <span class="entry-place second">Finaliste</span>
                             <?php elseif ((int)$e['placement'] === 3): ?>
-                                <span class="entry-place third">🥉 Demi-finaliste</span>
+                                <span class="entry-place third">Demi-final.</span>
                             <?php endif; ?>
                         </a>
                     </li>

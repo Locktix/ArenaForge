@@ -5,6 +5,8 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
 require_once __DIR__ . '/../includes/combat_engine.php';
 require_once __DIR__ . '/../includes/quest_engine.php';
+require_once __DIR__ . '/../includes/achievement_engine.php';
+require_once __DIR__ . '/../includes/elo_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -61,7 +63,7 @@ if ((int)$brute['pending_levelup'] === 1) {
     exit;
 }
 
-$opp = find_opponent($bruteId, (int)$brute['level']);
+$opp = find_opponent_ranked($bruteId, (int)$brute['level'], (int)$brute['mmr']);
 if (!$opp) {
     echo json_encode(['ok' => false, 'error' => 'Aucun adversaire disponible']);
     exit;
@@ -72,6 +74,7 @@ try {
 
     $isWinner = ($result['winner_id'] === $bruteId);
     $xpGained = $isWinner ? 3 : 1;
+    $fragmentsGained = $isWinner ? 3 : 1;
 
     // Bonus pupille : si la brute a un maître, celui-ci gagne 1 XP passif
     // + progression vers un combat bonus (seuil à PUPIL_BONUS_THRESHOLD)
@@ -123,15 +126,17 @@ try {
         $pdo->prepare('
             UPDATE brutes
             SET xp = ?, level = ?, pending_levelup = ?,
-                bonus_fights_available = bonus_fights_available - 1
+                bonus_fights_available = bonus_fights_available - 1,
+                fragments = fragments + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $levelUp ? 1 : (int)$brute['pending_levelup'], $bruteId]);
+        ')->execute([$newXp, $newLevel, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $bruteId]);
     } else {
         $pdo->prepare('
             UPDATE brutes
-            SET xp = ?, level = ?, fights_today = ?, pending_levelup = ?
+            SET xp = ?, level = ?, fights_today = ?, pending_levelup = ?,
+                fragments = fragments + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $newFightsToday, $levelUp ? 1 : (int)$brute['pending_levelup'], $bruteId]);
+        ')->execute([$newXp, $newLevel, $newFightsToday, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $bruteId]);
     }
 
     // Mise à jour des quêtes journalières
@@ -142,6 +147,23 @@ try {
         $result['log'],
         $newFightsToday
     );
+
+    // Vérification des achievements (peut elle-même déclencher des level-ups)
+    $newAchievements = check_achievements_after_fight(
+        $bruteId,
+        $isWinner,
+        $result['log'],
+        (int)$opp['level'],
+        (int)$brute['level'],
+        $newLevel,
+        $levelUp
+    );
+
+    // Application ELO (arène seulement)
+    $winnerForElo = $isWinner ? $bruteId : (int)$opp['id'];
+    $loserForElo  = $isWinner ? (int)$opp['id'] : $bruteId;
+    $eloResult    = elo_apply_fight($winnerForElo, $loserForElo);
+    $myEloInfo    = $isWinner ? $eloResult['winner'] : $eloResult['loser'];
 
     echo json_encode([
         'ok'                      => true,
@@ -154,6 +176,9 @@ try {
         'master_gained_bonus_fight' => $masterGainedBonusFight,
         'used_bonus'              => $useBonus,
         'quest_changes'           => $questChanges,
+        'achievements'            => $newAchievements,
+        'mmr'                     => $myEloInfo,
+        'fragments_gained'        => $fragmentsGained,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);

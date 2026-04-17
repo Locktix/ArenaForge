@@ -1,7 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(/c/xampp/php/php.exe -l includes/db.php)"
+      "Bash(/c/xampp/php/php.exe -l includes/db.php)",
+      "Bash(/c/xampp/php/php.exe -r 'echo file_get_contents\\('\\\\''__TRACKED_VAR__'\\\\''\\);')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost/ArenaForge/assets/css/main.css)",
+      "Bash(curl -s -o /dev/null -w \"public/index.php: %{http_code}\\\\n\" http://localhost/ArenaForge/public/index.php)",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root -e \"SHOW DATABASES;\")",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root)",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root arenaforge)",
+      "Bash(/c/xampp/mysql/bin/mysql.exe -u root arenaforge -e \"SELECT COUNT\\(*\\) AS achievements FROM achievements; SELECT COUNT\\(*\\) AS armors FROM armors; SELECT COUNT\\(*\\) AS seasons FROM seasons; SELECT COUNT\\(*\\) AS brutes FROM brutes; SHOW COLUMNS FROM brutes LIKE 'mmr';\")",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' http://localhost/ArenaForge/public/__TRACKED_VAR__.php)",
+      "Bash(cd /tmp)",
+      "Bash(curl -s -c cookies.txt \"http://localhost/ArenaForge/public/index.php\")",
+      "Bash(curl -s -b cookies.txt -c cookies.txt \"http://localhost/ArenaForge/public/index.php\")",
+      "Bash(sed -n 's/.*name=\"csrf\" value=\"\\\\\\([^\"]*\\\\\\)\".*/\\\\1/p' landing.html)",
+      "Bash(/c/xampp/php/php.exe -l public/forge.php)",
+      "Bash(/c/xampp/php/php.exe -l public/tournament.php)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' -b cookies.txt http://localhost/ArenaForge/public/__TRACKED_VAR__)",
+      "Bash(curl -s -o /dev/null -w \"forge: %{http_code}\\\\n\" -b /tmp/cookies.txt http://localhost/ArenaForge/public/forge.php)"
     ]
   }
 }

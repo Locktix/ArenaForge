@@ -141,6 +141,8 @@
         setHp('R0', F.hp2Max);
     }
 
+    const sfx = (name) => { if (window.SFX) window.SFX.play(name); };
+
     async function play(log) {
         logEl.innerHTML = '';
         resetArena();
@@ -149,8 +151,16 @@
             switch (ev.event) {
                 case 'start':
                     appendLine('start', `Début du combat : ${F.n1} contre ${F.n2} !`);
-                    // Créer les pets s'ils sont présents dans l'event
                     if (ev.teams) {
+                        // Sync des PV max effectifs (armure équipée peut augmenter hp_max)
+                        if (ev.teams.L && ev.teams.L.master && ev.teams.L.master.hp_max) {
+                            const metaL = slots.get('L0');
+                            if (metaL) { metaL.hpMax = ev.teams.L.master.hp_max; setHp('L0', metaL.hpMax); }
+                        }
+                        if (ev.teams.R && ev.teams.R.master && ev.teams.R.master.hp_max) {
+                            const metaR = slots.get('R0');
+                            if (metaR) { metaR.hpMax = ev.teams.R.master.hp_max; setHp('R0', metaR.hpMax); }
+                        }
                         (ev.teams.L && ev.teams.L.pets || []).forEach((p) => buildPetSprite(p, petLeftBox, 'left'));
                         (ev.teams.R && ev.teams.R.pets || []).forEach((p) => buildPetSprite(p, petRightBox, 'right'));
                     }
@@ -161,6 +171,7 @@
                     const defSlot = resolveSlot(ev, 'defender');
                     await doAttackAnim(attSlot, ev.attacker);
                     const kind = ev.crit ? 'crit' : 'hit';
+                    sfx(kind);
                     appendLine(kind,
                         `T${ev.turn} • ${ev.attacker} frappe ${ev.defender} avec ${ev.weapon}` +
                         (ev.crit ? ' (CRITIQUE)' : '') +
@@ -169,6 +180,7 @@
                     if (defSlot) setHp(defSlot, ev.def_hp); else setHpByName(ev.defender, ev.def_hp);
                     if (attSlot) setHp(attSlot, ev.att_hp); else setHpByName(ev.attacker, ev.att_hp);
                     if (ev.def_hp <= 0) {
+                        sfx('ko');
                         await doKOAnim(defSlot, ev.defender);
                     }
                     await wait(260);
@@ -177,6 +189,7 @@
 
                 case 'dodge': {
                     const defSlot = resolveSlot(ev, 'defender');
+                    sfx('dodge');
                     appendLine('dodge', `T${ev.turn} • ${ev.defender} esquive ${ev.attacker} !`);
                     await doDodgeAnim(defSlot, ev.defender);
                     await wait(120);
@@ -184,12 +197,14 @@
                 }
 
                 case 'counter':
+                    sfx('counter');
                     appendLine('counter', `T${ev.turn} • ${ev.attacker} contre-attaque !`);
                     await wait(120);
                     break;
 
                 case 'regen': {
                     const slot = ev.actor_slot || null;
+                    sfx('regen');
                     appendLine('regen', `T${ev.turn} • ${ev.actor} régénère ${ev.heal} PV`);
                     if (slot) setHp(slot, ev.actor_hp); else setHpByName(ev.actor, ev.actor_hp);
                     await wait(180);
@@ -198,6 +213,7 @@
 
                 case 'lifesteal': {
                     const slot = ev.actor_slot || null;
+                    sfx('lifesteal');
                     appendLine('lifesteal', `T${ev.turn} • ${ev.actor} draine ${ev.heal} PV`);
                     if (slot) setHp(slot, ev.actor_hp); else setHpByName(ev.actor, ev.actor_hp);
                     await wait(180);
@@ -206,6 +222,7 @@
 
                 case 'down': {
                     const slot = ev.actor_slot || null;
+                    sfx('ko');
                     appendLine('down', `T${ev.turn} • ${ev.actor} est mis hors de combat !`);
                     await doKOAnim(slot, ev.actor);
                     await wait(200);
@@ -213,11 +230,13 @@
                 }
 
                 case 'timeout':
+                    sfx('timeout');
                     appendLine('end', 'Combat interrompu (trop de tours).');
                     await wait(250);
                     break;
 
                 case 'end':
+                    sfx('victory');
                     appendLine('end', `🏆 Vainqueur : ${ev.winner} !`);
                     break;
             }

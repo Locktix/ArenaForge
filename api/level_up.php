@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
+require_once __DIR__ . '/../includes/achievement_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -86,7 +87,13 @@ try {
     $pdo->prepare('UPDATE brutes SET pending_levelup = 0 WHERE id = ?')->execute([$bruteId]);
     $pdo->commit();
 
-    echo json_encode(['ok' => true, 'redirect' => '/ArenaForge/public/brute.php?id=' . $bruteId]);
+    $newAchievements = check_achievements_collection($bruteId);
+
+    echo json_encode([
+        'ok'           => true,
+        'redirect'     => '/ArenaForge/public/brute.php?id=' . $bruteId,
+        'achievements' => $newAchievements,
+    ]);
 } catch (Throwable $e) {
     $pdo->rollBack();
     http_response_code(500);

@@ -14,11 +14,19 @@ USE arenaforge;
 -- Nettoyage (pour réinstallation propre)
 -- ============================================================
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS clan_members;
+DROP TABLE IF EXISTS clans;
+DROP TABLE IF EXISTS brute_armors;
+DROP TABLE IF EXISTS armors;
+DROP TABLE IF EXISTS brute_weapon_upgrades;
+DROP TABLE IF EXISTS brute_achievements;
+DROP TABLE IF EXISTS achievements;
 DROP TABLE IF EXISTS brute_quests;
 DROP TABLE IF EXISTS quest_definitions;
 DROP TABLE IF EXISTS tournament_fights;
 DROP TABLE IF EXISTS tournament_entries;
 DROP TABLE IF EXISTS tournaments;
+DROP TABLE IF EXISTS seasons;
 DROP TABLE IF EXISTS brute_pets;
 DROP TABLE IF EXISTS pets;
 DROP TABLE IF EXISTS pupils;
@@ -56,16 +64,29 @@ CREATE TABLE brutes (
   endurance INT UNSIGNED NOT NULL DEFAULT 5,
   appearance_seed VARCHAR(64) NOT NULL,
   master_id INT UNSIGNED NULL,
+  clan_id INT UNSIGNED NULL,
   fights_today INT UNSIGNED NOT NULL DEFAULT 0,
   last_fight_date DATE NULL,
   pending_levelup TINYINT(1) NOT NULL DEFAULT 0,
   bonus_fights_available INT UNSIGNED NOT NULL DEFAULT 0,
   pupil_bonus_progress INT UNSIGNED NOT NULL DEFAULT 0,
+  -- Stats cumulées (pour achievements sans scan intégral)
+  total_crits INT UNSIGNED NOT NULL DEFAULT 0,
+  total_dodges INT UNSIGNED NOT NULL DEFAULT 0,
+  total_flawless INT UNSIGNED NOT NULL DEFAULT 0,
+  total_upsets INT UNSIGNED NOT NULL DEFAULT 0,
+  -- ELO / saisons
+  mmr INT NOT NULL DEFAULT 1000,
+  peak_mmr INT NOT NULL DEFAULT 1000,
+  -- Forge
+  fragments INT UNSIGNED NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_brutes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_brutes_master FOREIGN KEY (master_id) REFERENCES brutes(id) ON DELETE SET NULL,
   INDEX idx_level (level),
-  INDEX idx_user (user_id)
+  INDEX idx_user (user_id),
+  INDEX idx_mmr (mmr),
+  INDEX idx_clan (clan_id)
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -232,6 +253,103 @@ CREATE TABLE brute_quests (
 ) ENGINE=InnoDB;
 
 -- ============================================================
+-- Achievements (trophées permanents)
+-- ============================================================
+CREATE TABLE achievements (
+  code VARCHAR(40) NOT NULL PRIMARY KEY,
+  title VARCHAR(120) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  category VARCHAR(20) NOT NULL DEFAULT 'combat',
+  reward_xp INT UNSIGNED NOT NULL DEFAULT 0,
+  icon_path VARCHAR(128) NOT NULL,
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE brute_achievements (
+  brute_id INT UNSIGNED NOT NULL,
+  achievement_code VARCHAR(40) NOT NULL,
+  unlocked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (brute_id, achievement_code),
+  CONSTRAINT fk_ba_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ba_def FOREIGN KEY (achievement_code) REFERENCES achievements(code) ON DELETE CASCADE,
+  INDEX idx_brute (brute_id)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Saisons ELO (remise à zéro périodique)
+-- ============================================================
+CREATE TABLE seasons (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  label VARCHAR(80) NOT NULL,
+  started_at DATE NOT NULL,
+  ended_at DATE NULL,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  UNIQUE KEY uk_active_season (active, started_at)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Forge : upgrades d'armes + armures
+-- ============================================================
+CREATE TABLE brute_weapon_upgrades (
+  brute_id INT UNSIGNED NOT NULL,
+  weapon_id INT UNSIGNED NOT NULL,
+  upgrade_level INT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (brute_id, weapon_id),
+  CONSTRAINT fk_bwu_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_bwu_weapon FOREIGN KEY (weapon_id) REFERENCES weapons(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE armors (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(40) NOT NULL UNIQUE,
+  slot ENUM('head','body') NOT NULL DEFAULT 'body',
+  hp_bonus INT UNSIGNED NOT NULL DEFAULT 0,
+  damage_reduction INT UNSIGNED NOT NULL DEFAULT 0,
+  cost_fragments INT UNSIGNED NOT NULL DEFAULT 0,
+  tier INT UNSIGNED NOT NULL DEFAULT 1,
+  icon_path VARCHAR(128) NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE brute_armors (
+  brute_id INT UNSIGNED NOT NULL,
+  armor_id INT UNSIGNED NOT NULL,
+  equipped TINYINT(1) NOT NULL DEFAULT 0,
+  acquired_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (brute_id, armor_id),
+  CONSTRAINT fk_ba_brute_armor FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ba_armor FOREIGN KEY (armor_id) REFERENCES armors(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Clans (social / guildes)
+-- ============================================================
+CREATE TABLE clans (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(40) NOT NULL UNIQUE,
+  tag VARCHAR(8) NOT NULL UNIQUE,
+  description VARCHAR(255) NOT NULL DEFAULT '',
+  leader_brute_id INT UNSIGNED NULL,
+  max_members INT UNSIGNED NOT NULL DEFAULT 10,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_clan_leader FOREIGN KEY (leader_brute_id) REFERENCES brutes(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE clan_members (
+  clan_id INT UNSIGNED NOT NULL,
+  brute_id INT UNSIGNED NOT NULL,
+  role ENUM('leader','officer','member') NOT NULL DEFAULT 'member',
+  joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (clan_id, brute_id),
+  UNIQUE KEY uk_brute (brute_id),
+  CONSTRAINT fk_cm_clan FOREIGN KEY (clan_id) REFERENCES clans(id) ON DELETE CASCADE,
+  CONSTRAINT fk_cm_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Lien FK brutes.clan_id (après création des clans)
+ALTER TABLE brutes
+  ADD CONSTRAINT fk_brutes_clan FOREIGN KEY (clan_id) REFERENCES clans(id) ON DELETE SET NULL;
+
+-- ============================================================
 -- Données de base : armes
 -- ============================================================
 INSERT INTO weapons (name, damage_min, damage_max, speed, crit_chance, icon_path) VALUES
@@ -278,3 +396,64 @@ INSERT INTO quest_definitions (code, label, description, target, reward_xp, rewa
   ('flawless_1',    'Invulnerable',       'Gagner 1 combat sans subir le moindre degat.',       1,  8, 1, 'assets/svg/quests/shield.svg'),
   ('upset_1',       'Tombeur de geants',  'Battre un adversaire de niveau superieur.',          1,  7, 1, 'assets/svg/quests/crown.svg'),
   ('daily_6',       'Marathonien',        'Consommer les 6 combats de la journee.',             6,  4, 0, 'assets/svg/quests/fire.svg');
+
+-- ============================================================
+-- Données de base : achievements (trophées permanents)
+-- ============================================================
+INSERT INTO achievements (code, title, description, category, reward_xp, icon_path, sort_order) VALUES
+  -- Combat : victoires cumulées
+  ('first_win',            'Premier sang',            'Remporte ta toute premiere victoire.',                    'combat',      5,   'assets/svg/quests/sword.svg',   1),
+  ('wins_10',              'Habitue de l''arene',     'Cumule 10 victoires.',                                     'combat',      10,  'assets/svg/quests/sword.svg',   2),
+  ('wins_50',              'Veteran',                 'Cumule 50 victoires.',                                     'combat',      25,  'assets/svg/quests/sword.svg',   3),
+  ('wins_100',             'Legende vivante',         'Cumule 100 victoires.',                                    'combat',      50,  'assets/svg/quests/trophy.svg',  4),
+  ('wins_500',             'Immortel',                'Cumule 500 victoires.',                                    'combat',      100, 'assets/svg/quests/trophy.svg',  5),
+  -- Combat : exploits
+  ('crits_50',             'Frappe chirurgicale',     'Place 50 coups critiques cumules.',                        'combat',      15,  'assets/svg/quests/crit.svg',    10),
+  ('crits_200',            'Main du destin',          'Place 200 coups critiques cumules.',                       'combat',      40,  'assets/svg/quests/crit.svg',    11),
+  ('dodges_100',           'Insaisissable',           'Esquive 100 attaques cumulees.',                           'combat',      20,  'assets/svg/quests/dodge.svg',   12),
+  ('flawless_10',          'Intouchable',             'Remporte 10 victoires sans subir le moindre degat.',       'combat',      30,  'assets/svg/quests/shield.svg',  13),
+  ('upset_10',             'Chasseur de titans',      'Bats 10 adversaires de niveau superieur.',                 'combat',      30,  'assets/svg/quests/crown.svg',   14),
+  ('combo_crit_3',         'Tempete de critiques',    'Place 3 coups critiques en un seul combat.',               'combat',      15,  'assets/svg/quests/crit.svg',    15),
+  ('survive_overwhelming', 'Retour des morts',        'Remporte un combat avec moins de 5 PV restants.',          'combat',      15,  'assets/svg/quests/shield.svg',  16),
+  -- Progression (niveau)
+  ('level_5',              'Aguerri',                 'Atteins le niveau 5.',                                     'progression', 10,  'assets/svg/ui/nav_ranking.svg', 20),
+  ('level_10',             'Expert',                  'Atteins le niveau 10.',                                    'progression', 20,  'assets/svg/ui/nav_ranking.svg', 21),
+  ('level_25',             'Maitre gladiateur',       'Atteins le niveau 25.',                                    'progression', 50,  'assets/svg/ui/nav_ranking.svg', 22),
+  ('level_50',             'Champion',                'Atteins le niveau 50.',                                    'progression', 100, 'assets/svg/ui/trophy.svg',      23),
+  -- Collection
+  ('weapons_3',            'Armurier debutant',       'Possede au moins 3 armes differentes.',                    'collection',  10,  'assets/svg/weapons/sword.svg',  30),
+  ('weapons_6',            'Arsenal complet',         'Possede au moins 6 armes differentes.',                    'collection',  25,  'assets/svg/weapons/axe.svg',    31),
+  ('skills_3',             'Polyvalent',              'Maitrise au moins 3 competences.',                         'collection',  10,  'assets/svg/skills/strength.svg',32),
+  ('skills_6',             'Maitre des arts',         'Maitrise au moins 6 competences.',                         'collection',  25,  'assets/svg/skills/rage.svg',    33),
+  ('first_pet',            'Compagnon fidele',        'Acquiert ton premier animal de compagnie.',                'collection',  15,  'assets/svg/pets/wolf.svg',      34),
+  -- Social (pupilles et clan)
+  ('pupils_1',             'Formateur',               'Parraine ton premier pupille.',                            'social',      15,  'assets/svg/ui/nav_pupils.svg',  40),
+  ('pupils_5',             'Ecole de l''arene',       'Parraine 5 pupilles.',                                     'social',      30,  'assets/svg/ui/nav_pupils.svg',  41),
+  ('clan_founder',         'Fondateur',               'Cree ton propre clan.',                                    'social',      20,  'assets/svg/ui/trophy.svg',      42),
+  -- Tournoi
+  ('tournament_1',         'Premier pas',             'Participe a ton premier tournoi.',                         'tournament',  10,  'assets/svg/quests/trophy.svg',  50),
+  ('tournament_win',       'Couronne d''or',          'Remporte un tournoi quotidien.',                           'tournament',  50,  'assets/svg/quests/trophy.svg',  51),
+  ('tournament_wins_5',    'Dynastie',                'Remporte 5 tournois quotidiens.',                          'tournament',  100, 'assets/svg/quests/trophy.svg',  52),
+  -- Forge
+  ('forge_first',          'Premier forgeage',        'Ameliore ta premiere arme.',                               'forge',       15,  'assets/svg/weapons/axe.svg',    60),
+  ('forge_master',         'Maitre forgeron',         'Porte une arme au niveau d''amelioration 5.',              'forge',       40,  'assets/svg/weapons/axe.svg',    61),
+  ('armor_first',          'Premiere armure',         'Equipe-toi d''une premiere armure.',                       'forge',       15,  'assets/svg/skills/armor.svg',   62);
+
+-- ============================================================
+-- Données de base : armures (Forge)
+-- ============================================================
+INSERT INTO armors (name, slot, hp_bonus, damage_reduction, cost_fragments, tier, icon_path) VALUES
+  -- Tier 1
+  ('Tunique de cuir',    'body', 8,  0, 30,  1, 'assets/svg/skills/armor.svg'),
+  ('Capuche de cuir',    'head', 4,  0, 20,  1, 'assets/svg/skills/armor.svg'),
+  -- Tier 2
+  ('Cuirasse cloutee',   'body', 14, 1, 80,  2, 'assets/svg/skills/armor.svg'),
+  ('Casque de bronze',   'head', 8,  1, 60,  2, 'assets/svg/skills/armor.svg'),
+  -- Tier 3
+  ('Armure de plates',   'body', 22, 2, 200, 3, 'assets/svg/skills/armor.svg'),
+  ('Heaume de chevalier','head', 14, 1, 150, 3, 'assets/svg/skills/armor.svg');
+
+-- ============================================================
+-- Saison initiale
+-- ============================================================
+INSERT INTO seasons (label, started_at, active) VALUES ('Saison 1', CURDATE(), 1);

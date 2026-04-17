@@ -10,6 +10,9 @@ async function postForm(form, endpoint) {
         });
         const data = await res.json();
         if (data.ok) {
+            if (window.Toast && Array.isArray(data.achievements) && data.achievements.length) {
+                window.Toast.queue(data.achievements);
+            }
             window.location.href = data.redirect;
         } else if (msg) {
             msg.className = 'form-msg error';

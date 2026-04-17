@@ -20,9 +20,13 @@ function load_fighter(int $bruteId): array
         throw new RuntimeException("Gladiateur $bruteId introuvable.");
     }
 
+    // Armes + niveau d'amélioration (forge)
     $stmt = $pdo->prepare('
-        SELECT w.* FROM weapons w
+        SELECT w.*, COALESCE(bwu.upgrade_level, 0) AS upgrade_level
+        FROM weapons w
         JOIN brute_weapons bw ON bw.weapon_id = w.id
+        LEFT JOIN brute_weapon_upgrades bwu
+          ON bwu.weapon_id = w.id AND bwu.brute_id = bw.brute_id
         WHERE bw.brute_id = ?
     ');
     $stmt->execute([$bruteId]);
@@ -36,19 +40,37 @@ function load_fighter(int $bruteId): array
     $stmt->execute([$bruteId]);
     $skills = $stmt->fetchAll();
 
+    // Armures équipées : somme des bonus PV et réduction de dégâts
+    $stmt = $pdo->prepare('
+        SELECT a.hp_bonus, a.damage_reduction
+        FROM armors a
+        JOIN brute_armors ba ON ba.armor_id = a.id
+        WHERE ba.brute_id = ? AND ba.equipped = 1
+    ');
+    $stmt->execute([$bruteId]);
+    $armorBonusHp = 0;
+    $armorReduction = 0;
+    foreach ($stmt->fetchAll() as $row) {
+        $armorBonusHp   += (int)$row['hp_bonus'];
+        $armorReduction += (int)$row['damage_reduction'];
+    }
+
+    $hpMax = (int)$brute['hp_max'] + $armorBonusHp;
+
     return [
-        'id'         => (int)$brute['id'],
-        'role'       => 'master',
-        'name'       => $brute['name'],
-        'level'      => (int)$brute['level'],
-        'hp_max'     => (int)$brute['hp_max'],
-        'hp'         => (int)$brute['hp_max'],
-        'strength'   => (int)$brute['strength'],
-        'agility'    => (int)$brute['agility'],
-        'endurance'  => (int)$brute['endurance'],
-        'appearance' => $brute['appearance_seed'],
-        'weapons'    => $weapons,
-        'skills'     => $skills,
+        'id'               => (int)$brute['id'],
+        'role'             => 'master',
+        'name'             => $brute['name'],
+        'level'            => (int)$brute['level'],
+        'hp_max'           => $hpMax,
+        'hp'               => $hpMax,
+        'strength'         => (int)$brute['strength'],
+        'agility'          => (int)$brute['agility'],
+        'endurance'        => (int)$brute['endurance'],
+        'appearance'       => $brute['appearance_seed'],
+        'weapons'          => $weapons,
+        'skills'           => $skills,
+        'armor_reduction'  => $armorReduction,
     ];
 }
 
@@ -359,6 +381,12 @@ function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?arra
         $weaponName = $weapon['name'];
         $critChance = (int)$weapon['crit_chance'];
 
+        // Forge : +10% dégâts par niveau d'amélioration d'arme
+        $upgrade = (int)($weapon['upgrade_level'] ?? 0);
+        if ($upgrade > 0) {
+            $damage = (int)floor($damage * (1 + 0.10 * $upgrade));
+        }
+
         if ($s = has_skill($att, 'dmg_bonus_pct')) {
             $damage = (int)floor($damage * (1 + $s['effect_value'] / 100));
         }
@@ -384,6 +412,10 @@ function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?arra
     if ($def['role'] === 'master') {
         if ($s = has_skill($def, 'armor_flat')) {
             $damage = max(1, $damage - (int)$s['effect_value']);
+        }
+        // Forge : armure équipée (somme des damage_reduction)
+        if (!empty($def['armor_reduction'])) {
+            $damage = max(1, $damage - (int)$def['armor_reduction']);
         }
         foreach ($def['weapons'] as $w) {
             if (strtolower($w['name']) === 'bouclier') {

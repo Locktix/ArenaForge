@@ -48,6 +48,7 @@ $csrf = csrf_token();
         <p>Compte de démo : <code>demo@arenaforge.local</code> / <code>demodemo</code></p>
     </footer>
 </main>
+<script src="/ArenaForge/assets/js/sfx.js" defer></script>
 <script src="/ArenaForge/assets/js/auth.js"></script>
 </body>
 </html>

@@ -311,6 +311,10 @@ function assign_tournament_placement(PDO $pdo, int $tournamentId, int $bruteId, 
             bonus_fights_available = bonus_fights_available + ?
         WHERE id = ?
     ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bonusFights, $bruteId]);
+
+    // Achievements de tournoi (participation + victoires)
+    require_once __DIR__ . '/achievement_engine.php';
+    check_achievements_tournament($bruteId, $placement);
 }
 
 // ============================================================

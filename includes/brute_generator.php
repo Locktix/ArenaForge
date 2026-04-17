@@ -82,6 +82,13 @@ function create_brute(int $userId, string $name, ?int $masterId = null): int
         }
 
         $pdo->commit();
+
+        // Trophée pupille pour le maître (hors transaction pour ne pas bloquer)
+        if ($masterId !== null) {
+            require_once __DIR__ . '/achievement_engine.php';
+            check_achievements_pupils($masterId);
+        }
+
         return $bruteId;
     } catch (Throwable $e) {
         $pdo->rollBack();

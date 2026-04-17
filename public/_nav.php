@@ -20,6 +20,15 @@ $navBrute = current_brute();
             <li><a href="/ArenaForge/public/quests.php">
                 <img src="/ArenaForge/assets/svg/ui/scroll.svg" alt=""> Quêtes
             </a></li>
+            <li><a href="/ArenaForge/public/achievements.php">
+                <img src="/ArenaForge/assets/svg/ui/trophy.svg" alt=""> Trophées
+            </a></li>
+            <li><a href="/ArenaForge/public/forge.php">
+                <img src="/ArenaForge/assets/svg/weapons/axe.svg" alt=""> Forge
+            </a></li>
+            <li><a href="/ArenaForge/public/clans.php">
+                <img src="/ArenaForge/assets/svg/ui/nav_pupils.svg" alt=""> Clans
+            </a></li>
         <?php endif; ?>
         <li><a href="/ArenaForge/public/ranking.php">
             <img src="/ArenaForge/assets/svg/ui/nav_ranking.svg" alt=""> Classement
@@ -34,3 +43,5 @@ $navBrute = current_brute();
         </a></li>
     </ul>
 </nav>
+<script src="/ArenaForge/assets/js/sfx.js" defer></script>
+<script src="/ArenaForge/assets/js/toast.js" defer></script>
