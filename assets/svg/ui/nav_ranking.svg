@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Classement">
+  <g fill="#d4a355" stroke="#1a1410" stroke-width="1">
+    <rect x="3"  y="12" width="5" height="8"/>
+    <rect x="9.5" y="6" width="5" height="14"/>
+    <rect x="16" y="9" width="5" height="11"/>
+    <polygon points="12,2 13,5 16,5 13.5,7 14.5,10 12,8 9.5,10 10.5,7 8,5 11,5"/>
+  </g>
+</svg>

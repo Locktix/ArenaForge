@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-label="ArenaForge">
+  <defs>
+    <linearGradient id="g-gold" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f0c170"/>
+      <stop offset="1" stop-color="#a07228"/>
+    </linearGradient>
+    <linearGradient id="g-blade" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#e8e3d4"/>
+      <stop offset="1" stop-color="#8b8170"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Enclume -->
+  <g transform="translate(10,20)">
+    <path d="M10 60 L90 60 L82 74 L18 74 Z" fill="#3d2e20" stroke="#1a1410" stroke-width="2"/>
+    <rect x="30" y="38" width="40" height="22" fill="#4a3420" stroke="#1a1410" stroke-width="2"/>
+    <path d="M4 20 Q20 22 36 38 L64 38 Q80 22 96 20 L96 30 Q78 32 68 46 L32 46 Q22 32 4 30 Z" fill="#5e4226" stroke="#1a1410" stroke-width="2"/>
+    <!-- Epée plantée -->
+    <g transform="translate(50,-6) rotate(15)">
+      <rect x="-3" y="0" width="6" height="50" fill="url(#g-blade)" stroke="#1a1410" stroke-width="1.5"/>
+      <polygon points="0,-10 4,0 -4,0" fill="url(#g-blade)" stroke="#1a1410" stroke-width="1.5"/>
+      <rect x="-10" y="50" width="20" height="4" fill="url(#g-gold)" stroke="#1a1410" stroke-width="1.5"/>
+      <rect x="-3" y="54" width="6" height="10" fill="#6b4a2e" stroke="#1a1410" stroke-width="1.5"/>
+      <circle cx="0" cy="66" r="3" fill="url(#g-gold)" stroke="#1a1410" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- Texte -->
+  <g font-family="Georgia, serif" font-weight="bold">
+    <text x="125" y="70" font-size="46" fill="url(#g-gold)" stroke="#2a1a10" stroke-width="1.2">ArenaForge</text>
+    <text x="127" y="92" font-size="12" fill="#c2a46a" letter-spacing="6">FORGE · FIGHT · RISE</text>
+  </g>
+</svg>

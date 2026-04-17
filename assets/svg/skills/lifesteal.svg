@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Vol de vie">
+  <circle cx="24" cy="24" r="22" fill="#3d2e20" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Cœur -->
+  <path d="M24 38 C12 30 10 18 18 14 C22 12 24 16 24 18 C24 16 26 12 30 14 C38 18 36 30 24 38 Z" fill="#c02a1e" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Goutte dégoulinante -->
+  <path d="M24 36 Q22 42 24 46 Q26 42 24 36 Z" fill="#c02a1e" stroke="#1a1410" stroke-width="1"/>
+  <!-- Croc -->
+  <polygon points="20,22 22,28 24,22" fill="#efe3d0" stroke="#1a1410" stroke-width="1"/>
+  <polygon points="28,22 26,28 24,22" fill="#efe3d0" stroke="#1a1410" stroke-width="1"/>
+</svg>

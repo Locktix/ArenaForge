@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Masse">
+  <rect x="30" y="20" width="4" height="38" fill="#6b4a2e" stroke="#1a1410" stroke-width="1.5"/>
+  <circle cx="32" cy="18" r="14" fill="#7a7468" stroke="#1a1410" stroke-width="1.5"/>
+  <circle cx="22" cy="12" r="3" fill="#c2c0b0" stroke="#1a1410" stroke-width="1.2"/>
+  <circle cx="42" cy="12" r="3" fill="#c2c0b0" stroke="#1a1410" stroke-width="1.2"/>
+  <circle cx="32" cy="6"  r="3" fill="#c2c0b0" stroke="#1a1410" stroke-width="1.2"/>
+  <circle cx="22" cy="24" r="3" fill="#c2c0b0" stroke="#1a1410" stroke-width="1.2"/>
+  <circle cx="42" cy="24" r="3" fill="#c2c0b0" stroke="#1a1410" stroke-width="1.2"/>
+  <circle cx="32" cy="60" r="3" fill="#d4a355" stroke="#1a1410" stroke-width="1.5"/>
+</svg>

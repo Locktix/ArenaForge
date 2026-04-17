@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Armure">
+  <circle cx="24" cy="24" r="22" fill="#3d2e20" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Plastron -->
+  <path d="M16 12 Q24 10 32 12 L34 18 L32 28 Q24 34 16 28 L14 18 Z" fill="#7a7468" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Rivets -->
+  <circle cx="20" cy="18" r="1.2" fill="#d4a355"/>
+  <circle cx="28" cy="18" r="1.2" fill="#d4a355"/>
+  <circle cx="20" cy="26" r="1.2" fill="#d4a355"/>
+  <circle cx="28" cy="26" r="1.2" fill="#d4a355"/>
+  <!-- Barre centrale -->
+  <rect x="23" y="14" width="2" height="16" fill="#d4a355"/>
+</svg>

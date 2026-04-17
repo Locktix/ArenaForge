@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Poings nus">
+  <g fill="#d89c77" stroke="#1a1410" stroke-width="1.5">
+    <!-- Avant-bras -->
+    <rect x="4"  y="28" width="22" height="14" rx="4"/>
+    <rect x="38" y="28" width="22" height="14" rx="4"/>
+    <!-- Poings -->
+    <circle cx="24" cy="35" r="10"/>
+    <circle cx="40" cy="35" r="10"/>
+    <!-- Détails jointures -->
+    <path d="M17 31 L19 31 M22 30 L22 32 M27 30 L27 32 M31 31 L33 31" stroke-width="1"/>
+    <path d="M33 31 L35 31 M38 30 L38 32 M43 30 L43 32 M47 31 L49 31" stroke-width="1"/>
+  </g>
+  <!-- Bandage -->
+  <rect x="4"  y="34" width="22" height="3" fill="#efe3d0" stroke="#1a1410" stroke-width="1"/>
+  <rect x="38" y="34" width="22" height="3" fill="#efe3d0" stroke="#1a1410" stroke-width="1"/>
+</svg>

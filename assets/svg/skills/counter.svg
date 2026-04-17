@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Contre-attaque">
+  <circle cx="24" cy="24" r="22" fill="#3d2e20" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Épées croisées -->
+  <g stroke="#1a1410" stroke-width="1.2">
+    <line x1="10" y1="10" x2="38" y2="38" stroke="#e8e3d4" stroke-width="4"/>
+    <line x1="38" y1="10" x2="10" y2="38" stroke="#e8e3d4" stroke-width="4"/>
+    <circle cx="24" cy="24" r="3" fill="#d4a355"/>
+  </g>
+  <polygon points="38,10 36,14 42,14" fill="#e8e3d4" stroke="#1a1410" stroke-width="1"/>
+  <polygon points="10,10 8,14 14,14" fill="#e8e3d4" stroke="#1a1410" stroke-width="1"/>
+</svg>

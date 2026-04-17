@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 20" role="img" aria-label="Barre de vie">
+  <defs>
+    <linearGradient id="hp-fill" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#e65040"/>
+      <stop offset="1" stop-color="#c02a1e"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="20" rx="10" fill="#241b14" stroke="#6b4a2e" stroke-width="2"/>
+  <rect x="2" y="2" width="150" height="16" rx="8" fill="url(#hp-fill)"/>
+</svg>

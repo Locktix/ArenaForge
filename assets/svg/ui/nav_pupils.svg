@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Pupilles">
+  <g fill="#d4a355" stroke="#1a1410" stroke-width="1">
+    <circle cx="8"  cy="8"  r="3"/>
+    <circle cx="16" cy="8"  r="3"/>
+    <path d="M2 20 Q2 14 8 14 Q14 14 14 20 Z"/>
+    <path d="M10 20 Q10 14 16 14 Q22 14 22 20 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Coup critique">
+  <circle cx="24" cy="24" r="22" fill="#3d2e20" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Éclair -->
+  <polygon points="28,6 14,26 22,26 18,42 34,22 26,22 30,6" fill="#f0c170" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Étoiles -->
+  <circle cx="10" cy="14" r="1.5" fill="#f0c170"/>
+  <circle cx="40" cy="34" r="1.5" fill="#f0c170"/>
+  <circle cx="38" cy="12" r="1"   fill="#f0c170"/>
+</svg>

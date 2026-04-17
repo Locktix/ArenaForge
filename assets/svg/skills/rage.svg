@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Rage">
+  <circle cx="24" cy="24" r="22" fill="#3d2e20" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Flammes -->
+  <path d="M24 6 Q28 14 26 20 Q32 18 32 26 Q36 24 34 32 Q38 30 36 38 Q28 44 20 40 Q14 34 16 26 Q18 20 22 18 Q20 12 24 6 Z" fill="#d6431e" stroke="#1a1410" stroke-width="1.5"/>
+  <path d="M24 18 Q28 24 26 30 Q24 34 22 30 Q20 24 24 18 Z" fill="#f0c170"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" role="img" aria-label="Sol">
+  <defs>
+    <linearGradient id="sand2" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#c2853d"/>
+      <stop offset="1" stop-color="#6a3e22"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="80" fill="url(#sand2)"/>
+  <g fill="#4a2a10" opacity="0.4">
+    <circle cx="20"  cy="30" r="2"/>
+    <circle cx="80"  cy="60" r="2.5"/>
+    <circle cx="140" cy="20" r="2"/>
+    <circle cx="200" cy="50" r="3"/>
+    <circle cx="260" cy="30" r="2"/>
+    <circle cx="320" cy="60" r="2.5"/>
+    <circle cx="380" cy="20" r="2"/>
+  </g>
+</svg>

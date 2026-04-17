@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 340" role="img" aria-label="Cadre gladiateur">
+  <defs>
+    <linearGradient id="frame" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#3d2e20"/>
+      <stop offset="1" stop-color="#2f241a"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="232" height="332" rx="12" fill="url(#frame)" stroke="#6b4a2e" stroke-width="4"/>
+  <rect x="16" y="16" width="208" height="308" rx="8" fill="none" stroke="#d4a355" stroke-width="1.5"/>
+  <!-- Cornières -->
+  <g fill="#d4a355" stroke="#1a1410" stroke-width="1">
+    <polygon points="4,4 28,4 4,28"/>
+    <polygon points="236,4 212,4 236,28"/>
+    <polygon points="4,336 28,336 4,312"/>
+    <polygon points="236,336 212,336 236,312"/>
+  </g>
+</svg>

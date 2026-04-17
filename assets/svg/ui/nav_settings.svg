@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="Paramètres">
+  <g fill="#d4a355" stroke="#1a1410" stroke-width="1">
+    <path d="M12 2 L13.5 5 L17 4.5 L16.5 8 L19.5 10 L17 12.5 L19.5 14 L16.5 16 L17 19.5 L13.5 19 L12 22 L10.5 19 L7 19.5 L7.5 16 L4.5 14 L7 12.5 L4.5 10 L7.5 8 L7 4.5 L10.5 5 Z"/>
+    <circle cx="12" cy="12" r="3" fill="#2f241a"/>
+  </g>
+</svg>

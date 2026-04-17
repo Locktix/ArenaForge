@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 56" role="img" aria-label="Bouton">
+  <defs>
+    <linearGradient id="btn" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#c2391e"/>
+      <stop offset="1" stop-color="#9e2a1f"/>
+    </linearGradient>
+    <linearGradient id="btn-hover" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#e14a2a"/>
+      <stop offset="1" stop-color="#b8331f"/>
+    </linearGradient>
+  </defs>
+  <!-- Version normale -->
+  <g>
+    <rect x="2" y="2" width="196" height="52" rx="8" fill="url(#btn)" stroke="#6c1810" stroke-width="2"/>
+    <text x="100" y="34" text-anchor="middle" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#fff">COMBATTRE</text>
+  </g>
+</svg>

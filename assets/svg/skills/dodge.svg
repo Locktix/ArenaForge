@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Esquive">
+  <circle cx="24" cy="24" r="22" fill="#3d2e20" stroke="#1a1410" stroke-width="1.5"/>
+  <!-- Silhouette en mouvement -->
+  <g fill="#efe3d0" stroke="#1a1410" stroke-width="1.2">
+    <circle cx="18" cy="14" r="3"/>
+    <path d="M12 20 Q18 18 22 22 L28 30 L26 36 L20 34 L18 28 L12 26 Z"/>
+  </g>
+  <!-- Traînées de vitesse -->
+  <path d="M32 16 L40 14 M32 22 L42 22 M30 28 L38 30" stroke="#d4a355" stroke-width="2" stroke-linecap="round"/>
+</svg>
