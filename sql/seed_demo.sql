@@ -2,8 +2,10 @@
 -- Compte de démo + adversaires IA pour peupler l'arène
 -- Mot de passe "demodemo" (hash bcrypt pré-calculé)
 -- ============================================================
--- À importer APRÈS schema.sql, dans la même BDD sélectionnée.
+-- À importer APRÈS schema.sql.
 -- ============================================================
+
+USE arenaforge;
 
 -- Compte de démo
 INSERT INTO users (email, password_hash)

@@ -1,10 +1,14 @@
 -- ============================================================
--- ArenaForge - Schéma de base de données
+-- ArenaForge - Schéma de base de données (XAMPP local)
 -- ============================================================
--- Avant d'importer : sélectionnez d'abord votre base dans phpMyAdmin
--- (XAMPP local : créez 'arenaforge' ; o2switch : utilisez la BDD créée
---  dans cPanel, ex. 'brad9608_ArenaForge'). Puis import → ce fichier.
+-- Import direct via phpMyAdmin : la base 'arenaforge' est créée
+-- et sélectionnée automatiquement par ce script.
 -- ============================================================
+
+CREATE DATABASE IF NOT EXISTS arenaforge
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+USE arenaforge;
 
 -- ============================================================
 -- Nettoyage (pour réinstallation propre)

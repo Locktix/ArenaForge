@@ -15,31 +15,13 @@ Jeu navigateur 1v1 automatisé — inspiré de *La Brute*. Forge ton gladiateur,
 
 2. **Démarrer XAMPP** : lancer Apache et MySQL depuis le panneau de contrôle.
 
-3. **Créer la base de données** :
-   - Ouvrir phpMyAdmin : http://localhost/phpmyadmin
-   - Créer une BDD nommée `arenaforge` (utf8mb4_unicode_ci) et **la sélectionner dans la sidebar**
-   - Onglet **Importer** → sélectionner [sql/schema.sql](sql/schema.sql) → **Exécuter**
-   - (Optionnel) Importer [sql/seed_demo.sql](sql/seed_demo.sql) pour créer le compte de démo et quelques adversaires IA
+3. **Importer la base** : ouvrir phpMyAdmin (http://localhost/phpmyadmin) → onglet **Importer** → sélectionner [sql/schema.sql](sql/schema.sql) → **Exécuter**. Le script crée automatiquement la base `arenaforge` et toutes les tables.
 
-4. **Configurer la connexion** : éditer [includes/db.php](includes/db.php). Pour XAMPP par défaut : `DB_USER = 'root'`, `DB_PASS = ''`, `DB_NAME = 'arenaforge'`.
+4. **Charger les données de démo** (optionnel) : sélectionner la base `arenaforge` dans la sidebar, puis importer [sql/seed_demo.sql](sql/seed_demo.sql) pour créer le compte de démo et quelques adversaires IA.
 
-<<<<<<< HEAD
-5. **Accéder au jeu** : http://localhost/ArenaForge/
-
-## Déploiement sur hébergement mutualisé (o2switch, etc.)
-
-Tous les chemins sont relatifs et l'`index.php` est à la racine — le projet se déploie tel quel :
-
-1. Uploader le contenu du dossier dans `public_html/` (racine web) via FTP / cPanel.
-2. Créer la BDD MySQL dans cPanel (nom typique o2switch : `<prefix>_ArenaForge`, ex. `brad9608_ArenaForge`) et un utilisateur associé avec tous les privilèges.
-3. Dans phpMyAdmin (via cPanel), **sélectionner la BDD créée dans la sidebar**, puis import de `sql/schema.sql`, puis de `sql/seed_demo.sql`.
-4. Éditer `includes/db.php` : renseigner `DB_HOST = 'localhost'`, `DB_PORT = 3306`, `DB_NAME`, `DB_USER`, `DB_PASS` avec les infos fournies par cPanel.
-5. Accéder à `https://votre-domaine.tld/`.
-
-Le jeu fonctionne aussi dans un sous-dossier (`public_html/jeu/`) sans modification — les chemins relatifs s'adaptent.
-=======
 5. **Accéder au jeu** : http://localhost/ArenaForge/public/
->>>>>>> parent of ae4573b (Relocate public pages and switch to relative paths)
+
+La connexion MySQL utilise les valeurs par défaut de XAMPP (`root` sans mot de passe, base `arenaforge`). Pour modifier : [includes/db.php](includes/db.php).
 
 ## Compte de démonstration
 
