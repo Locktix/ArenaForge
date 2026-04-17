@@ -17,10 +17,11 @@ Jeu navigateur 1v1 automatisé — inspiré de *La Brute*. Forge ton gladiateur,
 
 3. **Créer la base de données** :
    - Ouvrir phpMyAdmin : http://localhost/phpmyadmin
+   - Créer une BDD nommée `arenaforge` (utf8mb4_unicode_ci) et **la sélectionner dans la sidebar**
    - Onglet **Importer** → sélectionner [sql/schema.sql](sql/schema.sql) → **Exécuter**
    - (Optionnel) Importer [sql/seed_demo.sql](sql/seed_demo.sql) pour créer le compte de démo et des adversaires IA
 
-4. **Configurer la connexion** : par défaut, [includes/db.php](includes/db.php) se connecte en `root` sans mot de passe (configuration XAMPP standard). Modifier si besoin.
+4. **Configurer la connexion** : éditer [includes/db.php](includes/db.php). Pour XAMPP par défaut : `DB_USER = 'root'`, `DB_PASS = ''`, `DB_NAME = 'arenaforge'`.
 
 5. **Accéder au jeu** : http://localhost/ArenaForge/
 
@@ -29,9 +30,10 @@ Jeu navigateur 1v1 automatisé — inspiré de *La Brute*. Forge ton gladiateur,
 Tous les chemins sont relatifs et l'`index.php` est à la racine — le projet se déploie tel quel :
 
 1. Uploader le contenu du dossier dans `public_html/` (racine web) via FTP / cPanel.
-2. Créer une BDD MySQL via cPanel, importer `sql/schema.sql` puis `sql/seed_demo.sql`.
-3. Éditer `includes/db.php` avec les identifiants fournis par l'hébergeur.
-4. Accéder à `https://votre-domaine.tld/`.
+2. Créer la BDD MySQL dans cPanel (nom typique o2switch : `<prefix>_ArenaForge`, ex. `brad9608_ArenaForge`) et un utilisateur associé avec tous les privilèges.
+3. Dans phpMyAdmin (via cPanel), **sélectionner la BDD créée dans la sidebar**, puis import de `sql/schema.sql`, puis de `sql/seed_demo.sql`.
+4. Éditer `includes/db.php` : renseigner `DB_HOST = 'localhost'`, `DB_PORT = 3306`, `DB_NAME`, `DB_USER`, `DB_PASS` avec les infos fournies par cPanel.
+5. Accéder à `https://votre-domaine.tld/`.
 
 Le jeu fonctionne aussi dans un sous-dossier (`public_html/jeu/`) sans modification — les chemins relatifs s'adaptent.
 

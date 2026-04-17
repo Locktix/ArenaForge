@@ -20,7 +20,8 @@
       "Bash(mv public/_nav.php .)",
       "Bash(mv public/brute.php .)",
       "Bash(mv public/dashboard.php .)",
-      "Bash(mv public/fight.php .)"
+      "Bash(mv public/fight.php .)",
+      "Bash(/c/xampp/php/php.exe -l c:/xampp/htdocs/ArenaForge/includes/db.php)"
     ]
   }
 }
