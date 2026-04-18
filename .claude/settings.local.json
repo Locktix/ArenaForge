@@ -17,7 +17,9 @@
       "Bash(/c/xampp/php/php.exe -l public/forge.php)",
       "Bash(/c/xampp/php/php.exe -l public/tournament.php)",
       "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' -b cookies.txt http://localhost/ArenaForge/public/__TRACKED_VAR__)",
-      "Bash(curl -s -o /dev/null -w \"forge: %{http_code}\\\\n\" -b /tmp/cookies.txt http://localhost/ArenaForge/public/forge.php)"
+      "Bash(curl -s -o /dev/null -w \"forge: %{http_code}\\\\n\" -b /tmp/cookies.txt http://localhost/ArenaForge/public/forge.php)",
+      "Bash(curl -s -b cookies.txt \"http://localhost/ArenaForge/public/brute.php?id=1\")",
+      "Bash(/c/xampp/php/php.exe -l includes/tutorial.php)"
     ]
   }
 }

@@ -38,6 +38,9 @@ $navBrute = current_brute();
                 <img src="/ArenaForge/assets/svg/ui/nav_pupils.svg" alt=""> Pupilles
             </a></li>
         <?php endif; ?>
+        <li><a href="#" class="nav-help" title="Relancer le tutoriel" onclick="event.preventDefault(); if (window.arenaforgeTutorial) window.arenaforgeTutorial.restart();">
+            <span aria-hidden="true">?</span> Aide
+        </a></li>
         <li><a href="/ArenaForge/public/logout.php">
             <img src="/ArenaForge/assets/svg/ui/nav_settings.svg" alt=""> Déconnexion
         </a></li>
@@ -45,3 +48,4 @@ $navBrute = current_brute();
 </nav>
 <script src="/ArenaForge/assets/js/sfx.js" defer></script>
 <script src="/ArenaForge/assets/js/toast.js" defer></script>
+<?php include __DIR__ . '/_tutorial.php'; ?>
