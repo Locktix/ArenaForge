@@ -17,4 +17,4 @@ if ($tutorialUser !== null) {
 window.TUTORIAL = <?= json_encode($tutorialStep, JSON_UNESCAPED_UNICODE) ?>;
 window.TUTORIAL_CSRF = <?= json_encode(csrf_token()) ?>;
 </script>
-<script src="/ArenaForge/assets/js/tutorial.js" defer></script>
+<script src="../assets/js/tutorial.js" defer></script>

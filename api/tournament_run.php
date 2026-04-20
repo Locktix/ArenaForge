@@ -51,5 +51,5 @@ if (!$res['ok']) {
 echo json_encode([
     'ok'        => true,
     'winner_id' => $res['winner_id'],
-    'redirect'  => '/ArenaForge/public/tournament.php',
+    'redirect'  => 'tournament.php',
 ]);

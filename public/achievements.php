@@ -30,15 +30,15 @@ $CATEGORY_LABELS = [
 <meta charset="utf-8">
 <title>Trophées – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
+<link rel="icon" href="../assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>
 
 <main class="wrap">
     <section class="card">
-        <h1><img src="/ArenaForge/assets/svg/quests/trophy.svg" alt="" class="inline-icon"> Trophées</h1>
+        <h1><img src="../assets/svg/quests/trophy.svg" alt="" class="inline-icon"> Trophées</h1>
         <p class="muted">
             Objectifs permanents qui récompensent les faits d'armes marquants de ta carrière.
             Chaque trophée débloqué rapporte de l'XP bonus immédiatement.
@@ -53,12 +53,12 @@ $CATEGORY_LABELS = [
     <?php foreach ($CATEGORY_LABELS as $catKey => [$catLabel, $catIcon]): ?>
         <?php if (empty($grouped[$catKey])) continue; ?>
         <section class="card">
-            <h2><img src="/ArenaForge/<?= h($catIcon) ?>" alt="" class="inline-icon"> <?= h($catLabel) ?></h2>
+            <h2><img src="../<?= h($catIcon) ?>" alt="" class="inline-icon"> <?= h($catLabel) ?></h2>
             <div class="achievement-grid">
                 <?php foreach ($grouped[$catKey] as $a): ?>
                     <?php $unlocked = !empty($a['unlocked_at']); ?>
                     <div class="achievement <?= $unlocked ? 'achievement-unlocked' : 'achievement-locked' ?>">
-                        <img class="achievement-icon" src="/ArenaForge/<?= h($a['icon_path']) ?>" alt="">
+                        <img class="achievement-icon" src="../<?= h($a['icon_path']) ?>" alt="">
                         <div class="achievement-body">
                             <strong><?= h($a['title']) ?></strong>
                             <p><?= h($a['description']) ?></p>

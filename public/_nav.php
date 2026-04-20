@@ -6,46 +6,46 @@ if (!function_exists('current_user_id')) {
 $navBrute = current_brute();
 ?>
 <nav class="topnav">
-    <a class="brand" href="/ArenaForge/public/dashboard.php">
-        <img src="/ArenaForge/assets/svg/logo/logo.svg" alt="ArenaForge" class="brand-logo">
+    <a class="brand" href="dashboard.php">
+        <img src="../assets/svg/logo/logo.svg" alt="ArenaForge" class="brand-logo">
     </a>
     <ul class="nav-links">
         <?php if ($navBrute): ?>
-            <li><a href="/ArenaForge/public/brute.php?id=<?= (int)$navBrute['id'] ?>">
-                <img src="/ArenaForge/assets/svg/ui/nav_fight.svg" alt=""> Combat
+            <li><a href="brute.php?id=<?= (int)$navBrute['id'] ?>">
+                <img src="../assets/svg/ui/nav_fight.svg" alt=""> Combat
             </a></li>
-            <li><a href="/ArenaForge/public/tournament.php">
-                <img src="/ArenaForge/assets/svg/ui/trophy.svg" alt=""> Tournoi
+            <li><a href="tournament.php">
+                <img src="../assets/svg/ui/trophy.svg" alt=""> Tournoi
             </a></li>
-            <li><a href="/ArenaForge/public/quests.php">
-                <img src="/ArenaForge/assets/svg/ui/scroll.svg" alt=""> Quêtes
+            <li><a href="quests.php">
+                <img src="../assets/svg/ui/scroll.svg" alt=""> Quêtes
             </a></li>
-            <li><a href="/ArenaForge/public/achievements.php">
-                <img src="/ArenaForge/assets/svg/ui/trophy.svg" alt=""> Trophées
+            <li><a href="achievements.php">
+                <img src="../assets/svg/ui/trophy.svg" alt=""> Trophées
             </a></li>
-            <li><a href="/ArenaForge/public/forge.php">
-                <img src="/ArenaForge/assets/svg/weapons/axe.svg" alt=""> Forge
+            <li><a href="forge.php">
+                <img src="../assets/svg/weapons/axe.svg" alt=""> Forge
             </a></li>
-            <li><a href="/ArenaForge/public/clans.php">
-                <img src="/ArenaForge/assets/svg/ui/nav_pupils.svg" alt=""> Clans
+            <li><a href="clans.php">
+                <img src="../assets/svg/ui/nav_pupils.svg" alt=""> Clans
             </a></li>
         <?php endif; ?>
-        <li><a href="/ArenaForge/public/ranking.php">
-            <img src="/ArenaForge/assets/svg/ui/nav_ranking.svg" alt=""> Classement
+        <li><a href="ranking.php">
+            <img src="../assets/svg/ui/nav_ranking.svg" alt=""> Classement
         </a></li>
         <?php if ($navBrute): ?>
-            <li><a href="/ArenaForge/public/pupils.php">
-                <img src="/ArenaForge/assets/svg/ui/nav_pupils.svg" alt=""> Pupilles
+            <li><a href="pupils.php">
+                <img src="../assets/svg/ui/nav_pupils.svg" alt=""> Pupilles
             </a></li>
         <?php endif; ?>
         <li><a href="#" class="nav-help" title="Relancer le tutoriel" onclick="event.preventDefault(); if (window.arenaforgeTutorial) window.arenaforgeTutorial.restart();">
             <span aria-hidden="true">?</span> Aide
         </a></li>
-        <li><a href="/ArenaForge/public/logout.php">
-            <img src="/ArenaForge/assets/svg/ui/nav_settings.svg" alt=""> Déconnexion
+        <li><a href="logout.php">
+            <img src="../assets/svg/ui/nav_settings.svg" alt=""> Déconnexion
         </a></li>
     </ul>
 </nav>
-<script src="/ArenaForge/assets/js/sfx.js" defer></script>
-<script src="/ArenaForge/assets/js/toast.js" defer></script>
+<script src="../assets/js/sfx.js" defer></script>
+<script src="../assets/js/toast.js" defer></script>
 <?php include __DIR__ . '/_tutorial.php'; ?>

@@ -22,8 +22,8 @@ $armors   = get_armors_for_brute($bruteId);
 <meta charset="utf-8">
 <title>Forge – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
+<link rel="icon" href="../assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>
@@ -31,7 +31,7 @@ $armors   = get_armors_for_brute($bruteId);
 <main class="wrap">
     <section class="card">
         <div class="forge-header">
-            <h1><img src="/ArenaForge/assets/svg/weapons/axe.svg" alt="" class="inline-icon"> Forge</h1>
+            <h1><img src="../assets/svg/weapons/axe.svg" alt="" class="inline-icon"> Forge</h1>
             <div class="fragment-count">
                 <span class="frag-icon">◆</span>
                 <span class="frag-value" data-fragments><?= $fragments ?></span>
@@ -55,7 +55,7 @@ $armors   = get_armors_for_brute($bruteId);
                     $max  = $lvl >= FORGE_WEAPON_MAX_UPGRADE;
                 ?>
                 <div class="forge-item">
-                    <img class="forge-icon" src="/ArenaForge/<?= h($w['icon_path']) ?>" alt="">
+                    <img class="forge-icon" src="../<?= h($w['icon_path']) ?>" alt="">
                     <div class="forge-body">
                         <strong><?= h($w['name']) ?></strong>
                         <p class="muted small">
@@ -102,7 +102,7 @@ $armors   = get_armors_for_brute($bruteId);
                 $tierRoman = ['I', 'II', 'III'][$tier - 1] ?? (string)$tier;
             ?>
                 <div class="forge-item armor-tier-<?= $tier ?> <?= $equipped ? 'armor-equipped' : '' ?>">
-                    <img class="forge-icon" src="/ArenaForge/<?= h($a['icon_path']) ?>" alt="">
+                    <img class="forge-icon" src="../<?= h($a['icon_path']) ?>" alt="">
                     <div class="forge-body">
                         <strong><?= h($a['name']) ?></strong>
                         <div class="armor-meta">
@@ -142,6 +142,6 @@ $armors   = get_armors_for_brute($bruteId);
     </section>
 </main>
 
-<script src="/ArenaForge/assets/js/forge.js"></script>
+<script src="../assets/js/forge.js"></script>
 </body>
 </html>

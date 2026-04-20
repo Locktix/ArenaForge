@@ -35,7 +35,7 @@ switch ($action) {
 
     case 'restart':
         tutorial_restart($uid);
-        echo json_encode(['ok' => true, 'redirect' => '/ArenaForge/public/dashboard.php']);
+        echo json_encode(['ok' => true, 'redirect' => 'dashboard.php']);
         break;
 
     default:

@@ -43,7 +43,7 @@ switch ($action) {
         );
         if ($res['ok']) {
             $res['achievements'] = check_achievements_clan($bruteId, true);
-            $res['redirect'] = '/ArenaForge/public/clan.php?id=' . $res['clan_id'];
+            $res['redirect'] = 'clan.php?id=' . $res['clan_id'];
         }
         break;
 
@@ -51,13 +51,13 @@ switch ($action) {
         $clanId = (int)($_POST['clan_id'] ?? 0);
         $res = join_clan($bruteId, $clanId);
         if ($res['ok']) {
-            $res['redirect'] = '/ArenaForge/public/clan.php?id=' . $clanId;
+            $res['redirect'] = 'clan.php?id=' . $clanId;
         }
         break;
 
     case 'leave':
         $res = leave_clan($bruteId);
-        if ($res['ok']) $res['redirect'] = '/ArenaForge/public/clans.php';
+        if ($res['ok']) $res['redirect'] = 'clans.php';
         break;
 
     case 'kick':

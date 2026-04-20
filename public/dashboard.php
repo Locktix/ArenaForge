@@ -19,8 +19,8 @@ $prefilledMaster = (string)($_GET['master'] ?? '');
 <meta charset="utf-8">
 <title>Forge ton gladiateur – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
+<link rel="icon" href="../assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>
@@ -40,6 +40,6 @@ $prefilledMaster = (string)($_GET['master'] ?? '');
     </section>
 </main>
 
-<script src="/ArenaForge/assets/js/create.js"></script>
+<script src="../assets/js/create.js"></script>
 </body>
 </html>

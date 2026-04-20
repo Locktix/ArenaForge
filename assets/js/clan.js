@@ -26,7 +26,7 @@
         }
     }
 
-    const endpoints = '/ArenaForge/api/clan_action.php';
+    const endpoints = '../api/clan_action.php';
     const selectors = [
         '#clan-create-form',
         '.clan-join-form',

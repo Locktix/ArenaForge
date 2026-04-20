@@ -28,15 +28,15 @@ $clans = list_clans(50);
 <meta charset="utf-8">
 <title>Clans – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
+<link rel="icon" href="../assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>
 
 <main class="wrap">
     <section class="card">
-        <h1><img src="/ArenaForge/assets/svg/ui/trophy.svg" alt="" class="inline-icon"> Clans</h1>
+        <h1><img src="../assets/svg/ui/trophy.svg" alt="" class="inline-icon"> Clans</h1>
         <p class="muted">
             Rejoins un clan pour progresser en équipe. Le classement des clans est basé sur le MMR cumulé des membres.
             Créer un clan coûte <strong><?= CLAN_CREATE_XP_COST ?> XP</strong>.
@@ -103,6 +103,6 @@ $clans = list_clans(50);
     </section>
 </main>
 
-<script src="/ArenaForge/assets/js/clan.js"></script>
+<script src="../assets/js/clan.js"></script>
 </body>
 </html>

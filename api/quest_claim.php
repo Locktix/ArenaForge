@@ -44,5 +44,5 @@ echo json_encode([
     'ok'        => true,
     'reward_xp' => $res['reward_xp'],
     'level_up'  => $res['level_up'],
-    'redirect'  => '/ArenaForge/public/quests.php',
+    'redirect'  => 'quests.php',
 ]);

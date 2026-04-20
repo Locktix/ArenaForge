@@ -18,7 +18,9 @@ function require_login(): int
 {
     $uid = current_user_id();
     if ($uid === null) {
-        header('Location: /ArenaForge/public/index.php');
+        // appRoot dérivé dynamiquement du script courant → portable sans préfixe fixe
+        $appRoot = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\');
+        header('Location: ' . $appRoot . '/public/index.php');
         exit;
     }
     return $uid;

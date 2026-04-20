@@ -24,7 +24,7 @@
     document.querySelectorAll('.forge-upgrade-form').forEach((f) => {
         f.addEventListener('submit', (e) => {
             e.preventDefault();
-            postForm(f, '/ArenaForge/api/forge_upgrade.php', 'forge');
+            postForm(f, '../api/forge_upgrade.php', 'forge');
         });
     });
 
@@ -32,7 +32,7 @@
         f.addEventListener('submit', (e) => {
             e.preventDefault();
             const action = f.dataset.action || 'buy';
-            postForm(f, '/ArenaForge/api/forge_armor.php', action === 'buy' ? 'forge' : 'click');
+            postForm(f, '../api/forge_armor.php', action === 'buy' ? 'forge' : 'click');
         });
     });
 })();

@@ -2,10 +2,10 @@
 //
 // Lit window.TUTORIAL injecté par le serveur. Affiche l'overlay quand un step
 // est actif pour la page courante. Gère advance / skip / restart via
-// /ArenaForge/api/tutorial.php.
+// ../api/tutorial.php.
 
 (function () {
-    const ENDPOINT = '/ArenaForge/api/tutorial.php';
+    const ENDPOINT = '../api/tutorial.php';
     let mounted = false;
     let observer = null;
 

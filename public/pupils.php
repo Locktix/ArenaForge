@@ -21,7 +21,8 @@ $bonusPct      = min(100, (int)round($bonusProgress * 100 / PUPIL_BONUS_THRESHOL
 
 // URL de parrainage : permet à un nouveau joueur de s'inscrire comme pupille
 $hostBase   = 'http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
-$sponsorUrl = $hostBase . '/ArenaForge/public/dashboard.php?master=' . urlencode($brute['name']);
+$scriptDir  = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+$sponsorUrl = $hostBase . $scriptDir . '/dashboard.php?master=' . urlencode($brute['name']);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -29,15 +30,15 @@ $sponsorUrl = $hostBase . '/ArenaForge/public/dashboard.php?master=' . urlencode
 <meta charset="utf-8">
 <title>Pupilles – ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
+<link rel="icon" href="../assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <?php include __DIR__ . '/_nav.php'; ?>
 
 <main class="wrap">
     <section class="card">
-        <h1><img src="/ArenaForge/assets/svg/ui/nav_pupils.svg" alt="" class="inline-icon"> Lignée de <?= h($brute['name']) ?></h1>
+        <h1><img src="../assets/svg/ui/nav_pupils.svg" alt="" class="inline-icon"> Lignée de <?= h($brute['name']) ?></h1>
         <p class="muted">
             Chaque combat gagné ou perdu par un de vos pupilles vous rapporte 1 XP passif.
             Partagez votre lien de parrainage pour recruter des apprentis.

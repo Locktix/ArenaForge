@@ -47,7 +47,7 @@ try {
         exit;
     }
     $bruteId = create_brute($uid, $name, $masterId);
-    echo json_encode(['ok' => true, 'brute_id' => $bruteId, 'redirect' => '/ArenaForge/public/brute.php?id=' . $bruteId]);
+    echo json_encode(['ok' => true, 'brute_id' => $bruteId, 'redirect' => 'brute.php?id=' . $bruteId]);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Erreur lors de la création']);

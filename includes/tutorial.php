@@ -27,7 +27,7 @@ function tutorial_steps(): array
             'text'       => "Tu es sur le point de forger ton premier gladiateur et d'entrer dans l'arène. Je vais te montrer les bases en quelques étapes. Tu peux passer ce tutoriel à tout moment.",
             'position'   => 'center',
             'next_label' => "C'est parti",
-            'next_url'   => '/ArenaForge/public/dashboard.php',
+            'next_url'   => 'dashboard.php',
         ],
         [
             'code'       => 'create_brute',
@@ -110,7 +110,7 @@ function tutorial_steps(): array
             'title'      => 'Quêtes journalières',
             'text'       => "Trois défis aléatoires par jour. Ils progressent automatiquement au fil des combats. Une fois terminés, clique « Réclamer » pour empocher l'XP bonus (et parfois un combat bonus).",
             'position'   => 'top',
-            'next_url'   => '/ArenaForge/public/forge.php',
+            'next_url'   => 'forge.php',
         ],
         [
             'code'       => 'forge_intro',
@@ -119,7 +119,7 @@ function tutorial_steps(): array
             'title'      => 'La forge',
             'text'       => "Les fragments sont gagnés à chaque combat (3 en victoire, 1 en défaite). Utilise-les pour améliorer tes armes (+10 % dégâts par niveau, max 5) ou acheter des armures (PV bonus + réduction de dégâts).",
             'position'   => 'bottom',
-            'next_url'   => '/ArenaForge/public/achievements.php',
+            'next_url'   => 'achievements.php',
         ],
         [
             'code'       => 'achievements',
@@ -128,7 +128,7 @@ function tutorial_steps(): array
             'title'      => 'Trophées',
             'text'       => "Objectifs permanents qui couronnent tes faits d'armes. Chaque trophée débloqué donne de l'XP bonus immédiatement. Idéal pour les objectifs à long terme.",
             'position'   => 'bottom',
-            'next_url'   => '/ArenaForge/public/ranking.php',
+            'next_url'   => 'ranking.php',
         ],
         [
             'code'       => 'ranking',
@@ -137,7 +137,7 @@ function tutorial_steps(): array
             'title'      => 'Classement & MMR',
             'text'       => "Chaque victoire te fait monter en MMR, chaque défaite te fait chuter (selon l'écart avec l'adversaire). Les paliers Bronze → Légende reflètent ton niveau compétitif.",
             'position'   => 'top',
-            'next_url'   => '/ArenaForge/public/tournament.php',
+            'next_url'   => 'tournament.php',
         ],
         [
             'code'       => 'tournament',
@@ -146,7 +146,7 @@ function tutorial_steps(): array
             'title'      => 'Tournoi quotidien',
             'text'       => "Un bracket à élimination directe de 8 gladiateurs, renouvelé chaque jour. Champion = 20 XP + 3 combats bonus. Les combats de tournoi ne consomment pas tes 6 combats journaliers.",
             'position'   => 'bottom',
-            'next_url'   => '/ArenaForge/public/clans.php',
+            'next_url'   => 'clans.php',
         ],
         [
             'code'       => 'clans',

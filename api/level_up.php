@@ -91,7 +91,7 @@ try {
 
     echo json_encode([
         'ok'           => true,
-        'redirect'     => '/ArenaForge/public/brute.php?id=' . $bruteId,
+        'redirect'     => 'brute.php?id=' . $bruteId,
         'achievements' => $newAchievements,
     ]);
 } catch (Throwable $e) {

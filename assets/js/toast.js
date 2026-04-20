@@ -20,7 +20,7 @@
         const stack = ensureStack();
         const el = document.createElement('div');
         el.className = 'toast';
-        const iconUrl = item.icon_path ? '/ArenaForge/' + item.icon_path : '/ArenaForge/assets/svg/quests/trophy.svg';
+        const iconUrl = item.icon_path ? '../' + item.icon_path : '../assets/svg/quests/trophy.svg';
         el.innerHTML = `
             <img class="toast-icon" src="${escapeAttr(iconUrl)}" alt="">
             <div class="toast-body">

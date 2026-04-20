@@ -14,13 +14,13 @@ $csrf = csrf_token();
 <meta charset="utf-8">
 <title>ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="/ArenaForge/assets/svg/logo/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/ArenaForge/assets/css/main.css">
+<link rel="icon" href="../assets/svg/logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body class="landing">
 <main class="landing-wrap">
     <header class="landing-header">
-        <object data="/ArenaForge/assets/svg/logo/logo.svg" type="image/svg+xml" class="logo" aria-label="ArenaForge"></object>
+        <object data="../assets/svg/logo/logo.svg" type="image/svg+xml" class="logo" aria-label="ArenaForge"></object>
         <p class="tagline">Forge ton gladiateur, combats dans l'arène, domine le classement.</p>
     </header>
 
@@ -48,7 +48,7 @@ $csrf = csrf_token();
         <p>Compte de démo : <code>demo@arenaforge.local</code> / <code>demodemo</code></p>
     </footer>
 </main>
-<script src="/ArenaForge/assets/js/sfx.js" defer></script>
-<script src="/ArenaForge/assets/js/auth.js"></script>
+<script src="../assets/js/sfx.js" defer></script>
+<script src="../assets/js/auth.js"></script>
 </body>
 </html>
