@@ -59,9 +59,11 @@ $sponsorUrl = $hostBase . $scriptDir . '/dashboard.php?master=' . urlencode($bru
             </div>
         </div>
         <div class="sponsor-link">
-            <label>Votre lien de parrainage :
-                <input type="text" value="<?= h($sponsorUrl) ?>" readonly onclick="this.select();">
-            </label>
+            <label>Votre lien de parrainage</label>
+            <div class="sponsor-box">
+                <input type="text" id="sponsor-url" value="<?= h($sponsorUrl) ?>" readonly onclick="this.select();">
+                <button type="button" class="btn btn-secondary btn-copy" data-copy="#sponsor-url">📋 Copier</button>
+            </div>
         </div>
     </section>
 
@@ -88,8 +90,9 @@ $sponsorUrl = $hostBase . $scriptDir . '/dashboard.php?master=' . urlencode($bru
         <h2>Vos pupilles</h2>
         <?php if (empty($pupils)): ?>
             <p class="muted">Personne n'a encore rejoint votre lignée. Partagez ce lien pour recruter un apprenti :</p>
-            <div class="sponsor-link">
-                <input type="text" value="<?= h($sponsorUrl) ?>" readonly onclick="this.select();">
+            <div class="sponsor-box">
+                <input type="text" id="sponsor-url-empty" value="<?= h($sponsorUrl) ?>" readonly onclick="this.select();">
+                <button type="button" class="btn btn-secondary btn-copy" data-copy="#sponsor-url-empty">📋 Copier</button>
             </div>
         <?php else: ?>
             <ul class="pupil-tree">
@@ -117,5 +120,21 @@ $sponsorUrl = $hostBase . $scriptDir . '/dashboard.php?master=' . urlencode($bru
         <?php endif; ?>
     </section>
 </main>
+<script>
+document.querySelectorAll('.btn-copy').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        const target = document.querySelector(btn.dataset.copy);
+        if (!target) return;
+        target.select();
+        navigator.clipboard.writeText(target.value).then(() => {
+            const original = btn.textContent;
+            btn.textContent = '✓ Copié !';
+            setTimeout(() => { btn.textContent = original; }, 1500);
+        }).catch(() => {
+            document.execCommand('copy');
+        });
+    });
+});
+</script>
 </body>
 </html>

@@ -43,5 +43,5 @@ echo json_encode([
     'ok'        => true,
     'reward_xp' => $res['reward_xp'],
     'level_up'  => $res['level_up'],
-    'redirect'  => 'quests.php',
+    'redirect'  => 'quests.php?tab=weekly',
 ]);

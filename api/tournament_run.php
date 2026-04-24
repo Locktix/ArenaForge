@@ -60,5 +60,5 @@ if (!$res['ok']) {
 echo json_encode([
     'ok'        => true,
     'winner_id' => $res['winner_id'],
-    'redirect'  => 'tournament.php',
+    'redirect'  => 'tournament.php?tab=' . ($tournamentType === 'weekly' ? 'weekly' : 'daily'),
 ]);
