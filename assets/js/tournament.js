@@ -23,20 +23,18 @@ async function postForm(form, endpoint) {
     }
 }
 
-const joinForm = document.getElementById('tournament-join-form');
-if (joinForm) {
-    joinForm.addEventListener('submit', (e) => {
+document.querySelectorAll('.tournament-join-form').forEach((form) => {
+    form.addEventListener('submit', (e) => {
         e.preventDefault();
-        postForm(joinForm, '../api/tournament_join.php');
+        postForm(form, '../api/tournament_join.php');
     });
-}
+});
 
-const runForm = document.getElementById('tournament-run-form');
-if (runForm) {
-    runForm.addEventListener('submit', (e) => {
+document.querySelectorAll('.tournament-run-form').forEach((form) => {
+    form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const btn = runForm.querySelector('button');
+        const btn = form.querySelector('button');
         if (btn) { btn.disabled = true; btn.textContent = 'Résolution...'; }
-        postForm(runForm, '../api/tournament_run.php');
+        postForm(form, '../api/tournament_run.php');
     });
-}
+});

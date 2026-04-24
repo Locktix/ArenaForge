@@ -18,9 +18,18 @@ if (!csrf_check($_POST['csrf'] ?? null)) {
     exit;
 }
 
-$t = today_tournament();
+$tournamentType = (string)($_POST['tournament_type'] ?? 'daily');
+
+if ($tournamentType === 'weekly') {
+    $t = this_week_tournament();
+    $notFoundMsg = 'Aucun tournoi de la semaine';
+} else {
+    $t = today_tournament();
+    $notFoundMsg = 'Aucun tournoi du jour';
+}
+
 if (!$t) {
-    echo json_encode(['ok' => false, 'error' => 'Aucun tournoi du jour']);
+    echo json_encode(['ok' => false, 'error' => $notFoundMsg]);
     exit;
 }
 if ($t['status'] === 'finished') {

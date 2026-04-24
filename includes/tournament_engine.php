@@ -1,5 +1,5 @@
 <?php
-// Moteur de tournoi quotidien : 8 participants, bracket à élimination directe
+// Moteur de tournoi : quotidien (8 participants) et hebdomadaire (16 participants)
 
 declare(strict_types=1);
 
@@ -7,7 +7,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/combat_engine.php';
 
 // ============================================================
-// Constantes
+// Constantes — tournoi quotidien
 // ============================================================
 
 const TOURNAMENT_SIZE = 8;
@@ -23,12 +23,39 @@ const TOURNAMENT_BONUS_FIGHTS = [
 ];
 
 // ============================================================
-// État courant
+// Constantes — tournoi hebdomadaire
+// ============================================================
+
+const WEEKLY_TOURNAMENT_SIZE = 16;
+const WEEKLY_TOURNAMENT_XP = [
+    1 => 50,  // Champion
+    2 => 30,  // Finaliste
+    3 => 15,  // Demi-finaliste
+    5 => 6,   // Quart
+    9 => 2,   // Tour 1
+];
+const WEEKLY_TOURNAMENT_BONUS_FIGHTS = [
+    1 => 5, // Champion
+    2 => 2, // Finaliste
+];
+
+// ============================================================
+// Helpers : date
+// ============================================================
+
+function week_monday(): string
+{
+    // Lundi de la semaine ISO courante, format YYYY-MM-DD
+    return date('Y-m-d', strtotime('monday this week'));
+}
+
+// ============================================================
+// État courant — quotidien
 // ============================================================
 
 function today_tournament(): ?array
 {
-    $stmt = db()->prepare('SELECT * FROM tournaments WHERE tour_date = CURDATE() LIMIT 1');
+    $stmt = db()->prepare("SELECT * FROM tournaments WHERE tour_date = CURDATE() AND type = 'daily' LIMIT 1");
     $stmt->execute();
     return $stmt->fetch() ?: null;
 }
@@ -39,10 +66,38 @@ function ensure_today_tournament(): array
     if ($t) {
         return $t;
     }
-    db()->prepare('INSERT INTO tournaments (tour_date, status, size) VALUES (CURDATE(), "open", ?)')
+    db()->prepare("INSERT INTO tournaments (tour_date, type, status, size) VALUES (CURDATE(), 'daily', 'open', ?)")
         ->execute([TOURNAMENT_SIZE]);
     return today_tournament();
 }
+
+// ============================================================
+// État courant — hebdomadaire
+// ============================================================
+
+function this_week_tournament(): ?array
+{
+    $monday = week_monday();
+    $stmt = db()->prepare("SELECT * FROM tournaments WHERE tour_date = ? AND type = 'weekly' LIMIT 1");
+    $stmt->execute([$monday]);
+    return $stmt->fetch() ?: null;
+}
+
+function ensure_this_week_tournament(): array
+{
+    $t = this_week_tournament();
+    if ($t) {
+        return $t;
+    }
+    $monday = week_monday();
+    db()->prepare("INSERT INTO tournaments (tour_date, type, status, size) VALUES (?, 'weekly', 'open', ?)")
+        ->execute([$monday, WEEKLY_TOURNAMENT_SIZE]);
+    return this_week_tournament();
+}
+
+// ============================================================
+// Entrées / matchs (commun)
+// ============================================================
 
 function tournament_entries(int $tournamentId): array
 {
@@ -79,7 +134,7 @@ function is_brute_entered(int $tournamentId, int $bruteId): bool
 }
 
 // ============================================================
-// Inscription
+// Inscription — quotidien
 // ============================================================
 
 function join_tournament(int $bruteId): array
@@ -117,7 +172,45 @@ function join_tournament(int $bruteId): array
 }
 
 // ============================================================
-// Compléter avec des IA et lancer
+// Inscription — hebdomadaire
+// ============================================================
+
+function join_weekly_tournament(int $bruteId): array
+{
+    $pdo = db();
+
+    $stmt = $pdo->prepare('SELECT * FROM brutes WHERE id = ? LIMIT 1');
+    $stmt->execute([$bruteId]);
+    $brute = $stmt->fetch();
+    if (!$brute) {
+        return ['ok' => false, 'error' => 'Gladiateur introuvable'];
+    }
+
+    $t = ensure_this_week_tournament();
+    if ($t['status'] !== 'open') {
+        return ['ok' => false, 'error' => 'Le tournoi de la semaine est déjà lancé'];
+    }
+    if (is_brute_entered((int)$t['id'], $bruteId)) {
+        return ['ok' => false, 'error' => 'Déjà inscrit au tournoi de la semaine'];
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM tournament_entries WHERE tournament_id = ?');
+    $stmt->execute([(int)$t['id']]);
+    $count = (int)$stmt->fetchColumn();
+    if ($count >= (int)$t['size']) {
+        return ['ok' => false, 'error' => 'Le tournoi de la semaine est complet'];
+    }
+
+    $pdo->prepare('
+        INSERT INTO tournament_entries (tournament_id, brute_id, slot, is_ai)
+        VALUES (?, ?, ?, 0)
+    ')->execute([(int)$t['id'], $bruteId, $count]);
+
+    return ['ok' => true, 'tournament_id' => (int)$t['id']];
+}
+
+// ============================================================
+// Remplissage IA (commun, s'adapte à la taille)
 // ============================================================
 
 function fill_with_ai(int $tournamentId): void
@@ -139,7 +232,7 @@ function fill_with_ai(int $tournamentId): void
         return;
     }
 
-    // Niveau moyen des inscrits humains pour piocher des IA proches
+    // Niveau moyen des inscrits humains
     $stmt = $pdo->prepare('
         SELECT AVG(b.level) FROM tournament_entries te
         JOIN brutes b ON b.id = te.brute_id
@@ -153,7 +246,6 @@ function fill_with_ai(int $tournamentId): void
 
     $needed = (int)$t['size'] - $count;
 
-    // Pool d'IA : brutes de comptes bot*@arenaforge.local non encore inscrites
     $stmt = $pdo->prepare('
         SELECT b.* FROM brutes b
         JOIN users u ON u.id = b.user_id
@@ -177,7 +269,7 @@ function fill_with_ai(int $tournamentId): void
 }
 
 // ============================================================
-// Résolution du bracket
+// Résolution du bracket (commun — quotidien et hebdomadaire)
 // ============================================================
 
 function run_tournament(int $tournamentId): array
@@ -199,20 +291,23 @@ function run_tournament(int $tournamentId): array
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM tournament_entries WHERE tournament_id = ?');
     $stmt->execute([$tournamentId]);
     if ((int)$stmt->fetchColumn() < (int)$t['size']) {
-        return ['ok' => false, 'error' => 'Impossible de compléter le tournoi (pas assez d\'IA)'];
+        return ['ok' => false, 'error' => "Impossible de compléter le tournoi (pas assez d'IA)"];
     }
 
     $pdo->prepare('UPDATE tournaments SET status = "running" WHERE id = ?')->execute([$tournamentId]);
 
-    // Récupération des participants ordonnés par slot
-    $stmt = $pdo->prepare('
-        SELECT brute_id, slot FROM tournament_entries
-        WHERE tournament_id = ?
-        ORDER BY slot ASC
-    ');
+    // Récupération des participants par slot, puis mélange aléatoire pour les appariements
+    $stmt = $pdo->prepare('SELECT brute_id FROM tournament_entries WHERE tournament_id = ? ORDER BY slot ASC');
     $stmt->execute([$tournamentId]);
-    $rows = $stmt->fetchAll();
-    $current = array_column($rows, 'brute_id');
+    $current = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    // Mélange : les humains inscrits en premiers ne se retrouvent plus automatiquement face à face
+    shuffle($current);
+
+    $isWeekly  = ($t['type'] === 'weekly');
+    $xpTable   = $isWeekly ? WEEKLY_TOURNAMENT_XP   : TOURNAMENT_XP;
+    $bonusTable = $isWeekly ? WEEKLY_TOURNAMENT_BONUS_FIGHTS : TOURNAMENT_BONUS_FIGHTS;
+    $context   = $isWeekly ? 'tournament_weekly' : 'tournament';
 
     $rounds = (int)log(count($current), 2);
 
@@ -226,11 +321,12 @@ function run_tournament(int $tournamentId): array
 
             $stmt = $pdo->prepare('
                 INSERT INTO fights (brute1_id, brute2_id, winner_id, log_json, xp_gained, context)
-                VALUES (?, ?, ?, ?, 0, "tournament")
+                VALUES (?, ?, ?, ?, 0, ?)
             ');
             $stmt->execute([
                 $b1, $b2, $result['winner_id'],
                 json_encode($result['log'], JSON_UNESCAPED_UNICODE),
+                $context,
             ]);
             $fightId = (int)$pdo->lastInsertId();
 
@@ -240,18 +336,16 @@ function run_tournament(int $tournamentId): array
             ')->execute([$tournamentId, $round, $matchIdx, $fightId, $b1, $b2, $result['winner_id']]);
 
             $loserId = $result['winner_id'] === $b1 ? $b2 : $b1;
-            // Placement du perdant selon le round où il tombe
             $placement = tournament_placement_for_round($round, $rounds);
-            assign_tournament_placement($pdo, $tournamentId, $loserId, $placement);
+            assign_tournament_placement($pdo, $tournamentId, $loserId, $placement, $xpTable, $bonusTable);
 
             $next[] = $result['winner_id'];
         }
         $current = $next;
     }
 
-    // Le vainqueur final (1 survivant)
     $champion = (int)$current[0];
-    assign_tournament_placement($pdo, $tournamentId, $champion, 1);
+    assign_tournament_placement($pdo, $tournamentId, $champion, 1, $xpTable, $bonusTable);
 
     $pdo->prepare('UPDATE tournaments SET status = "finished", winner_id = ?, finished_at = NOW() WHERE id = ?')
         ->execute([$champion, $tournamentId]);
@@ -261,35 +355,31 @@ function run_tournament(int $tournamentId): array
 
 function tournament_placement_for_round(int $round, int $totalRounds): int
 {
-    // round 0 = quart (8), round 1 = demi (4), round 2 = finale (2)
-    // Perdant round 0 → placement 5 (top 8)
-    // Perdant round 1 → placement 3 (top 4)
-    // Perdant round 2 (finaliste) → placement 2
     $roundsLeftAfter = $totalRounds - $round - 1;
-    if ($roundsLeftAfter >= 2) return 5;
+    if ($roundsLeftAfter >= 3) return 9;  // Tour 1 (16→8) dans hebdo
+    if ($roundsLeftAfter === 2) return 5;
     if ($roundsLeftAfter === 1) return 3;
     return 2;
 }
 
-function assign_tournament_placement(PDO $pdo, int $tournamentId, int $bruteId, int $placement): void
-{
-    $xp          = TOURNAMENT_XP[$placement] ?? 1;
-    $bonusFights = TOURNAMENT_BONUS_FIGHTS[$placement] ?? 0;
+function assign_tournament_placement(
+    PDO $pdo, int $tournamentId, int $bruteId, int $placement,
+    array $xpTable, array $bonusTable
+): void {
+    $xp          = $xpTable[$placement]    ?? 1;
+    $bonusFights = $bonusTable[$placement] ?? 0;
 
     $pdo->prepare('UPDATE tournament_entries SET placement = ?, xp_earned = ? WHERE tournament_id = ? AND brute_id = ?')
         ->execute([$placement, $xp, $tournamentId, $bruteId]);
 
-    // Appliquer l'XP uniquement aux brutes humaines (pas les IA)
     $stmt = $pdo->prepare('SELECT is_ai FROM tournament_entries WHERE tournament_id = ? AND brute_id = ? LIMIT 1');
     $stmt->execute([$tournamentId, $bruteId]);
-    $isAi = (int)$stmt->fetchColumn();
-    if ($isAi === 1) {
+    if ((int)$stmt->fetchColumn() === 1) {
         return;
     }
 
     require_once __DIR__ . '/brute_generator.php';
 
-    // Appliquer XP + level-up éventuel + combats bonus
     $stmt = $pdo->prepare('SELECT xp, level, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
     $stmt->execute([$bruteId]);
     $b = $stmt->fetch();
@@ -312,13 +402,12 @@ function assign_tournament_placement(PDO $pdo, int $tournamentId, int $bruteId, 
         WHERE id = ?
     ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bonusFights, $bruteId]);
 
-    // Achievements de tournoi (participation + victoires)
     require_once __DIR__ . '/achievement_engine.php';
     check_achievements_tournament($bruteId, $placement);
 }
 
 // ============================================================
-// Vue structurée du bracket (pour le rendu)
+// Vue bracket (commun)
 // ============================================================
 
 function tournament_bracket(int $tournamentId): array

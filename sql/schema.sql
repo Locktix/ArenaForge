@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS armors;
 DROP TABLE IF EXISTS brute_weapon_upgrades;
 DROP TABLE IF EXISTS brute_achievements;
 DROP TABLE IF EXISTS achievements;
+DROP TABLE IF EXISTS brute_weekly_quests;
 DROP TABLE IF EXISTS brute_quests;
 DROP TABLE IF EXISTS quest_definitions;
 DROP TABLE IF EXISTS tournament_fights;
@@ -192,12 +193,14 @@ CREATE TABLE brute_pets (
 -- ============================================================
 CREATE TABLE tournaments (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  tour_date DATE NOT NULL UNIQUE,
+  tour_date DATE NOT NULL,
+  type ENUM('daily','weekly') NOT NULL DEFAULT 'daily',
   status ENUM('open','running','finished') NOT NULL DEFAULT 'open',
   size INT UNSIGNED NOT NULL DEFAULT 8,
   winner_id INT UNSIGNED NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   finished_at DATETIME NULL,
+  UNIQUE KEY uk_tour_date_type (tour_date, type),
   CONSTRAINT fk_t_winner FOREIGN KEY (winner_id) REFERENCES brutes(id) ON DELETE SET NULL,
   INDEX idx_status (status)
 ) ENGINE=InnoDB;
@@ -234,6 +237,7 @@ CREATE TABLE tournament_fights (
 -- ============================================================
 CREATE TABLE quest_definitions (
   code VARCHAR(40) NOT NULL PRIMARY KEY,
+  scope ENUM('daily','weekly') NOT NULL DEFAULT 'daily',
   label VARCHAR(120) NOT NULL,
   description VARCHAR(255) NOT NULL,
   target INT UNSIGNED NOT NULL,
@@ -252,6 +256,19 @@ CREATE TABLE brute_quests (
   CONSTRAINT fk_bq_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
   CONSTRAINT fk_bq_quest FOREIGN KEY (quest_code) REFERENCES quest_definitions(code) ON DELETE CASCADE,
   INDEX idx_date (quest_date)
+) ENGINE=InnoDB;
+
+-- Quêtes hebdomadaires (progression sur la semaine entière)
+CREATE TABLE brute_weekly_quests (
+  brute_id INT UNSIGNED NOT NULL,
+  quest_code VARCHAR(40) NOT NULL,
+  quest_week DATE NOT NULL COMMENT 'Lundi de la semaine ISO',
+  progress INT UNSIGNED NOT NULL DEFAULT 0,
+  claimed TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (brute_id, quest_code, quest_week),
+  CONSTRAINT fk_bwq_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_bwq_quest FOREIGN KEY (quest_code) REFERENCES quest_definitions(code) ON DELETE CASCADE,
+  INDEX idx_week (quest_week)
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -389,15 +406,23 @@ INSERT INTO pets (name, species, hp_max, damage_min, damage_max, agility, descri
 -- ============================================================
 -- Données de base : quêtes
 -- ============================================================
-INSERT INTO quest_definitions (code, label, description, target, reward_xp, reward_bonus_fights, icon_path) VALUES
-  ('win_3',         'Triple victoire',    'Gagner 3 combats dans la journee.',                  3,  6, 0, 'assets/svg/quests/sword.svg'),
-  ('win_5',         'Conquerant',         'Gagner 5 combats dans la journee.',                  5, 10, 1, 'assets/svg/quests/trophy.svg'),
-  ('crit_3',        'Coups devastateurs', 'Placer 3 coups critiques dans la journee.',          3,  5, 0, 'assets/svg/quests/crit.svg'),
-  ('dodge_5',       'Insaisissable',      'Esquiver 5 attaques dans la journee.',               5,  5, 0, 'assets/svg/quests/dodge.svg'),
-  ('damage_100',    'Broyeur',            'Infliger 100 degats cumules dans la journee.',     100,  6, 0, 'assets/svg/quests/hammer.svg'),
-  ('flawless_1',    'Invulnerable',       'Gagner 1 combat sans subir le moindre degat.',       1,  8, 1, 'assets/svg/quests/shield.svg'),
-  ('upset_1',       'Tombeur de geants',  'Battre un adversaire de niveau superieur.',          1,  7, 1, 'assets/svg/quests/crown.svg'),
-  ('daily_6',       'Marathonien',        'Consommer les 6 combats de la journee.',             6,  4, 0, 'assets/svg/quests/fire.svg');
+INSERT INTO quest_definitions (code, scope, label, description, target, reward_xp, reward_bonus_fights, icon_path) VALUES
+  -- Quêtes journalières
+  ('win_3',         'daily',  'Triple victoire',      'Gagner 3 combats dans la journee.',                  3,  6, 0, 'assets/svg/quests/sword.svg'),
+  ('win_5',         'daily',  'Conquerant',           'Gagner 5 combats dans la journee.',                  5, 10, 1, 'assets/svg/quests/trophy.svg'),
+  ('crit_3',        'daily',  'Coups devastateurs',   'Placer 3 coups critiques dans la journee.',          3,  5, 0, 'assets/svg/quests/crit.svg'),
+  ('dodge_5',       'daily',  'Insaisissable',        'Esquiver 5 attaques dans la journee.',               5,  5, 0, 'assets/svg/quests/dodge.svg'),
+  ('damage_100',    'daily',  'Broyeur',              'Infliger 100 degats cumules dans la journee.',     100,  6, 0, 'assets/svg/quests/hammer.svg'),
+  ('flawless_1',    'daily',  'Invulnerable',         'Gagner 1 combat sans subir le moindre degat.',       1,  8, 1, 'assets/svg/quests/shield.svg'),
+  ('upset_1',       'daily',  'Tombeur de geants',    'Battre un adversaire de niveau superieur.',          1,  7, 1, 'assets/svg/quests/crown.svg'),
+  ('daily_6',       'daily',  'Marathonien',          'Consommer les 6 combats de la journee.',             6,  4, 0, 'assets/svg/quests/fire.svg'),
+  -- Quêtes hebdomadaires
+  ('w_win_20',      'weekly', 'Inarretable',          'Remporter 20 victoires dans la semaine.',           20, 40, 2, 'assets/svg/quests/trophy.svg'),
+  ('w_crit_20',     'weekly', 'Frappe du destin',     'Placer 20 coups critiques dans la semaine.',        20, 30, 1, 'assets/svg/quests/crit.svg'),
+  ('w_dodge_30',    'weekly', 'Fantome',              'Esquiver 30 attaques dans la semaine.',             30, 30, 1, 'assets/svg/quests/dodge.svg'),
+  ('w_damage_1000', 'weekly', 'Demolisseur',          'Infliger 1000 degats cumules dans la semaine.',   1000, 35, 1, 'assets/svg/quests/hammer.svg'),
+  ('w_flawless_3',  'weekly', 'Intouchable',          'Remporter 3 victoires sans subir de degats.',        3, 45, 2, 'assets/svg/quests/shield.svg'),
+  ('w_upset_3',     'weekly', 'Pourfendeur de titans','Battre 3 adversaires de niveau superieur.',          3, 40, 2, 'assets/svg/quests/crown.svg');
 
 -- ============================================================
 -- Données de base : achievements (trophées permanents)

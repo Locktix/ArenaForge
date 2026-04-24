@@ -139,7 +139,7 @@ try {
         ')->execute([$newXp, $newLevel, $newFightsToday, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $bruteId]);
     }
 
-    // Mise à jour des quêtes journalières
+    // Mise à jour des quêtes journalières et hebdomadaires
     $questChanges = update_quests_after_fight(
         $bruteId,
         (int)$opp['level'],
@@ -147,6 +147,7 @@ try {
         $result['log'],
         $newFightsToday
     );
+    update_weekly_quests_after_fight($bruteId, (int)$opp['level'], $isWinner, $result['log']);
 
     // Vérification des achievements (peut elle-même déclencher des level-ups)
     $newAchievements = check_achievements_after_fight(

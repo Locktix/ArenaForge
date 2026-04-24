@@ -87,7 +87,10 @@ $sponsorUrl = $hostBase . $scriptDir . '/dashboard.php?master=' . urlencode($bru
     <section class="card">
         <h2>Vos pupilles</h2>
         <?php if (empty($pupils)): ?>
-            <p class="muted">Personne n'a encore rejoint votre lignée. Partagez le lien ci-dessus !</p>
+            <p class="muted">Personne n'a encore rejoint votre lignée. Partagez ce lien pour recruter un apprenti :</p>
+            <div class="sponsor-link">
+                <input type="text" value="<?= h($sponsorUrl) ?>" readonly onclick="this.select();">
+            </div>
         <?php else: ?>
             <ul class="pupil-tree">
                 <?php foreach ($pupils as $p): ?>
