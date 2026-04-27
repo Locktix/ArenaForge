@@ -73,8 +73,9 @@ try {
     $result = run_fight($bruteId, (int)$opp['id']);
 
     $isWinner = ($result['winner_id'] === $bruteId);
-    $xpGained = $isWinner ? 3 : 1;
+    $xpGained        = $isWinner ? 3 : 1;
     $fragmentsGained = $isWinner ? 3 : 1;
+    $goldGained      = $isWinner ? 2 : 1;
 
     // Bonus pupille : si la brute a un maître, celui-ci gagne 1 XP passif
     // + progression vers un combat bonus (seuil à PUPIL_BONUS_THRESHOLD)
@@ -127,16 +128,18 @@ try {
             UPDATE brutes
             SET xp = ?, level = ?, pending_levelup = ?,
                 bonus_fights_available = bonus_fights_available - 1,
-                fragments = fragments + ?
+                fragments = fragments + ?,
+                gold = gold + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $bruteId]);
+        ')->execute([$newXp, $newLevel, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $goldGained, $bruteId]);
     } else {
         $pdo->prepare('
             UPDATE brutes
             SET xp = ?, level = ?, fights_today = ?, pending_levelup = ?,
-                fragments = fragments + ?
+                fragments = fragments + ?,
+                gold = gold + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $newFightsToday, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $bruteId]);
+        ')->execute([$newXp, $newLevel, $newFightsToday, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $goldGained, $bruteId]);
     }
 
     // Mise à jour des quêtes journalières et hebdomadaires
@@ -180,6 +183,7 @@ try {
         'achievements'            => $newAchievements,
         'mmr'                     => $myEloInfo,
         'fragments_gained'        => $fragmentsGained,
+        'gold_gained'             => $goldGained,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);

@@ -13,9 +13,12 @@ $rows = db()->query('
     LIMIT 100
 ')->fetchAll();
 
-$season = current_season();
-$me     = current_brute();
-$myRank = $me ? brute_rank((int)$me['id']) : null;
+$season  = current_season();
+$me      = current_brute();
+$myRank  = $me ? brute_rank((int)$me['id']) : null;
+$myDiv   = $me ? elo_division_for((int)$me['mmr']) : null;
+$myRew   = ($me && $season) ? season_pending_reward((int)$me['mmr'], (string)$season['label']) : null;
+$pastRewards = $me ? brute_season_rewards((int)$me['id']) : [];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -39,15 +42,39 @@ $myRank = $me ? brute_rank((int)$me['id']) : null;
         </div>
         <p class="muted">Hiérarchie basée sur le MMR (match rating). Chaque victoire te fait monter, chaque défaite te fait chuter selon l'écart avec l'adversaire.</p>
 
-        <?php if ($me && $myRank): ?>
-            <?php $myTier = elo_tier_for((int)$me['mmr']); ?>
+        <?php if ($me && $myRank && $myDiv): ?>
             <div class="my-rank">
                 <span class="my-rank-position">#<?= (int)$myRank ?></span>
                 <span class="my-rank-name"><?= h($me['name']) ?></span>
-                <span class="tier-badge" style="--tier-color: <?= h($myTier['color']) ?>">
-                    <?= h($myTier['label']) ?>
+                <span class="tier-badge" style="--tier-color: <?= h($myDiv['tier']['color']) ?>">
+                    <?= h($myDiv['division_label']) ?>
                 </span>
                 <span class="my-rank-mmr"><?= (int)$me['mmr'] ?> MMR</span>
+                <?php if (!empty($myDiv['next_threshold'])): ?>
+                    <div class="division-progress">
+                        <div class="bar small"><div class="bar-fill" style="width:<?= (int)$myDiv['progress_pct'] ?>%; background: <?= h($myDiv['tier']['color']) ?>;"></div></div>
+                        <small class="muted">→ <?= (int)$myDiv['next_threshold'] ?> MMR</small>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($myRew && $season): ?>
+            <div class="season-reward-banner" style="border-color: <?= h($myDiv['tier']['color']) ?>;">
+                <div>
+                    <strong>🏅 Récompense de fin de saison (<?= h($season['label']) ?>)</strong>
+                    <p class="muted small">Si la saison se terminait maintenant, tu recevrais :</p>
+                </div>
+                <div class="season-reward-payout">
+                    <?php if ((int)$myRew['gold'] > 0): ?>
+                        <span class="gold-pill"><?= (int)$myRew['gold'] ?> 🪙</span>
+                    <?php else: ?>
+                        <span class="muted">Aucune récompense — atteins Argent pour gagner de l'or.</span>
+                    <?php endif; ?>
+                    <?php if ($myRew['title']): ?>
+                        <span class="title-pill">« <?= h($myRew['title']) ?> »</span>
+                    <?php endif; ?>
+                </div>
             </div>
         <?php endif; ?>
 
@@ -65,11 +92,11 @@ $myRank = $me ? brute_rank((int)$me['id']) : null;
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($rows as $i => $r): $tier = elo_tier_for((int)$r['mmr']); ?>
+                <?php foreach ($rows as $i => $r): $div = elo_division_for((int)$r['mmr']); ?>
                     <tr<?= $me && (int)$r['id'] === (int)$me['id'] ? ' class="rank-me"' : '' ?>>
                         <td><?= $i + 1 ?></td>
                         <td><a href="brute.php?id=<?= (int)$r['id'] ?>"><?= h($r['name']) ?></a></td>
-                        <td><span class="tier-badge" style="--tier-color: <?= h($tier['color']) ?>"><?= h($tier['label']) ?></span></td>
+                        <td><span class="tier-badge" style="--tier-color: <?= h($div['tier']['color']) ?>"><?= h($div['division_label']) ?></span></td>
                         <td class="ranking-mmr"><?= (int)$r['mmr'] ?></td>
                         <td class="muted small"><?= (int)$r['peak_mmr'] ?></td>
                         <td><?= (int)$r['level'] ?></td>
@@ -80,6 +107,29 @@ $myRank = $me ? brute_rank((int)$me['id']) : null;
             </tbody>
         </table>
     </section>
+
+    <?php if (!empty($pastRewards)): ?>
+        <section class="card">
+            <h2>Tes récompenses de saison</h2>
+            <ul class="season-rewards-list">
+                <?php foreach ($pastRewards as $sr): ?>
+                    <li>
+                        <strong><?= h($sr['label']) ?></strong>
+                        <span class="tier-badge tier-badge-sm">
+                            <?= h(strtoupper((string)$sr['tier_code'])) ?> <?= h((string)$sr['tier_division']) ?>
+                        </span>
+                        <span class="muted small">MMR final <?= (int)$sr['final_mmr'] ?> · pic <?= (int)$sr['peak_mmr'] ?></span>
+                        <?php if ((int)$sr['gold_awarded'] > 0): ?>
+                            <span class="gold-pill"><?= (int)$sr['gold_awarded'] ?> 🪙</span>
+                        <?php endif; ?>
+                        <?php if (!empty($sr['title_awarded'])): ?>
+                            <span class="title-pill">« <?= h($sr['title_awarded']) ?> »</span>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </section>
+    <?php endif; ?>
 </main>
 </body>
 </html>

@@ -34,6 +34,14 @@ if (fightForm) {
     });
 }
 
+const duoForm = document.getElementById('duo-fight-form');
+if (duoForm) {
+    duoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        postForm(duoForm, '../api/start_duo_fight.php');
+    });
+}
+
 document.querySelectorAll('.levelup-form').forEach((f) => {
     f.addEventListener('submit', (e) => {
         e.preventDefault();

@@ -23,6 +23,26 @@ if (!$f) {
 }
 
 $log = json_decode((string)$f['log_json'], true) ?: [];
+
+// Cas particulier du combat de boss : `brutes` n'a pas de ligne pour le boss,
+// donc brute2_id == brute1_id. On extrait le nom et l'apparence côté droit
+// depuis l'event `start` du log.
+$isBossFight = ((string)($f['context'] ?? '')) === 'boss';
+if ($isBossFight) {
+    foreach ($log as $ev) {
+        if (($ev['event'] ?? '') === 'start' && isset($ev['teams']['R']['master'])) {
+            $rm = $ev['teams']['R']['master'];
+            if (!empty($rm['name']))   $f['n2']  = (string)$rm['name'];
+            if (!empty($rm['hp_max'])) $f['hp2'] = (int)$rm['hp_max'];
+            if (!empty($rm['appearance'])) {
+                $f['a2'] = is_array($rm['appearance'])
+                    ? json_encode($rm['appearance'], JSON_UNESCAPED_UNICODE)
+                    : (string)$rm['appearance'];
+            }
+            break;
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -60,6 +80,14 @@ $log = json_decode((string)$f['log_json'], true) ?: [];
         <div class="combat-log" id="combat-log"></div>
 
         <div class="combat-controls">
+            <div class="speed-controls" role="group" aria-label="Vitesse de replay">
+                <span class="speed-label">Vitesse</span>
+                <button class="speed-btn" data-speed="0.5" type="button">0.5×</button>
+                <button class="speed-btn active" data-speed="1" type="button">1×</button>
+                <button class="speed-btn" data-speed="2" type="button">2×</button>
+                <button class="speed-btn" data-speed="4" type="button">4×</button>
+            </div>
+            <button class="btn btn-ghost" id="skip-btn" type="button">Aller au résultat</button>
             <button class="btn btn-secondary" id="replay-btn">Rejouer</button>
             <a class="btn btn-primary" href="brute.php?id=<?= (int)$f['brute1_id'] ?>">Retour au gladiateur</a>
         </div>

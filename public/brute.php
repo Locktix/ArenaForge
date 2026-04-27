@@ -76,12 +76,14 @@ if ($isOwner && (int)$brute['pending_levelup'] === 1) {
             $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '../' . $w['icon_path']];
         }
     }
-    // Compétences non possédées
+    // Compétences non possédées (les ultimes sont préfixés par ⚡)
     $ownedS = array_column($skills, 'id');
     $allS = db()->query('SELECT * FROM skills')->fetchAll();
     foreach ($allS as $s) {
         if (!in_array((int)$s['id'], array_map('intval', $ownedS), true)) {
-            $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $s['name'] . ' — ' . $s['description'], 'icon' => '../' . $s['icon_path']];
+            $isUlt = (int)($s['is_ultimate'] ?? 0) === 1;
+            $label = ($isUlt ? '⚡ ULTIME — ' : '') . $s['name'] . ' — ' . $s['description'];
+            $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $label, 'icon' => '../' . $s['icon_path']];
         }
     }
     // Animaux : uniquement si le joueur n'en a pas encore (1 pet max)
@@ -154,6 +156,10 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                         <span class="bonus-count" title="Gagn&eacute;s via qu&ecirc;tes, tournoi et pupilles">+ <?= $bonusLeft ?> bonus ⚔</span>
                     <?php endif; ?>
                 </p>
+                <p class="muted small currency-row">
+                    <span title="Fragments — utilisés à la forge"><img src="../assets/svg/weapons/axe.svg" alt="" class="inline-icon-sm"> <?= (int)$brute['fragments'] ?></span>
+                    <span title="Or — monnaie du marché noir">🪙 <?= (int)($brute['gold'] ?? 0) ?></span>
+                </p>
                 <?php if ((int)$brute['pending_levelup'] === 1): ?>
                     <p class="levelup-alert">Niveau gagné ! Choisis ton bonus ci-dessous.</p>
                 <?php else: ?>
@@ -168,6 +174,25 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                         </button>
                         <p class="form-msg" data-msg></p>
                     </form>
+
+                    <?php if (!empty($pupils)): ?>
+                        <form id="duo-fight-form" class="duo-launch">
+                            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                            <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
+                            <label class="duo-partner-label">
+                                Avec ton pupille
+                                <select name="partner_id" class="duo-partner-select">
+                                    <?php foreach ($pupils as $p): ?>
+                                        <option value="<?= (int)$p['id'] ?>"><?= h($p['name']) ?> (Niv. <?= (int)$p['level'] ?>)</option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
+                            <button class="btn btn-secondary" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
+                                ⚔⚔ Combat duo (2v2)
+                            </button>
+                            <p class="form-msg" data-msg></p>
+                        </form>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
@@ -252,10 +277,11 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
             <p class="muted">Aucune compétence apprise.</p>
         <?php else: ?>
             <div class="icon-grid">
-                <?php foreach ($skills as $s): ?>
-                    <div class="icon-item" title="<?= h($s['description']) ?>">
+                <?php foreach ($skills as $s): $isUlt = (int)($s['is_ultimate'] ?? 0) === 1; ?>
+                    <div class="icon-item <?= $isUlt ? 'is-ultimate' : '' ?>" title="<?= h($s['description']) ?>">
                         <img src="../<?= h($s['icon_path']) ?>" alt="<?= h($s['name']) ?>">
                         <span><?= h($s['name']) ?></span>
+                        <?php if ($isUlt): ?><em class="ult-badge">⚡ Ultime</em><?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -264,6 +290,7 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
 
     <section class="card">
         <h2>Derniers combats</h2>
+        <p class="muted small"><a href="stats.php?id=<?= $id ?>">📊 Voir les statistiques détaillées →</a></p>
         <?php if (empty($history)): ?>
             <p class="muted">Aucun combat pour l'instant.</p>
         <?php else: ?>

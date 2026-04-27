@@ -28,6 +28,156 @@ function elo_tier_for(int $mmr): array
     return $tier;
 }
 
+// ============================================================
+// Divisions internes (IV → I) à l'intérieur d'un palier
+// ============================================================
+//
+// Chaque palier (sauf Légende) est découpé en 4 divisions de taille
+// identique. Le code retourne le label romain et le delta vers la
+// prochaine division — pratique pour afficher une jauge.
+//
+// Légende n'a pas de division : c'est le toit du système.
+
+function elo_tier_max(int $tierIndex): int
+{
+    if ($tierIndex >= count(ELO_TIERS) - 1) {
+        return 9999; // Légende : pas de toit
+    }
+    return ELO_TIERS[$tierIndex + 1]['min'];
+}
+
+function elo_division_for(int $mmr): array
+{
+    $idx = 0;
+    foreach (ELO_TIERS as $i => $t) {
+        if ($mmr >= $t['min']) $idx = $i;
+    }
+    $tier = ELO_TIERS[$idx];
+
+    // Légende : pas de division
+    if ($idx >= count(ELO_TIERS) - 1) {
+        return [
+            'tier'           => $tier,
+            'division'       => '',
+            'division_label' => $tier['label'],
+            'progress_pct'   => 100,
+            'next_threshold' => null,
+        ];
+    }
+
+    $tierMin = (int)$tier['min'];
+    $tierMax = elo_tier_max($idx);
+    $span    = max(1, $tierMax - $tierMin);
+    $bucket  = max(1, (int)floor($span / 4));
+
+    // Division : IV (bas) → I (haut)
+    $within = max(0, min($span - 1, $mmr - $tierMin));
+    $div    = (int)floor($within / $bucket); // 0..3
+    $div    = max(0, min(3, $div));
+    $romans = ['IV', 'III', 'II', 'I'];
+    $label  = $romans[$div];
+
+    $divMin = $tierMin + $div * $bucket;
+    $divMax = ($div === 3) ? $tierMax : ($tierMin + ($div + 1) * $bucket);
+    $progress = max(0, min(100, (int)round(($mmr - $divMin) * 100 / max(1, $divMax - $divMin))));
+
+    return [
+        'tier'           => $tier,
+        'division'       => $label,
+        'division_label' => $tier['label'] . ' ' . $label,
+        'progress_pct'   => $progress,
+        'next_threshold' => $divMax,
+    ];
+}
+
+// ============================================================
+// Récompenses de fin de saison
+// ============================================================
+
+const SEASON_REWARDS = [
+    'bronze'   => ['gold' => 0,   'title_template' => ''],
+    'silver'   => ['gold' => 50,  'title_template' => 'Recrue de la %s'],
+    'gold'     => ['gold' => 100, 'title_template' => 'Sergent de la %s'],
+    'platinum' => ['gold' => 200, 'title_template' => 'Veteran de la %s'],
+    'diamond'  => ['gold' => 350, 'title_template' => 'Champion de la %s'],
+    'master'   => ['gold' => 500, 'title_template' => "Maitre de la %s"],
+    'legend'   => ['gold' => 750, 'title_template' => 'Legende de la %s'],
+];
+
+/**
+ * Calcule la récompense actuellement gagnée selon le MMR.
+ * Renvoie ['gold' => N, 'title' => ...] (titre vide si pas de récompense).
+ */
+function season_pending_reward(int $mmr, string $seasonLabel): array
+{
+    $tier = elo_tier_for($mmr);
+    $code = $tier['code'];
+    $def  = SEASON_REWARDS[$code] ?? ['gold' => 0, 'title_template' => ''];
+    $title = $def['title_template'] === '' ? '' : sprintf($def['title_template'], $seasonLabel);
+    return ['gold' => (int)$def['gold'], 'title' => $title, 'tier' => $tier];
+}
+
+/**
+ * Snapshote la saison courante : pour chaque brute, on archive son MMR,
+ * son palier, sa division, et on lui crédite la récompense.
+ *
+ * Usage : appelé manuellement (script CLI / admin) lors de la clôture.
+ * Idempotent grâce à UNIQUE KEY (season_id, brute_id).
+ */
+function award_season_rewards(int $seasonId): int
+{
+    $pdo = db();
+
+    $stmt = $pdo->prepare('SELECT * FROM seasons WHERE id = ? LIMIT 1');
+    $stmt->execute([$seasonId]);
+    $season = $stmt->fetch();
+    if (!$season) return 0;
+
+    $rows = $pdo->query('SELECT id, mmr, peak_mmr FROM brutes')->fetchAll();
+    $count = 0;
+
+    $insert = $pdo->prepare("
+        INSERT IGNORE INTO season_rewards
+          (season_id, brute_id, final_mmr, peak_mmr, tier_code, tier_division, title_awarded, gold_awarded)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    $bumpGold = $pdo->prepare('UPDATE brutes SET gold = gold + ? WHERE id = ?');
+
+    foreach ($rows as $r) {
+        $mmr  = (int)$r['mmr'];
+        $div  = elo_division_for($mmr);
+        $rew  = season_pending_reward($mmr, (string)$season['label']);
+        $code = $div['tier']['code'];
+        $insert->execute([
+            (int)$season['id'], (int)$r['id'], $mmr, (int)$r['peak_mmr'],
+            $code, $div['division'] ?: 'I', $rew['title'], $rew['gold'],
+        ]);
+        if ($insert->rowCount() > 0) {
+            if ($rew['gold'] > 0) {
+                $bumpGold->execute([(int)$rew['gold'], (int)$r['id']]);
+            }
+            $count++;
+        }
+    }
+    return $count;
+}
+
+/**
+ * Récupère les récompenses passées d'une brute (toutes saisons).
+ */
+function brute_season_rewards(int $bruteId): array
+{
+    $stmt = db()->prepare('
+        SELECT sr.*, s.label, s.started_at, s.ended_at
+        FROM season_rewards sr
+        JOIN seasons s ON s.id = sr.season_id
+        WHERE sr.brute_id = ?
+        ORDER BY s.started_at DESC
+    ');
+    $stmt->execute([$bruteId]);
+    return $stmt->fetchAll();
+}
+
 /**
  * Calcule le delta MMR pour l'attaquant après un combat.
  * Retourne [delta_mmr_attacker, delta_mmr_opponent] (symétriques, somme = 0).
