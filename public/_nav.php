@@ -96,7 +96,7 @@ function nav_active(string $page, string $current): string {
                 <img src="../assets/svg/weapons/axe.svg" alt=""> Forge
             </a></li>
             <li><a href="market.php" class="<?= nav_active('market', $cp) ?>">
-                <img src="../assets/svg/decor/torch.svg" alt=""> Marché noir
+                <img src="../assets/svg/quests/hammer.svg" alt=""> Marché noir
             </a></li>
         </ul>
     </div>

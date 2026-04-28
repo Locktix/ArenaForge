@@ -401,6 +401,24 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 .nav-drawer-footer .logout:hover { color: var(--danger-2); }
 .nav-drawer-footer img { width: 16px; height: 16px; opacity: 0.7; }
 
+/* --- Sidebar fixe sur grand écran --- */
+@media (min-width: 960px) {
+    .nav-toggle  { display: none; }
+    .nav-overlay { display: none !important; }
+
+    .nav-drawer {
+        transform: none;
+        transition: none;
+        box-shadow: 1px 0 0 var(--border);
+    }
+
+    /* Tout le contenu body décalé à droite de la sidebar */
+    body { padding-left: 272px; }
+
+    /* La topnav occupe uniquement la largeur restante */
+    .topnav { position: sticky; top: 0; }
+}
+
 /* ---------- Layout ---------- */
 .wrap {
     max-width: 1120px;

@@ -39,7 +39,7 @@ function offer_label_type(string $t): string {
 <main class="wrap">
     <section class="card">
         <div class="market-header">
-            <h1><img src="../assets/svg/decor/torch.svg" alt="" class="inline-icon"> Marché noir</h1>
+            <h1><img src="../assets/svg/quests/hammer.svg" alt="" class="inline-icon"> Marché noir</h1>
             <div class="gold-counter">
                 <span class="gold-pill gold-pill-lg"><?= $gold ?> 🪙</span>
                 <small class="muted">Or disponible</small>
