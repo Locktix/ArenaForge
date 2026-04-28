@@ -14,6 +14,12 @@ USE arenaforge;
 -- Nettoyage (pour réinstallation propre)
 -- ============================================================
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS season_rewards;
+DROP TABLE IF EXISTS brute_market_purchases;
+DROP TABLE IF EXISTS black_market_offers;
+DROP TABLE IF EXISTS challenges;
+DROP TABLE IF EXISTS boss_attempts;
+DROP TABLE IF EXISTS daily_bosses;
 DROP TABLE IF EXISTS clan_members;
 DROP TABLE IF EXISTS clans;
 DROP TABLE IF EXISTS brute_armors;
@@ -49,6 +55,10 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   tutorial_step INT UNSIGNED NOT NULL DEFAULT 0,
   tutorial_skipped TINYINT(1) NOT NULL DEFAULT 0,
+  -- Streak de connexion journalière
+  streak_days INT UNSIGNED NOT NULL DEFAULT 0,
+  last_login_date DATE NULL,
+  streak_claim_date DATE NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -81,8 +91,9 @@ CREATE TABLE brutes (
   -- ELO / saisons
   mmr INT NOT NULL DEFAULT 1000,
   peak_mmr INT NOT NULL DEFAULT 1000,
-  -- Forge
+  -- Forge & économie
   fragments INT UNSIGNED NOT NULL DEFAULT 0,
+  gold INT UNSIGNED NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_brutes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_brutes_master FOREIGN KEY (master_id) REFERENCES brutes(id) ON DELETE SET NULL,
@@ -140,14 +151,14 @@ CREATE TABLE fights (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   brute1_id INT UNSIGNED NOT NULL,
   brute2_id INT UNSIGNED NOT NULL,
-  winner_id INT UNSIGNED NOT NULL,
+  winner_id INT UNSIGNED NULL,
   log_json MEDIUMTEXT NOT NULL,
   xp_gained INT UNSIGNED NOT NULL DEFAULT 0,
   context VARCHAR(20) NOT NULL DEFAULT 'arena',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_f_b1 FOREIGN KEY (brute1_id) REFERENCES brutes(id) ON DELETE CASCADE,
   CONSTRAINT fk_f_b2 FOREIGN KEY (brute2_id) REFERENCES brutes(id) ON DELETE CASCADE,
-  CONSTRAINT fk_f_winner FOREIGN KEY (winner_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_f_winner FOREIGN KEY (winner_id) REFERENCES brutes(id) ON DELETE SET NULL,
   INDEX idx_created (created_at),
   INDEX idx_context (context)
 ) ENGINE=InnoDB;
@@ -484,3 +495,103 @@ INSERT INTO armors (name, slot, hp_bonus, damage_reduction, cost_fragments, tier
 -- Saison initiale
 -- ============================================================
 INSERT INTO seasons (label, started_at, active) VALUES ('Saison 1', CURDATE(), 1);
+
+-- ============================================================
+-- Récompenses de saison ELO
+-- ============================================================
+CREATE TABLE season_rewards (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  season_id INT UNSIGNED NOT NULL,
+  brute_id INT UNSIGNED NOT NULL,
+  final_mmr INT NOT NULL DEFAULT 1000,
+  peak_mmr INT NOT NULL DEFAULT 1000,
+  tier_code VARCHAR(20) NOT NULL,
+  tier_division VARCHAR(4) NOT NULL DEFAULT 'I',
+  title_awarded VARCHAR(80) NULL,
+  gold_awarded INT UNSIGNED NOT NULL DEFAULT 0,
+  awarded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_season_brute (season_id, brute_id),
+  CONSTRAINT fk_sr_season FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sr_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Boss quotidien PvE
+-- ============================================================
+CREATE TABLE daily_bosses (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  boss_date DATE NOT NULL UNIQUE,
+  name VARCHAR(40) NOT NULL,
+  level INT UNSIGNED NOT NULL,
+  hp_max INT UNSIGNED NOT NULL,
+  strength INT UNSIGNED NOT NULL,
+  agility INT UNSIGNED NOT NULL,
+  endurance INT UNSIGNED NOT NULL,
+  appearance_seed TEXT NOT NULL,
+  weapon_id INT UNSIGNED NULL,
+  skill_id INT UNSIGNED NULL,
+  icon_path VARCHAR(128) NOT NULL DEFAULT 'assets/svg/skills/rage.svg',
+  description VARCHAR(255) NOT NULL DEFAULT '',
+  CONSTRAINT fk_db_weapon FOREIGN KEY (weapon_id) REFERENCES weapons(id) ON DELETE SET NULL,
+  CONSTRAINT fk_db_skill  FOREIGN KEY (skill_id)  REFERENCES skills(id)  ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE boss_attempts (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  boss_id INT UNSIGNED NOT NULL,
+  brute_id INT UNSIGNED NOT NULL,
+  fight_id INT UNSIGNED NULL,
+  damage_dealt INT UNSIGNED NOT NULL DEFAULT 0,
+  won TINYINT(1) NOT NULL DEFAULT 0,
+  rounds INT UNSIGNED NOT NULL DEFAULT 0,
+  attempted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_boss_brute (boss_id, brute_id),
+  CONSTRAINT fk_ba_boss   FOREIGN KEY (boss_id)  REFERENCES daily_bosses(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ba_brute2 FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ba_fight  FOREIGN KEY (fight_id) REFERENCES fights(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Défis PvP directs
+-- ============================================================
+CREATE TABLE challenges (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  challenger_id INT UNSIGNED NOT NULL,
+  target_id INT UNSIGNED NOT NULL,
+  message VARCHAR(140) NOT NULL DEFAULT '',
+  status ENUM('pending','accepted','declined','expired') NOT NULL DEFAULT 'pending',
+  fight_id INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_at DATETIME NULL,
+  CONSTRAINT fk_ch_challenger FOREIGN KEY (challenger_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ch_target     FOREIGN KEY (target_id)     REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ch_fight      FOREIGN KEY (fight_id)      REFERENCES fights(id) ON DELETE SET NULL,
+  INDEX idx_ch_challenger (challenger_id),
+  INDEX idx_ch_target (target_id),
+  INDEX idx_ch_status (status)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Marché noir journalier
+-- ============================================================
+CREATE TABLE black_market_offers (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  offer_date DATE NOT NULL,
+  slot INT UNSIGNED NOT NULL,
+  item_type VARCHAR(20) NOT NULL,
+  item_value INT UNSIGNED NOT NULL,
+  cost_gold INT UNSIGNED NOT NULL,
+  label VARCHAR(80) NOT NULL,
+  icon_path VARCHAR(128) NOT NULL,
+  UNIQUE KEY uk_offer_slot (offer_date, slot)
+) ENGINE=InnoDB;
+
+CREATE TABLE brute_market_purchases (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  brute_id INT UNSIGNED NOT NULL,
+  offer_id INT UNSIGNED NOT NULL,
+  purchased_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_brute_offer (brute_id, offer_id),
+  CONSTRAINT fk_bmp_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_bmp_offer FOREIGN KEY (offer_id) REFERENCES black_market_offers(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
