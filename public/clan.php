@@ -75,6 +75,21 @@ $totalMmr = array_sum(array_map(fn($m) => (int)$m['mmr'], $members));
         </div>
     </section>
 
+    <?php if ($isMember): ?>
+        <section class="card clan-chat-card">
+            <h2><img src="../assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Chat du clan</h2>
+            <div class="clan-chat-window" id="clan-chat-window" data-clan-id="<?= $clanId ?>" data-brute-id="<?= $bruteId ?>">
+                <p class="muted small">Chargement…</p>
+            </div>
+            <form id="clan-chat-form" class="clan-chat-form">
+                <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
+                <input type="text" name="body" maxlength="255" placeholder="Écris un message au clan…" autocomplete="off" required>
+                <button type="submit" class="btn btn-secondary">Envoyer</button>
+            </form>
+        </section>
+    <?php endif; ?>
+
     <section class="card">
         <h2>Membres</h2>
         <ul class="clan-members">
@@ -106,5 +121,6 @@ $totalMmr = array_sum(array_map(fn($m) => (int)$m['mmr'], $members));
 </main>
 
 <script src="../assets/js/clan.js"></script>
+<script src="../assets/js/clan_chat.js"></script>
 </body>
 </html>

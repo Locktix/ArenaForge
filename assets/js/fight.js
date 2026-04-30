@@ -264,6 +264,15 @@
             switch (ev.event) {
                 case 'start':
                     appendLine('start', `Début du combat : ${F.n1} contre ${F.n2} !`);
+                    if (ev.weather) {
+                        appendLine('weather', `${ev.weather.icon} ${ev.weather.label} — ${ev.weather.desc}`);
+                        const banner = document.getElementById('weather-banner');
+                        if (banner) {
+                            banner.innerHTML = `<span class="weather-icon">${ev.weather.icon}</span> ${escapeHtml(ev.weather.label)}`;
+                            banner.dataset.weather = ev.weather.code;
+                            banner.style.display = 'inline-flex';
+                        }
+                    }
                     if (ev.teams) {
                         if (ev.teams.L && ev.teams.L.master && ev.teams.L.master.hp_max) {
                             const metaL = slots.get('L0');
@@ -399,6 +408,18 @@
                     }
                     if (ev.actor_hp != null && slot) setHp(slot, ev.actor_hp);
                     await wait(120);
+                    break;
+                }
+
+                case 'weather_tick': {
+                    const slot = ev.target_slot || null;
+                    appendLine('weather', `T${ev.turn} • 🔥 ${ev.target} subit ${ev.damage} PV (chaleur)`);
+                    if (slot) {
+                        setHp(slot, ev.target_hp);
+                        await doStatusFlash(slot, 'bleed');
+                        if (ev.target_hp <= 0) await doKOAnim(slot, ev.target);
+                    }
+                    await wait(160);
                     break;
                 }
 

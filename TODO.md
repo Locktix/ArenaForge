@@ -43,3 +43,30 @@ comptes/brutes/historique.
   (sans event `status_*`) sont rejoués sans erreur.
 - La migration utilise `IF NOT EXISTS` / `INSERT IGNORE` partout pour
   être rejouable sans corruption.
+
+## Roadmap v2 — 2e vague (8 features)
+
+Migration : `sql/migrate_enrichment_v2.sql`
+
+- [x] **F1. Centre de notifications** — panneau d'actions sur la page
+      brute (level-up, quêtes, défis, boss, marché, streak, pet à évoluer).
+- [x] **F2. Bouton revanche** — sur fight.php après une défaite, envoie
+      automatiquement un défi direct au vainqueur.
+- [x] **F3. Évolution des pets** — Chien→Molosse, Loup→Loup alpha, etc.
+      après 50 combats partagés. Stats améliorées.
+- [x] **F4. Chat de clan** — `clan_messages` + polling 30 s + anti-spam 5 s.
+- [x] **F5. Tournoi hebdomadaire 16 joueurs** — déjà en place dans le code
+      (engine + UI + API). Onglet "Hebdomadaire" dans tournament.php.
+- [x] **F6. Météo d'arène** — 4 types (clear/rain/sandstorm/heat) tirés
+      à chaque combat, modifient crit/esquive/dégâts/PV.
+- [x] **F7. Codex / bestiaire** — usage tracking + 3 paliers de lore par
+      item (25/100/250 utilisations). Page `public/codex.php`.
+- [x] **F8. Bots auto-fight quotidien** — quota seedé chaque jour, tick
+      incrémental (max 3 combats par chargement, proba 60 %).
+
+## Déploiement v2 (sur o2switch existant)
+
+1. Importer `sql/migrate_enrichment_v2.sql` (commenter `USE arenaforge`)
+2. Upload des fichiers PHP modifiés/nouveaux via FTP
+3. Upload du CSS + JS modifiés
+4. Aucune perte de données — comptes, brutes, historique, codex préservés

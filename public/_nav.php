@@ -4,6 +4,7 @@ if (!function_exists('current_user_id')) {
 }
 require_once __DIR__ . '/../includes/streak_engine.php';
 require_once __DIR__ . '/../includes/challenge_engine.php';
+require_once __DIR__ . '/../includes/bot_engine.php';
 
 $navBrute        = current_brute();
 $navUid          = current_user_id();
@@ -15,6 +16,8 @@ if ($navUid !== null) {
     $tick = tick_login_streak($navUid);
     $navStreakInfo  = ['streak' => (int)$tick['streak']];
     $navStreakReward = $tick['reward'];
+    // Tick "bots auto-fight" — peut résoudre 0..3 combats par chargement
+    try { maybe_tick_bot_fights(); } catch (Throwable $e) { /* silent */ }
 }
 if ($navBrute) {
     try { $navInboxCount = pending_inbox_count((int)$navBrute['id']); } catch (Throwable $e) { $navInboxCount = 0; }
@@ -70,6 +73,9 @@ function nav_active(string $page, string $current): string {
             </a></li>
             <li><a href="achievements.php" class="<?= nav_active('achievements', $cp) ?>">
                 <img src="../assets/svg/ui/trophy.svg" alt=""> Trophées
+            </a></li>
+            <li><a href="codex.php" class="<?= nav_active('codex', $cp) ?>">
+                <img src="../assets/svg/ui/scroll.svg" alt=""> Codex
             </a></li>
             <li><a href="ranking.php" class="<?= nav_active('ranking', $cp) ?>">
                 <img src="../assets/svg/ui/nav_ranking.svg" alt=""> Classement

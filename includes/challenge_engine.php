@@ -15,6 +15,8 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/combat_engine.php';
 require_once __DIR__ . '/elo_engine.php';
 require_once __DIR__ . '/brute_generator.php';
+require_once __DIR__ . '/pet_evolution.php';
+require_once __DIR__ . '/codex_engine.php';
 
 const CHALLENGE_EXPIRY_HOURS = 24;
 const CHALLENGE_MAX_PENDING_OUT = 5; // anti-spam
@@ -246,6 +248,14 @@ function accept_challenge(int $bruteId, int $challengeId): array
     $winnerForElo = $result['winner_id'];
     $loserForElo  = $winnerForElo === (int)$challenger['id'] ? (int)$target['id'] : (int)$challenger['id'];
     elo_apply_fight($winnerForElo, $loserForElo);
+
+    // Pet evolution (les deux camps)
+    track_pet_combat((int)$challenger['id']);
+    track_pet_combat((int)$target['id']);
+
+    // Codex (les deux camps sont des humains dans un défi)
+    track_codex_usage((int)$challenger['id'], $result['log']);
+    track_codex_usage((int)$target['id'], $result['log']);
 
     // Marquer le défi comme accepté
     $pdo->prepare("UPDATE challenges SET status = 'accepted', fight_id = ?, resolved_at = NOW() WHERE id = ?")

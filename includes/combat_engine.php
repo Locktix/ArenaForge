@@ -29,6 +29,58 @@ const STATUS_BY_WEAPON = [
     'Arc'    => ['type' => 'poison', 'chance' => 18, 'damage' => 1, 'turns' => 3],
 ];
 
+// ============================================================
+// Météo d'arène — pioché à chaque combat, modifie les paramètres
+// ============================================================
+const ARENA_WEATHERS = [
+    'clear'     => ['weight' => 50, 'label' => 'Ciel dégagé',     'icon' => '☀️',
+                    'desc'   => 'Aucun effet, conditions parfaites.'],
+    'rain'      => ['weight' => 18, 'label' => 'Pluie battante',  'icon' => '🌧️',
+                    'desc'   => '-10% crit, +5% esquive pour tous.'],
+    'sandstorm' => ['weight' => 17, 'label' => 'Tempête de sable','icon' => '🌪️',
+                    'desc'   => 'Dégâts réduits de 2 (minimum 1).'],
+    'heat'      => ['weight' => 15, 'label' => 'Soleil de plomb', 'icon' => '🔥',
+                    'desc'   => '-1 PV par tour aux porteurs d\'armure.'],
+];
+
+function pick_weather(): array
+{
+    $total = 0;
+    foreach (ARENA_WEATHERS as $w) $total += (int)$w['weight'];
+    $r = roll(1, max(1, $total));
+    $acc = 0;
+    foreach (ARENA_WEATHERS as $code => $w) {
+        $acc += (int)$w['weight'];
+        if ($r <= $acc) {
+            return [
+                'code'  => $code,
+                'label' => $w['label'],
+                'icon'  => $w['icon'],
+                'desc'  => $w['desc'],
+            ];
+        }
+    }
+    return [
+        'code'  => 'clear',
+        'label' => ARENA_WEATHERS['clear']['label'],
+        'icon'  => ARENA_WEATHERS['clear']['icon'],
+        'desc'  => ARENA_WEATHERS['clear']['desc'],
+    ];
+}
+
+/**
+ * Setter/getter de la météo courante (utilisé par resolve_attack/raw_hit).
+ * Évite de devoir modifier toutes les signatures de fonction.
+ */
+function combat_weather(?array $set = null): ?array
+{
+    static $w = null;
+    if ($set !== null) {
+        $w = $set;
+    }
+    return $w;
+}
+
 function status_index(array $fighter, string $type): ?int
 {
     foreach (($fighter['statuses'] ?? []) as $i => $s) {
@@ -446,6 +498,8 @@ function run_fight(int $b1Id, int $b2Id): array
 function run_combat_loop(array $combatants): array
 {
     $log = [];
+    $weather = pick_weather();
+    combat_weather($weather);
 
     $log[] = [
         'event'    => 'start',
@@ -453,6 +507,7 @@ function run_combat_loop(array $combatants): array
             'L' => team_public($combatants, 'L'),
             'R' => team_public($combatants, 'R'),
         ],
+        'weather'  => $weather,
         // Backward-compat : champ utilisé par les anciens replays (non requis par fight.js)
         'fighters' => [
             fighter_public($combatants['L0']),
@@ -464,6 +519,29 @@ function run_combat_loop(array $combatants): array
     $maxRounds = 60;
 
     while ($round <= $maxRounds && $combatants['L0']['hp'] > 0 && $combatants['R0']['hp'] > 0) {
+        // 0) Tick météo — Soleil de plomb : -1 PV / tour aux porteurs d'armure
+        if (($weather['code'] ?? '') === 'heat') {
+            foreach ($combatants as $slot => $c) {
+                if ($c['hp'] <= 0) continue;
+                if (($c['role'] ?? 'master') !== 'master') continue;
+                if ((int)($c['armor_reduction'] ?? 0) <= 0) continue;
+                $combatants[$slot]['hp'] = max(0, $c['hp'] - 1);
+                $log[] = [
+                    'turn'        => $round,
+                    'event'       => 'weather_tick',
+                    'target'      => $combatants[$slot]['name'],
+                    'target_slot' => $slot,
+                    'weather'     => 'heat',
+                    'damage'      => 1,
+                    'target_hp'   => $combatants[$slot]['hp'],
+                ];
+                if ($combatants[$slot]['hp'] <= 0) {
+                    try_ult_revive($combatants[$slot], $round, $log);
+                }
+            }
+            if ($combatants['L0']['hp'] <= 0 || $combatants['R0']['hp'] <= 0) break;
+        }
+
         // 1) Ticks de DoT (saignement / poison) — peuvent tuer un combattant
         foreach ($combatants as $slot => $c) {
             if ($c['hp'] <= 0) {
@@ -601,7 +679,12 @@ function resolve_attack(array &$att, array &$def, int $turn, array &$log): void
             $baseDodge += (int)$dodgeSkill['effect_value'];
         }
     }
-    $baseDodge = max(0, min(75, $baseDodge));
+    // Météo : pluie augmente l'esquive de 5 %
+    $weatherCode = combat_weather()['code'] ?? '';
+    if ($weatherCode === 'rain') {
+        $baseDodge += 5;
+    }
+    $baseDodge = max(0, min(80, $baseDodge));
 
     if (roll(1, 100) <= $baseDodge) {
         $log[] = [
@@ -670,9 +753,20 @@ function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?arra
         $critChance = 5;
     }
 
+    // Météo : pluie réduit le crit de 10
+    $weatherCode = combat_weather()['code'] ?? '';
+    if ($weatherCode === 'rain') {
+        $critChance = max(0, $critChance - 10);
+    }
+
     $isCrit = roll(1, 100) <= $critChance;
     if ($isCrit) {
         $damage = (int)floor($damage * 1.8);
+    }
+
+    // Météo : tempête de sable réduit les dégâts bruts de 2 (min 1)
+    if ($weatherCode === 'sandstorm') {
+        $damage = max(1, $damage - 2);
     }
 
     // Ultime "Frappe titanesque" — double les dégâts si l'attaquant est sous

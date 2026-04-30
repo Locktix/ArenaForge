@@ -15,6 +15,8 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/combat_engine.php';
 require_once __DIR__ . '/elo_engine.php';
 require_once __DIR__ . '/brute_generator.php';
+require_once __DIR__ . '/pet_evolution.php';
+require_once __DIR__ . '/codex_engine.php';
 
 function find_duo_opponent(int $masterId, int $partnerId, int $level): ?array
 {
@@ -164,6 +166,18 @@ function start_duo_fight(int $masterId, int $partnerId): array
     $winnerForElo = $isWinner ? $masterId : (int)$opp['master_id'];
     $loserForElo  = $isWinner ? (int)$opp['master_id'] : $masterId;
     elo_apply_fight($winnerForElo, $loserForElo);
+
+    // Pet evolution (les 4 brutes participantes)
+    track_pet_combat($masterId);
+    track_pet_combat($partnerId);
+    track_pet_combat((int)$opp['master_id']);
+    track_pet_combat((int)$opp['partner_id']);
+
+    // Codex (les 4 brutes)
+    track_codex_usage($masterId, $result['log']);
+    track_codex_usage($partnerId, $result['log']);
+    track_codex_usage((int)$opp['master_id'], $result['log']);
+    track_codex_usage((int)$opp['partner_id'], $result['log']);
 
     return [
         'ok'        => true,

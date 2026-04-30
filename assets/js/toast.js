@@ -37,7 +37,7 @@
 
     function showAchievement(a) {
         show({
-            kind: 'Trophée débloqué',
+            kind: a.kind_label || 'Trophée débloqué',
             title: a.title,
             reward_xp: a.reward_xp,
             icon_path: a.icon_path,

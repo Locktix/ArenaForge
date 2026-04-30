@@ -13,6 +13,14 @@ async function postForm(form, endpoint) {
             if (window.Toast && Array.isArray(data.achievements) && data.achievements.length) {
                 window.Toast.queue(data.achievements);
             }
+            if (window.Toast && Array.isArray(data.pet_evolutions) && data.pet_evolutions.length) {
+                window.Toast.queue(data.pet_evolutions.map((e) => ({
+                    kind_label: 'Pet évolué !',
+                    title: e.from + ' est devenu ' + e.to,
+                    reward_xp: 0,
+                    icon_path: e.icon_path,
+                })));
+            }
             window.location.href = data.redirect;
         } else if (msg) {
             msg.className = 'form-msg error';

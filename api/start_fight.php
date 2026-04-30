@@ -7,6 +7,8 @@ require_once __DIR__ . '/../includes/combat_engine.php';
 require_once __DIR__ . '/../includes/quest_engine.php';
 require_once __DIR__ . '/../includes/achievement_engine.php';
 require_once __DIR__ . '/../includes/elo_engine.php';
+require_once __DIR__ . '/../includes/pet_evolution.php';
+require_once __DIR__ . '/../includes/codex_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -169,6 +171,13 @@ try {
     $eloResult    = elo_apply_fight($winnerForElo, $loserForElo);
     $myEloInfo    = $isWinner ? $eloResult['winner'] : $eloResult['loser'];
 
+    // Évolution potentielle des pets (joueur + adversaire)
+    $petEvolutions = track_pet_combat($bruteId);
+    track_pet_combat((int)$opp['id']);
+
+    // Codex : tracking d'usage (joueur uniquement, pas les bots)
+    track_codex_usage($bruteId, $result['log']);
+
     echo json_encode([
         'ok'                      => true,
         'fight_id'                => $fightId,
@@ -184,6 +193,7 @@ try {
         'mmr'                     => $myEloInfo,
         'fragments_gained'        => $fragmentsGained,
         'gold_gained'             => $goldGained,
+        'pet_evolutions'          => $petEvolutions,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);

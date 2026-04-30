@@ -24,6 +24,20 @@ if (!$f) {
 
 $log = json_decode((string)$f['log_json'], true) ?: [];
 
+// Détection de la brute du joueur connecté pour proposer une revanche
+$me = current_brute();
+$myBruteId = $me ? (int)$me['id'] : 0;
+
+$amInFight  = $myBruteId !== 0 && ((int)$f['brute1_id'] === $myBruteId || (int)$f['brute2_id'] === $myBruteId);
+$iLost      = $amInFight && (int)$f['winner_id'] !== $myBruteId && $f['winner_id'] !== null;
+$canRematch = $iLost
+    && ((string)($f['context'] ?? '')) !== 'boss'
+    && (int)$f['brute1_id'] !== (int)$f['brute2_id'];
+$opponentName = '';
+if ($canRematch) {
+    $opponentName = (int)$f['brute1_id'] === $myBruteId ? (string)$f['n2'] : (string)$f['n1'];
+}
+
 // Cas particulier du combat de boss : `brutes` n'a pas de ligne pour le boss,
 // donc brute2_id == brute1_id. On extrait le nom et l'apparence côté droit
 // depuis l'event `start` du log.
@@ -58,6 +72,9 @@ if ($isBossFight) {
 
 <main class="wrap">
     <section class="card arena-card">
+        <div class="weather-banner-row">
+            <span id="weather-banner" class="weather-banner" style="display:none"></span>
+        </div>
         <div class="arena" id="arena">
             <div class="arena-bg"></div>
             <div class="fighter fighter-left" id="fighter1" data-slot="L0">
@@ -89,7 +106,16 @@ if ($isBossFight) {
             </div>
             <button class="btn btn-ghost" id="skip-btn" type="button">Aller au résultat</button>
             <button class="btn btn-secondary" id="replay-btn">Rejouer</button>
-            <a class="btn btn-primary" href="brute.php?id=<?= (int)$f['brute1_id'] ?>">Retour au gladiateur</a>
+            <?php if ($canRematch): ?>
+                <form id="rematch-form" class="rematch-inline">
+                    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+                    <input type="hidden" name="brute_id" value="<?= $myBruteId ?>">
+                    <input type="hidden" name="target_name" value="<?= h($opponentName) ?>">
+                    <input type="hidden" name="message" value="Revanche !">
+                    <button type="submit" class="btn btn-primary">⚔ Revanche contre <?= h($opponentName) ?></button>
+                </form>
+            <?php endif; ?>
+            <a class="btn btn-ghost" href="brute.php?id=<?= (int)($amInFight ? $myBruteId : $f['brute1_id']) ?>">Retour au gladiateur</a>
         </div>
     </section>
 </main>
@@ -108,5 +134,38 @@ window.FIGHT = {
 };
 </script>
 <script src="../assets/js/fight.js"></script>
+<script>
+(function () {
+    const form = document.getElementById('rematch-form');
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button[type=submit]');
+        const original = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Envoi…';
+        try {
+            const res = await fetch('../api/challenge_send.php', { method: 'POST', body: new FormData(form) });
+            const data = await res.json();
+            if (data.ok) {
+                btn.textContent = '✓ Défi envoyé';
+                if (window.Toast) {
+                    window.Toast.queue([{ title: 'Revanche envoyée', description: 'En attente d\'acceptation', icon_path: 'assets/svg/weapons/sword.svg' }]);
+                }
+                setTimeout(() => { window.location.href = 'challenges.php?tab=sent'; }, 800);
+            } else {
+                btn.disabled = false;
+                btn.textContent = original;
+                if (window.Toast) {
+                    window.Toast.queue([{ title: 'Refusée', description: data.error || 'Erreur', icon_path: 'assets/svg/ui/nav_settings.svg' }]);
+                }
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.textContent = original;
+        }
+    });
+})();
+</script>
 </body>
 </html>

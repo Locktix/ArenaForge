@@ -11,6 +11,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/combat_engine.php';
 require_once __DIR__ . '/brute_generator.php';
+require_once __DIR__ . '/pet_evolution.php';
+require_once __DIR__ . '/codex_engine.php';
 
 const BOSS_NAMES = [
     'Krakos',  'Verminus', 'Asur', 'Brokk',
@@ -252,6 +254,12 @@ function attempt_daily_boss(int $bruteId): array
         INSERT INTO boss_attempts (boss_id, brute_id, fight_id, damage_dealt, won, rounds)
         VALUES (?, ?, ?, ?, ?, ?)
     ')->execute([(int)$boss['id'], $bruteId, $fightId, $damageDealt, $won ? 1 : 0, $rounds]);
+
+    // Pet evolution (joueur uniquement, le boss n'a pas de pets)
+    track_pet_combat($bruteId);
+
+    // Codex
+    track_codex_usage($bruteId, $result['log']);
 
     return [
         'ok'              => true,
