@@ -81,6 +81,7 @@ CREATE TABLE brutes (
   fights_today INT UNSIGNED NOT NULL DEFAULT 0,
   last_fight_date DATE NULL,
   pending_levelup TINYINT(1) NOT NULL DEFAULT 0,
+  levelup_choices TEXT NULL,
   bonus_fights_available INT UNSIGNED NOT NULL DEFAULT 0,
   pupil_bonus_progress INT UNSIGNED NOT NULL DEFAULT 0,
   -- Stats cumulées (pour achievements sans scan intégral)
