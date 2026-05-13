@@ -150,115 +150,134 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
         </section>
     <?php endif; ?>
 
-    <section class="card brute-card">
-        <div class="brute-portrait">
-            <?php include __DIR__ . '/_gladiator.php'; ?>
-        </div>
-        <div class="brute-info">
-            <header class="brute-header">
-                <h1><?= h($brute['name']) ?> <span class="level">Niv. <?= (int)$brute['level'] ?></span></h1>
-                
-                <?php if ($isOwner): ?>
-                <div class="brute-wallet">
-                    <span class="wallet-item fragments" title="Fragments — utilisés à la forge">
-                        <img src="../assets/svg/weapons/axe.svg" alt=""> <?= (int)$brute['fragments'] ?>
-                    </span>
-                    <span class="wallet-item gold" title="Or — monnaie du marché noir">
-                        🪙 <?= (int)($brute['gold'] ?? 0) ?>
-                    </span>
-                </div>
-                <?php endif; ?>
-            </header>
-
-            <div class="bars">
-                <div class="bar hp">
-                    <div class="bar-fill" style="width:100%"></div>
-                    <span class="bar-label"><?= (int)$fighter['hp_max'] ?> / <?= (int)$fighter['hp_max'] ?> PV</span>
-                </div>
-                <div class="bar xp">
-                    <div class="bar-fill" style="width: <?= $xpPct ?>%"></div>
-                    <span class="bar-label"><?= $xpCur ?> / <?= $xpNext ?> XP</span>
-                </div>
+    <section class="card brute-profile">
+        <div class="profile-header">
+            <div class="hero-identity">
+                <h1><?= h($brute['name']) ?></h1>
+                <span class="hero-level">Niveau <?= (int)$brute['level'] ?></span>
             </div>
-
-            <div class="stats-group">
-                <ul class="stats stats-primary">
-                    <li><span>Force</span><strong><?= (int)$brute['strength'] ?></strong></li>
-                    <li><span>Agilité</span><strong><?= (int)$brute['agility'] ?></strong></li>
-                    <li><span>Endurance</span><strong><?= (int)$brute['endurance'] ?></strong></li>
-                </ul>
-                <div class="stats stats-secondary">
-                    <div class="stat-damage" title="Bas&eacute; sur <?= h($currentWeapon['name']) ?>">
-                        <span>Dégâts estimés (<?= h($currentWeapon['name']) ?>)</span>
-                        <strong>⚔ <?= $dmgMin ?> — <?= $dmgMax ?></strong>
-                    </div>
-                </div>
-            </div>
-
+            
             <?php if ($isOwner): ?>
-                <?php
-                  $baseLeft = 6 - ((int)$brute['fights_today']);
-                  if ($brute['last_fight_date'] !== date('Y-m-d')) { $baseLeft = 6; }
-                  $baseLeft  = max(0, $baseLeft);
-                  $bonusLeft = (int)$brute['bonus_fights_available'];
-                  $totalLeft = $baseLeft + $bonusLeft;
-                ?>
+            <div class="hero-wallet">
+                <div class="wallet-pill" title="Fragments de forge">
+                    <img src="../assets/svg/weapons/axe.svg" alt="">
+                    <strong><?= (int)$brute['fragments'] ?></strong>
+                </div>
+                <div class="wallet-pill gold" title="Pièces d'or">
+                    <span>🪙</span>
+                    <strong><?= (int)($brute['gold'] ?? 0) ?></strong>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
 
-                <div class="brute-actions">
-                    <div class="fights-status">
-                        <span class="fights-left-label"><?= $baseLeft ?> / 6 combats du jour</span>
-                        <?php if ($bonusLeft > 0): ?>
-                            <span class="bonus-count" title="Gagn&eacute;s via qu&ecirc;tes, tournoi et pupilles">+ <?= $bonusLeft ?> bonus</span>
-                        <?php endif; ?>
+        <div class="profile-main">
+            <div class="profile-portrait">
+                <div class="portrait-inner">
+                    <?php include __DIR__ . '/_gladiator.php'; ?>
+                </div>
+            </div>
+
+            <div class="profile-content">
+                <div class="hero-bars">
+                    <div class="profile-bar hp" title="Points de Vie">
+                        <div class="bar-fill" style="width:100%"></div>
+                        <div class="bar-text">
+                            <span class="label">SANTÉ</span>
+                            <span class="value"><?= (int)$fighter['hp_max'] ?> / <?= (int)$fighter['hp_max'] ?></span>
+                        </div>
                     </div>
+                    <div class="profile-bar xp" title="Expérience">
+                        <div class="bar-fill" style="width: <?= $xpPct ?>%"></div>
+                        <div class="bar-text">
+                            <span class="label">EXP</span>
+                            <span class="value"><?= $xpCur ?> / <?= $xpNext ?></span>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="hero-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">Force</span>
+                        <span class="stat-value"><?= (int)$brute['strength'] ?></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Agilité</span>
+                        <span class="stat-value"><?= (int)$brute['agility'] ?></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Endurance</span>
+                        <span class="stat-value"><?= (int)$brute['endurance'] ?></span>
+                    </div>
+                </div>
+
+                <div class="hero-weapon">
+                    <div class="weapon-info">
+                        <span class="weapon-name">⚔ <?= h($currentWeapon['name']) ?></span>
+                        <span class="weapon-damage"><?= $dmgMin ?> — <?= $dmgMax ?> Dégâts</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php if ($isOwner): ?>
+            <?php
+              $baseLeft = 6 - ((int)$brute['fights_today']);
+              if ($brute['last_fight_date'] !== date('Y-m-d')) { $baseLeft = 6; }
+              $baseLeft  = max(0, $baseLeft);
+              $bonusLeft = (int)$brute['bonus_fights_available'];
+              $totalLeft = $baseLeft + $bonusLeft;
+            ?>
+
+            <div class="profile-footer">
+                <div class="battle-status">
+                    <span class="status-indicator">
+                        <span class="dot <?= $totalLeft > 0 ? 'online' : 'offline' ?>"></span>
+                        <?= $baseLeft ?> / 6 combats disponibles
+                        <?php if ($bonusLeft > 0): ?>
+                            <strong class="bonus-tag">+<?= $bonusLeft ?> bonus</strong>
+                        <?php endif; ?>
+                    </span>
+                </div>
+
+                <div class="battle-actions">
                     <?php if ((int)$brute['pending_levelup'] === 1): ?>
-                        <div class="levelup-banner">
-                            <p class="levelup-alert">🔥 Niveau gagné ! Choisis ton bonus ci-dessous.</p>
+                        <div class="levelup-cta">
+                            <span class="blink">🔥</span> UN NOUVEAU POUVOIR VOUS ATTEND <span class="blink">🔥</span>
                         </div>
                     <?php else: ?>
-                        <div class="action-buttons">
-                            <form id="fight-form">
-                                <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                                <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                                <button class="btn btn-primary btn-large" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
-                                    ⚔ Lancer un combat
-                                    <?php if ($baseLeft === 0 && $bonusLeft > 0): ?>
-                                        <small>(bonus)</small>
-                                    <?php endif; ?>
-                                </button>
-                                <p class="form-msg" data-msg></p>
-                            </form>
+                        <form id="fight-form">
+                            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                            <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
+                            <button class="btn btn-primary btn-hero" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
+                                ⚔ ENTRER DANS L'ARÈNE
+                            </button>
+                        </form>
 
-                            <form id="training-form" class="training-launch">
+                        <div class="secondary-actions">
+                            <form id="training-form">
                                 <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                                 <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                                <button type="submit" class="btn btn-ghost" title="Gratuit - Ne rapporte rien">
-                                    🎯 Entraînement
-                                </button>
-                                <p class="form-msg" data-msg></p>
+                                <button type="submit" class="btn btn-outline" title="Entraînement gratuit">🎯 Test</button>
                             </form>
 
                             <?php if (!empty($pupils)): ?>
-                                <form id="duo-fight-form" class="duo-launch">
+                                <form id="duo-fight-form" class="duo-compact">
                                     <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                                     <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                                    <select name="partner_id" class="duo-partner-select" aria-label="Choisir un partenaire">
+                                    <select name="partner_id" class="partner-select">
                                         <?php foreach ($pupils as $p): ?>
-                                            <option value="<?= (int)$p['id'] ?>"><?= h($p['name']) ?> (Niv. <?= (int)$p['level'] ?>)</option>
+                                            <option value="<?= (int)$p['id'] ?>"><?= h($p['name']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <button class="btn btn-secondary" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
-                                        ⚔⚔ Duo
-                                    </button>
-                                    <p class="form-msg" data-msg></p>
+                                    <button class="btn btn-outline" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>👥 Duo</button>
                                 </form>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
-            <?php endif; ?>
-        </div>
+            </div>
+        <?php endif; ?>
     </section>
 
     <?php if ($isOwner && !empty($bonusChoices)): ?>

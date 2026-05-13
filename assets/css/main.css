@@ -687,246 +687,249 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 }
 .gladiator { width: 100%; max-width: 200px; height: auto; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
 
-.brute-info h1 {
-    font-size: 2.1em;
-    margin-bottom: 0;
+/* ---------- Nouveau Profil RPG ---------- */
+.brute-profile {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-.brute-info h1::after { display: none; }
-.brute-info .level {
-    display: inline-flex;
-    align-items: center;
-    background: linear-gradient(180deg, var(--accent-2), var(--accent));
-    color: #2a1a10;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.5em;
-    font-family: var(--font-body);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.25);
-    box-shadow:
-        0 2px 6px rgba(0,0,0,0.3),
-        inset 0 1px 0 rgba(255,255,255,0.3);
-    vertical-align: middle;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
 }
 
-.brute-header {
+.profile-header {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: radial-gradient(circle at center, rgba(212, 163, 85, 0.05), transparent);
+}
+
+.hero-identity h1 {
+    font-size: 2.4em;
+    margin: 0;
+    text-align: left;
+    color: var(--accent-3);
+    line-height: 1;
+}
+.hero-identity h1::after { display: none; }
+.hero-level {
+    color: var(--muted);
+    font-family: var(--font-title);
+    font-size: 0.9em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.hero-wallet {
+    display: flex;
+    gap: 10px;
+}
+.wallet-pill {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+.wallet-pill img { width: 18px; height: 18px; }
+.wallet-pill.gold { border-color: var(--accent); color: var(--accent-2); }
+
+.profile-main {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    padding: 28px;
+    align-items: start;
+}
+@media (max-width: 800px) { .profile-main { grid-template-columns: 1fr; } }
+
+.profile-portrait {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.portrait-inner {
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1;
+    background: 
+        radial-gradient(circle at center, rgba(212, 163, 85, 0.12), transparent 70%),
+        var(--bg-3);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    padding: 20px;
+    box-shadow: 
+        0 8px 24px rgba(0,0,0,0.6),
+        inset 0 0 40px rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+.portrait-inner::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0.3;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Jauges horizontales compactes */
+.hero-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.profile-bar {
+    position: relative;
+    height: 32px;
+    background: var(--bg-3);
+    border-radius: 6px;
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
+}
+.profile-bar .bar-fill {
+    height: 100%;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.profile-bar.hp .bar-fill { background: linear-gradient(90deg, #6c1810, #c02a1e); }
+.profile-bar.xp .bar-fill { background: linear-gradient(90deg, #8a6a2a, var(--accent)); }
+
+.bar-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    pointer-events: none;
+}
+.bar-text .label { font-size: 0.7em; font-weight: 800; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); }
+.bar-text .value { font-family: var(--font-mono); font-size: 0.9em; font-weight: 700; text-shadow: 0 1px 3px #000; }
+
+/* Stats Tiles */
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.stat-box {
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    transition: border-color 0.2s;
+}
+.stat-box:hover { border-color: var(--accent); }
+.stat-label { display: block; font-size: 0.7em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; font-weight: 700; }
+.stat-value { display: block; font-size: 1.8em; font-family: var(--font-title); color: var(--accent-2); }
+
+.hero-weapon {
+    background: rgba(240, 193, 112, 0.03);
+    border: 1px dashed var(--border-soft);
+    border-radius: 8px;
+    padding: 12px 20px;
+}
+.weapon-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.weapon-name { font-weight: 600; color: var(--text-2); font-size: 0.95em; }
+.weapon-damage { font-family: var(--font-title); color: var(--accent-3); font-weight: 700; }
+
+/* Pied de carte : Actions */
+.profile-footer {
+    background: rgba(0,0,0,0.25);
+    padding: 24px 28px;
+    border-top: 1px solid var(--border-soft);
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: 15px;
-}
-.brute-wallet {
-    display: flex;
-    gap: 12px;
-}
-.wallet-item {
-    background: var(--bg-3);
-    border: 1px solid var(--border-soft);
-    padding: 6px 12px;
-    border-radius: var(--r);
-    font-size: 0.9em;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
-}
-.wallet-item img { width: 16px; height: 16px; }
-.wallet-item.gold { color: var(--accent-2); }
-
-/* Barres HP/XP — épaisses, avec shine */
-.bars { margin: 16px 0; }
-.bar {
-    position: relative;
-    height: 22px;
-    background:
-        linear-gradient(180deg, #0a0705, var(--bg-2));
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin: 8px 0;
-    overflow: hidden;
-    box-shadow:
-        inset 0 2px 4px rgba(0,0,0,0.6),
-        0 1px 0 rgba(212, 163, 85, 0.08);
-}
-.bar.small { height: 13px; }
-.bar .bar-fill {
-    position: relative;
-    height: 100%;
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    background: var(--hp);
-    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3);
-}
-.bar .bar-fill::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 45%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.3), transparent);
-    pointer-events: none;
-}
-.bar.hp .bar-fill { background: linear-gradient(180deg, var(--hp-2), var(--hp) 70%, #8a1f15); }
-.bar.xp .bar-fill { background: linear-gradient(180deg, var(--xp-2), var(--xp) 70%, #8a6a2a); }
-.bar-label {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.78em;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.85);
-    letter-spacing: 0.05em;
-    z-index: 2;
 }
 
-/* Stats — tuiles */
-.stats-group {
+.status-indicator {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 20px 0;
-}
-.stats {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.stats-primary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
     gap: 10px;
-}
-.stats li {
-    background:
-        linear-gradient(180deg, var(--bg-3), var(--bg-2));
-    border: 1px solid var(--border-soft);
-    border-radius: var(--r);
-    padding: 10px 8px;
-    text-align: center;
-    transition: border-color 0.2s, transform 0.15s;
-    box-shadow:
-        inset 0 1px 0 rgba(240, 193, 112, 0.06),
-        0 2px 4px rgba(0,0,0,0.2);
-}
-.stats li:hover {
-    border-color: var(--border-hi);
-    transform: translateY(-1px);
-}
-.stats span {
-    display: block;
     color: var(--muted);
-    font-size: 0.72em;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 2px;
-    font-weight: 600;
-}
-.stats strong {
-    font-size: 1.5em;
-    color: var(--accent-2);
-    font-family: var(--font-title);
-    font-weight: 600;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-}
-
-.stats-secondary {
-    background: rgba(240, 193, 112, 0.05);
-    border: 1px dashed var(--border-soft);
-    border-radius: var(--r);
-    padding: 10px 15px;
-    text-align: center;
-}
-.stat-damage span {
-    color: var(--muted);
-    font-size: 0.75em;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-right: 10px;
-}
-.stat-damage strong {
-    color: var(--accent-3);
-    font-weight: 700;
-    font-size: 1.1em;
-}
-
-/* Actions */
-.brute-actions {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-soft);
-}
-.fights-status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-.fights-left-label {
-    color: var(--muted);
-    font-size: 0.9em;
     font-weight: 500;
 }
-.action-buttons {
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.online { background: var(--success-2); box-shadow: 0 0 8px var(--success-2); }
+.dot.offline { background: var(--danger); }
+.bonus-tag { color: var(--accent-2); margin-left: 8px; }
+
+.battle-actions {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
+    gap: 15px;
 }
-.action-buttons form { margin: 0; }
-.training-launch .btn-ghost {
-    height: 46px;
-    padding: 0 20px;
-    border: 1px solid var(--border-soft);
-    font-size: 0.9em;
-}
-.training-launch .btn-ghost:hover {
-    background: var(--panel-2);
-    border-color: var(--accent);
+.btn-hero {
+    height: 54px;
+    min-width: 240px;
+    font-size: 1.1em;
+    letter-spacing: 0.1em;
 }
 
-.duo-launch {
+.secondary-actions {
     display: flex;
-    align-items: center;
     gap: 8px;
-    background: var(--bg-3);
-    padding: 4px 4px 4px 12px;
-    border-radius: var(--r);
-    border: 1px solid var(--border-soft);
 }
-.duo-partner-select {
+.btn-outline {
+    background: var(--bg-3);
+    border: 1px solid var(--border-soft);
+    color: var(--text-2);
+    height: 54px;
+    padding: 0 15px;
+}
+.btn-outline:hover { border-color: var(--accent); background: var(--panel-2); }
+
+.duo-compact {
+    display: flex;
+    background: var(--bg-3);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r);
+    padding: 4px;
+}
+.partner-select {
     background: none;
     border: none;
     color: var(--text-2);
-    font-size: 0.85em;
+    padding: 0 10px;
     font-family: var(--font-body);
-    outline: none;
-    cursor: pointer;
-    max-width: 140px;
-}
-.duo-launch .btn-secondary {
-    padding: 6px 15px;
     font-size: 0.85em;
-    height: 36px;
+    max-width: 110px;
+    outline: none;
 }
-.levelup-alert {
-    color: var(--accent-2);
-    font-weight: 700;
-    animation: pulse 2s ease-in-out infinite;
-}
+.duo-compact .btn-outline { height: 44px; border: none; background: var(--panel-3); }
 
-/* ---------- Icon grids (armes/compétences) ---------- */
+.levelup-cta {
+    font-family: var(--font-title);
+    color: var(--accent-2);
+    font-weight: 800;
+    font-size: 1.2em;
+    letter-spacing: 0.1em;
+}
+.blink { animation: blinker 1s linear infinite; }
+@keyframes blinker { 50% { opacity: 0; } }
+
+/* ---------- Quêtes mini (page gladiateur) ---------- */
 .icon-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
