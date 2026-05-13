@@ -1,7 +1,6 @@
 <?php
 /**
  * MigrationEngine - Système de synchronisation déclaratif de la base de données.
- * Au lieu de fichiers SQL, on définit ici l'état souhaité de la base.
  */
 
 declare(strict_types=1);
@@ -11,92 +10,105 @@ declare(strict_types=1);
  */
 function check_migrations(PDO $pdo): void
 {
-    // 1. Initialisation de base si la table 'users' n'existe pas
-    if (!table_exists($pdo, 'users')) {
-        run_sql_file($pdo, __DIR__ . '/../sql/schema.sql');
+    try {
+        // 1. Initialisation de base si la table 'users' n'existe pas
+        if (!table_exists($pdo, 'users')) {
+            run_sql_file($pdo, __DIR__ . '/../sql/schema.sql');
+        }
+
+        // 2. Synchronisation des colonnes et tables
+        
+        // --- Table USERS ---
+        if (table_exists($pdo, 'users')) {
+            ensure_column($pdo, 'users', 'streak_days', 'INT UNSIGNED NOT NULL DEFAULT 0');
+            ensure_column($pdo, 'users', 'last_login_date', 'DATE NULL');
+            ensure_column($pdo, 'users', 'streak_claim_date', 'DATE NULL');
+            ensure_column($pdo, 'users', 'tutorial_skipped', 'TINYINT(1) NOT NULL DEFAULT 0');
+        }
+
+        // --- Table BRUTES ---
+        if (table_exists($pdo, 'brutes')) {
+            ensure_column($pdo, 'brutes', 'gold', 'INT UNSIGNED NOT NULL DEFAULT 0');
+            ensure_column($pdo, 'brutes', 'levelup_choices', 'TEXT NULL AFTER pending_levelup');
+            ensure_column($pdo, 'brutes', 'bonus_fights_available', 'INT UNSIGNED NOT NULL DEFAULT 0');
+            ensure_column($pdo, 'brutes', 'pupil_bonus_progress', 'INT UNSIGNED NOT NULL DEFAULT 0');
+        }
+
+        // --- Table TOURNAMENTS ---
+        if (table_exists($pdo, 'tournaments')) {
+            ensure_column($pdo, 'tournaments', 'type', "ENUM('daily','weekly') NOT NULL DEFAULT 'daily' AFTER tour_date");
+            drop_index($pdo, 'tournaments', 'tour_date');
+            ensure_unique_index($pdo, 'tournaments', 'uk_tour_date_type', ['tour_date', 'type']);
+        }
+
+        // --- Table QUEST_DEFINITIONS ---
+        if (table_exists($pdo, 'quest_definitions')) {
+            ensure_column($pdo, 'quest_definitions', 'scope', "ENUM('daily','weekly') NOT NULL DEFAULT 'daily' AFTER code");
+        }
+
+        // --- NOUVELLES TABLES ---
+        ensure_table($pdo, 'brute_weekly_quests', "
+            brute_id INT UNSIGNED NOT NULL,
+            quest_code VARCHAR(40) NOT NULL,
+            quest_week DATE NOT NULL,
+            progress INT UNSIGNED NOT NULL DEFAULT 0,
+            claimed TINYINT(1) NOT NULL DEFAULT 0,
+            PRIMARY KEY (brute_id, quest_code, quest_week),
+            CONSTRAINT fk_bwq_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
+            CONSTRAINT fk_bwq_quest FOREIGN KEY (quest_code) REFERENCES quest_definitions(code) ON DELETE CASCADE
+        ");
+
+        ensure_table($pdo, 'season_rewards', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            season_id INT UNSIGNED NOT NULL,
+            brute_id INT UNSIGNED NOT NULL,
+            final_mmr INT NOT NULL DEFAULT 1000,
+            tier_code VARCHAR(20) NOT NULL,
+            gold_awarded INT UNSIGNED NOT NULL DEFAULT 0,
+            awarded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uk_season_brute (season_id, brute_id)
+        ");
+
+        ensure_table($pdo, 'daily_bosses', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            boss_date DATE NOT NULL UNIQUE,
+            name VARCHAR(40) NOT NULL,
+            level INT UNSIGNED NOT NULL,
+            hp_max INT UNSIGNED NOT NULL,
+            appearance_seed TEXT NOT NULL
+        ");
+
+        ensure_table($pdo, 'boss_attempts', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            boss_id INT UNSIGNED NOT NULL,
+            brute_id INT UNSIGNED NOT NULL,
+            damage_dealt INT UNSIGNED NOT NULL DEFAULT 0,
+            won TINYINT(1) NOT NULL DEFAULT 0,
+            UNIQUE KEY uk_boss_brute (boss_id, brute_id)
+        ");
+
+        ensure_table($pdo, 'challenges', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            challenger_id INT UNSIGNED NOT NULL,
+            target_id INT UNSIGNED NOT NULL,
+            status ENUM('pending','accepted','declined','expired') NOT NULL DEFAULT 'pending',
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ");
+
+        // 3. Insertion de données vitales
+        if (table_exists($pdo, 'quest_definitions')) {
+            sync_weekly_quests($pdo);
+        }
+
+    } catch (Throwable $t) {
+        // En cas d'erreur, on affiche un message propre au lieu d'une erreur 500 brute
+        die("<html><body style='font-family:sans-serif;padding:20px;'>
+            <h2 style='color:#d9534f;'>Erreur de Synchronisation BDD</h2>
+            <p>Une erreur est survenue lors de la mise à jour automatique de la base de données :</p>
+            <pre style='background:#f8f8f8;padding:10px;border:1px solid #ddd;'>" . htmlspecialchars($t->getMessage()) . "</pre>
+            <p>Veuillez vérifier vos accès MySQL ou contacter le support.</p>
+        </body></html>");
     }
-
-    // 2. Synchronisation des colonnes et tables (Evolutions)
-    
-    // --- Table USERS ---
-    ensure_column($pdo, 'users', 'streak_days', 'INT UNSIGNED NOT NULL DEFAULT 0');
-    ensure_column($pdo, 'users', 'last_login_date', 'DATE NULL');
-    ensure_column($pdo, 'users', 'streak_claim_date', 'DATE NULL');
-    ensure_column($pdo, 'users', 'tutorial_skipped', 'TINYINT(1) NOT NULL DEFAULT 0');
-
-    // --- Table BRUTES ---
-    ensure_column($pdo, 'brutes', 'gold', 'INT UNSIGNED NOT NULL DEFAULT 0');
-    ensure_column($pdo, 'brutes', 'levelup_choices', 'TEXT NULL AFTER pending_levelup');
-    ensure_column($pdo, 'brutes', 'bonus_fights_available', 'INT UNSIGNED NOT NULL DEFAULT 0');
-    ensure_column($pdo, 'brutes', 'pupil_bonus_progress', 'INT UNSIGNED NOT NULL DEFAULT 0');
-
-    // --- Table TOURNAMENTS ---
-    ensure_column($pdo, 'tournaments', 'type', "ENUM('daily','weekly') NOT NULL DEFAULT 'daily' AFTER tour_date");
-    // Suppression de l'ancienne clé unique simple si elle existe
-    drop_index($pdo, 'tournaments', 'tour_date');
-    // Ajout de la nouvelle clé composite
-    ensure_unique_index($pdo, 'tournaments', 'uk_tour_date_type', ['tour_date', 'type']);
-
-    // --- Table QUEST_DEFINITIONS ---
-    ensure_column($pdo, 'quest_definitions', 'scope', "ENUM('daily','weekly') NOT NULL DEFAULT 'daily' AFTER code");
-
-    // --- NOUVELLES TABLES ---
-    
-    // Quêtes hebdomadaires
-    ensure_table($pdo, 'brute_weekly_quests', "
-        brute_id INT UNSIGNED NOT NULL,
-        quest_code VARCHAR(40) NOT NULL,
-        quest_week DATE NOT NULL,
-        progress INT UNSIGNED NOT NULL DEFAULT 0,
-        claimed TINYINT(1) NOT NULL DEFAULT 0,
-        PRIMARY KEY (brute_id, quest_code, quest_week),
-        CONSTRAINT fk_bwq_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
-        CONSTRAINT fk_bwq_quest FOREIGN KEY (quest_code) REFERENCES quest_definitions(code) ON DELETE CASCADE
-    ");
-
-    // Récompenses de saison
-    ensure_table($pdo, 'season_rewards', "
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        season_id INT UNSIGNED NOT NULL,
-        brute_id INT UNSIGNED NOT NULL,
-        final_mmr INT NOT NULL DEFAULT 1000,
-        tier_code VARCHAR(20) NOT NULL,
-        gold_awarded INT UNSIGNED NOT NULL DEFAULT 0,
-        awarded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uk_season_brute (season_id, brute_id)
-    ");
-
-    // Boss quotidien
-    ensure_table($pdo, 'daily_bosses', "
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        boss_date DATE NOT NULL UNIQUE,
-        name VARCHAR(40) NOT NULL,
-        level INT UNSIGNED NOT NULL,
-        hp_max INT UNSIGNED NOT NULL,
-        appearance_seed TEXT NOT NULL
-    ");
-
-    // Tentatives de boss
-    ensure_table($pdo, 'boss_attempts', "
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        boss_id INT UNSIGNED NOT NULL,
-        brute_id INT UNSIGNED NOT NULL,
-        damage_dealt INT UNSIGNED NOT NULL DEFAULT 0,
-        won TINYINT(1) NOT NULL DEFAULT 0,
-        UNIQUE KEY uk_boss_brute (boss_id, brute_id)
-    ");
-
-    // Défis PvP
-    ensure_table($pdo, 'challenges', "
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        challenger_id INT UNSIGNED NOT NULL,
-        target_id INT UNSIGNED NOT NULL,
-        status ENUM('pending','accepted','declined','expired') NOT NULL DEFAULT 'pending',
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    ");
-
-    // 3. Insertion de données vitales (Seeds)
-    sync_weekly_quests($pdo);
 }
 
 /**
@@ -138,10 +150,9 @@ function ensure_table(PDO $pdo, string $table, string $definition): void
 function drop_index(PDO $pdo, string $table, string $indexName): void
 {
     try {
-        // On vérifie d'abord si c'est une clé étrangère ou un index classique
         $pdo->exec("ALTER TABLE `$table` DROP INDEX `$indexName` ");
     } catch (Exception $e) {
-        // L'index n'existe probablement pas, on ignore
+        // Ignore
     }
 }
 
@@ -154,7 +165,7 @@ function ensure_unique_index(PDO $pdo, string $table, string $indexName, array $
         $cols = implode('`, `', $columns);
         $pdo->exec("ALTER TABLE `$table` ADD UNIQUE KEY `$indexName` (`$cols`)");
     } catch (Exception $e) {
-        // Déjà présent ou erreur, on ignore
+        // Ignore
     }
 }
 
@@ -165,14 +176,25 @@ function run_sql_file(PDO $pdo, string $path): void
 {
     if (!file_exists($path)) return;
     $sql = file_get_contents($path);
-    // Nettoyage standard pour PDO
-    $sql = preg_replace('/CREATE\s+DATABASE\s+IF\s+NOT\s+EXISTS\s+[^;]+;/i', '', $sql);
-    $sql = preg_replace('/USE\s+[^;]+;/i', '', $sql);
-    try {
-        $pdo->exec($sql);
-    } catch (PDOException $e) {
-        // En cas d'erreur fatale au démarrage
-        die("Erreur initialisation : " . $e->getMessage());
+    
+    // Nettoyage des commentaires et séparation des requêtes
+    $sql = preg_replace('/--.*$/m', '', $sql);
+    $queries = explode(';', $sql);
+
+    foreach ($queries as $query) {
+        $query = trim($query);
+        if (empty($query)) continue;
+        
+        // Ignorer CREATE DATABASE et USE
+        if (preg_match('/^(CREATE\s+DATABASE|USE)\b/i', $query)) continue;
+
+        try {
+            $pdo->exec($query);
+        } catch (PDOException $e) {
+            // Ignorer si déjà existant
+            if (str_contains($e->getMessage(), 'already exists')) continue;
+            throw $e;
+        }
     }
 }
 
