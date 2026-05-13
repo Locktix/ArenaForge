@@ -329,3 +329,41 @@ function current_season(): ?array
     $stmt = db()->query('SELECT * FROM seasons WHERE active = 1 ORDER BY started_at DESC LIMIT 1');
     return $stmt->fetch() ?: null;
 }
+
+/**
+ * Vérifie si on doit passer à une nouvelle saison (chaque 1er du mois).
+ * Automatise la clôture, la distribution des récompenses et le reset MMR.
+ */
+function check_season_transition(): void
+{
+    $pdo = db();
+    $now = new DateTime();
+    $current = current_season();
+
+    // Initialisation si aucune saison n'existe
+    if (!$current) {
+        $pdo->prepare("INSERT INTO seasons (label, active, started_at) VALUES ('Saison 1', 1, NOW())")
+            ->execute();
+        return;
+    }
+
+    // Vérification du changement de mois
+    $started = new DateTime($current['started_at']);
+    if ($started->format('Y-m') !== $now->format('Y-m')) {
+        // 1) Clôture et récompenses
+        award_season_rewards((int)$current['id']);
+        
+        // 2) Désactivation de l'ancienne saison
+        $pdo->prepare('UPDATE seasons SET active = 0, ended_at = NOW() WHERE id = ?')
+            ->execute([$current['id']]);
+
+        // 3) Reset MMR global (soft reset : retour à 1000)
+        $pdo->query('UPDATE brutes SET mmr = 1000, peak_mmr = 1000');
+
+        // 4) Création de la nouvelle saison avec incrément du label
+        $count = (int)$pdo->query('SELECT COUNT(*) FROM seasons')->fetchColumn() + 1;
+        $label = "Saison $count";
+        $pdo->prepare('INSERT INTO seasons (label, active, started_at) VALUES (?, 1, NOW())')
+            ->execute([$label]);
+    }
+}

@@ -292,7 +292,8 @@ function load_fighter(int $bruteId): array
         $armorReduction += (int)$row['damage_reduction'];
     }
 
-    $hpMax = (int)$brute['hp_max'] + $armorBonusHp;
+    // Équilibrage : Les PV max dépendent de la base + (Endurance * 2) + bonus armure
+    $hpMax = (int)$brute['hp_max'] + ((int)$brute['endurance'] * 2) + $armorBonusHp;
 
     return [
         'id'               => (int)$brute['id'],
@@ -679,6 +680,12 @@ function resolve_attack(array &$att, array &$def, int $turn, array &$log): void
             $baseDodge += (int)$dodgeSkill['effect_value'];
         }
     }
+    
+    // Équilibrage : Poids des armes (Vitesse <= 1 -> malus d'esquive -10%)
+    if ($att['role'] === 'master' && $weapon !== null && (int)$weapon['speed'] <= 1) {
+        $baseDodge = max(0, $baseDodge - 10);
+    }
+
     // Météo : pluie augmente l'esquive de 5 %
     $weatherCode = combat_weather()['code'] ?? '';
     if ($weatherCode === 'rain') {
@@ -718,7 +725,23 @@ function resolve_attack(array &$att, array &$def, int $turn, array &$log): void
         return;
     }
 
-    resolve_raw_hit($att, $def, $turn, $log, $weapon);
+    // Équilibrage : Mécanique de Vitesse (Frappes multiples)
+    // Chance de porter un coup supplémentaire = 15% * vitesse de l'arme
+    $hits = 1;
+    if ($att['role'] === 'master' && $weapon !== null) {
+        $speed = (int)$weapon['speed'];
+        while ($speed > 0) {
+            if (roll(1, 100) <= 15) {
+                $hits++;
+            }
+            $speed--;
+        }
+    }
+
+    for ($i = 0; $i < $hits; $i++) {
+        if ($def['hp'] <= 0) break;
+        resolve_raw_hit($att, $def, $turn, $log, $weapon);
+    }
 }
 
 function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?array $weapon = null): void
@@ -760,6 +783,16 @@ function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?arra
     }
 
     $isCrit = roll(1, 100) <= $critChance;
+
+    // Équilibrage : Agilité vs Crit (Esquive critique)
+    // L'agilité du défenseur réduit les chances de crit de l'attaquant
+    if ($isCrit && $def['role'] === 'master') {
+        $critEvasionChance = (int)floor($def['agility'] / 2);
+        if (roll(1, 100) <= $critEvasionChance) {
+            $isCrit = false;
+        }
+    }
+
     if ($isCrit) {
         $damage = (int)floor($damage * 1.8);
     }

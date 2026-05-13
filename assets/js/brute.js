@@ -50,6 +50,14 @@ if (duoForm) {
     });
 }
 
+const trainingForm = document.getElementById('training-form');
+if (trainingForm) {
+    trainingForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        postForm(trainingForm, '../api/start_training.php');
+    });
+}
+
 document.querySelectorAll('.levelup-form').forEach((f) => {
     f.addEventListener('submit', (e) => {
         e.preventDefault();

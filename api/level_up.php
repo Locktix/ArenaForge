@@ -84,7 +84,7 @@ try {
         throw new RuntimeException('Type de bonus inconnu');
     }
 
-    $pdo->prepare('UPDATE brutes SET pending_levelup = 0 WHERE id = ?')->execute([$bruteId]);
+    $pdo->prepare('UPDATE brutes SET pending_levelup = 0, levelup_choices = NULL WHERE id = ?')->execute([$bruteId]);
     $pdo->commit();
 
     $newAchievements = check_achievements_collection($bruteId);

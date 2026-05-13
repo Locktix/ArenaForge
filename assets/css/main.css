@@ -689,7 +689,7 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 
 .brute-info h1 {
     font-size: 2.1em;
-    margin-bottom: 12px;
+    margin-bottom: 0;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -714,6 +714,33 @@ body.nav-open .nav-drawer { transform: translateX(0); }
         inset 0 1px 0 rgba(255,255,255,0.3);
     vertical-align: middle;
 }
+
+.brute-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+.brute-wallet {
+    display: flex;
+    gap: 12px;
+}
+.wallet-item {
+    background: var(--bg-3);
+    border: 1px solid var(--border-soft);
+    padding: 6px 12px;
+    border-radius: var(--r);
+    font-size: 0.9em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+.wallet-item img { width: 16px; height: 16px; }
+.wallet-item.gold { color: var(--accent-2); }
 
 /* Barres HP/XP — épaisses, avec shine */
 .bars { margin: 16px 0; }
@@ -763,10 +790,18 @@ body.nav-open .nav-drawer { transform: translateX(0); }
 }
 
 /* Stats — tuiles */
+.stats-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
 .stats {
     list-style: none;
     padding: 0;
-    margin: 16px 0;
+    margin: 0;
+}
+.stats-primary {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
@@ -804,18 +839,86 @@ body.nav-open .nav-drawer { transform: translateX(0); }
     text-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-.fights-left { color: var(--muted); margin: 10px 0; }
-.fights-left .bonus-count {
-    display: inline-block;
-    margin-left: 10px;
-    padding: 3px 10px;
-    background: linear-gradient(180deg, var(--accent-2), var(--accent));
-    color: #2a1a10;
-    border-radius: var(--r-sm);
+.stats-secondary {
+    background: rgba(240, 193, 112, 0.05);
+    border: 1px dashed var(--border-soft);
+    border-radius: var(--r);
+    padding: 10px 15px;
+    text-align: center;
+}
+.stat-damage span {
+    color: var(--muted);
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 10px;
+}
+.stat-damage strong {
+    color: var(--accent-3);
     font-weight: 700;
+    font-size: 1.1em;
+}
+
+/* Actions */
+.brute-actions {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-soft);
+}
+.fights-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.fights-left-label {
+    color: var(--muted);
+    font-size: 0.9em;
+    font-weight: 500;
+}
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.action-buttons form { margin: 0; }
+.training-launch .btn-ghost {
+    height: 46px;
+    padding: 0 20px;
+    border: 1px solid var(--border-soft);
+    font-size: 0.9em;
+}
+.training-launch .btn-ghost:hover {
+    background: var(--panel-2);
+    border-color: var(--accent);
+}
+
+.duo-launch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-3);
+    padding: 4px 4px 4px 12px;
+    border-radius: var(--r);
+    border: 1px solid var(--border-soft);
+}
+.duo-partner-select {
+    background: none;
+    border: none;
+    color: var(--text-2);
     font-size: 0.85em;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.2);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    font-family: var(--font-body);
+    outline: none;
+    cursor: pointer;
+    max-width: 140px;
+}
+.duo-launch .btn-secondary {
+    padding: 6px 15px;
+    font-size: 0.85em;
+    height: 36px;
 }
 .levelup-alert {
     color: var(--accent-2);

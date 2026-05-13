@@ -21,7 +21,7 @@ const MARKET_POOL = [
     ['type' => 'xp',          'value' => 75,  'cost' => 110, 'label' => 'Potion antique',       'icon' => 'assets/svg/quests/sword.svg'],
     ['type' => 'bonus_fight', 'value' => 1,   'cost' => 30,  'label' => 'Permis de combat',     'icon' => 'assets/svg/quests/fire.svg'],
     ['type' => 'bonus_fight', 'value' => 3,   'cost' => 75,  'label' => 'Trio de pancartes',    'icon' => 'assets/svg/quests/fire.svg'],
-    ['type' => 'potion',      'value' => 25,  'cost' => 35,  'label' => 'Onguent de soin',      'icon' => 'assets/svg/skills/regen.svg'],
+    ['type' => 'potion',      'value' => 5,   'cost' => 45,  'label' => 'Onguent de soin',      'icon' => 'assets/svg/skills/regen.svg'],
 ];
 
 // ============================================================

@@ -48,6 +48,11 @@ function current_brute(): ?array
     if ($uid === null) {
         return null;
     }
+    
+    // Vérification automatique des saisons
+    require_once __DIR__ . '/elo_engine.php';
+    check_season_transition();
+
     $stmt = db()->prepare('SELECT * FROM brutes WHERE user_id = ? LIMIT 1');
     $stmt->execute([$uid]);
     $brute = $stmt->fetch();

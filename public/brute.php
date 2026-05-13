@@ -4,9 +4,11 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
 require_once __DIR__ . '/../includes/quest_engine.php';
 require_once __DIR__ . '/../includes/notification_engine.php';
+require_once __DIR__ . '/../includes/combat_engine.php';
 require_login();
 
 $id = (int)($_GET['id'] ?? 0);
+$fighter = load_fighter($id);
 $stmt = db()->prepare('SELECT * FROM brutes WHERE id = ? LIMIT 1');
 $stmt->execute([$id]);
 $brute = $stmt->fetch();
@@ -20,13 +22,8 @@ if (!$brute) {
 $isOwner = ((int)$brute['user_id'] === current_user_id());
 
 // Armes / compétences
-$weapons = db()->prepare('SELECT w.* FROM weapons w JOIN brute_weapons bw ON bw.weapon_id=w.id WHERE bw.brute_id=?');
-$weapons->execute([$id]);
-$weapons = $weapons->fetchAll();
-
-$skills = db()->prepare('SELECT s.* FROM skills s JOIN brute_skills bs ON bs.skill_id=s.id WHERE bs.brute_id=?');
-$skills->execute([$id]);
-$skills = $skills->fetchAll();
+$weapons = $fighter['weapons'];
+$skills = $fighter['skills'];
 
 // Compagnon animal
 $pets = db()->prepare('SELECT p.* FROM pets p JOIN brute_pets bp ON bp.pet_id = p.id WHERE bp.brute_id = ? ORDER BY bp.acquired_at');
@@ -65,37 +62,45 @@ if ($isOwner) {
 // Proposition de bonus level-up
 $bonusChoices = [];
 if ($isOwner && (int)$brute['pending_levelup'] === 1) {
-    $pool = [];
-    foreach (['hp_max' => '+5 PV max', 'strength' => '+1 Force', 'agility' => '+1 Agilité', 'endurance' => '+1 Endurance'] as $k => $lbl) {
-        $pool[] = ['key' => "stat:$k", 'label' => $lbl, 'icon' => '../assets/svg/ui/nav_fight.svg'];
-    }
-    // Armes non possédées
-    $ownedW = array_column($weapons, 'id');
-    $allW = db()->query('SELECT * FROM weapons')->fetchAll();
-    foreach ($allW as $w) {
-        if (!in_array((int)$w['id'], array_map('intval', $ownedW), true)) {
-            $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '../' . $w['icon_path']];
+    if (!empty($brute['levelup_choices'])) {
+        $bonusChoices = json_decode($brute['levelup_choices'], true);
+    } else {
+        $pool = [];
+        foreach (['hp_max' => '+5 PV max', 'strength' => '+1 Force', 'agility' => '+1 Agilité', 'endurance' => '+1 Endurance'] as $k => $lbl) {
+            $pool[] = ['key' => "stat:$k", 'label' => $lbl, 'icon' => '../assets/svg/ui/nav_fight.svg'];
         }
-    }
-    // Compétences non possédées (les ultimes sont préfixés par ⚡)
-    $ownedS = array_column($skills, 'id');
-    $allS = db()->query('SELECT * FROM skills')->fetchAll();
-    foreach ($allS as $s) {
-        if (!in_array((int)$s['id'], array_map('intval', $ownedS), true)) {
-            $isUlt = (int)($s['is_ultimate'] ?? 0) === 1;
-            $label = ($isUlt ? '⚡ ULTIME — ' : '') . $s['name'] . ' — ' . $s['description'];
-            $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $label, 'icon' => '../' . $s['icon_path']];
+        // Armes non possédées
+        $ownedW = array_column($weapons, 'id');
+        $allW = db()->query('SELECT * FROM weapons')->fetchAll();
+        foreach ($allW as $w) {
+            if (!in_array((int)$w['id'], array_map('intval', $ownedW), true)) {
+                $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '../' . $w['icon_path']];
+            }
         }
-    }
-    // Animaux : uniquement si le joueur n'en a pas encore (1 pet max)
-    if (empty($pets)) {
-        $allPets = db()->query('SELECT * FROM pets')->fetchAll();
-        foreach ($allPets as $p) {
-            $pool[] = ['key' => 'pet:' . $p['id'], 'label' => 'Compagnon : ' . $p['name'] . ' — ' . $p['description'], 'icon' => '../' . $p['icon_path']];
+        // Compétences non possédées (les ultimes sont préfixés par ⚡)
+        $ownedS = array_column($skills, 'id');
+        $allS = db()->query('SELECT * FROM skills')->fetchAll();
+        foreach ($allS as $s) {
+            if (!in_array((int)$s['id'], array_map('intval', $ownedS), true)) {
+                $isUlt = (int)($s['is_ultimate'] ?? 0) === 1;
+                $label = ($isUlt ? '⚡ ULTIME — ' : '') . $s['name'] . ' — ' . $s['description'];
+                $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $label, 'icon' => '../' . $s['icon_path']];
+            }
         }
+        // Animaux : uniquement si le joueur n'en a pas encore (1 pet max)
+        if (empty($pets)) {
+            $allPets = db()->query('SELECT * FROM pets')->fetchAll();
+            foreach ($allPets as $p) {
+                $pool[] = ['key' => 'pet:' . $p['id'], 'label' => 'Compagnon : ' . $p['name'] . ' — ' . $p['description'], 'icon' => '../' . $p['icon_path']];
+            }
+        }
+        shuffle($pool);
+        $bonusChoices = array_slice($pool, 0, 3);
+        
+        // Sauvegarder les choix pour éviter l'exploit F5
+        db()->prepare('UPDATE brutes SET levelup_choices = ? WHERE id = ?')
+          ->execute([json_encode($bonusChoices, JSON_UNESCAPED_UNICODE), $id]);
     }
-    shuffle($pool);
-    $bonusChoices = array_slice($pool, 0, 3);
 }
 
 $csrf = csrf_token();
@@ -106,6 +111,11 @@ $xpPrev = xp_for_level((int)$brute['level']);
 $xpPct  = $xpNext > $xpPrev ? max(0, min(100, (int)round(($xpCur - $xpPrev) * 100 / ($xpNext - $xpPrev)))) : 0;
 
 $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
+
+// Arme actuelle et dégâts
+$currentWeapon = pick_weapon($fighter);
+$dmgMin = $currentWeapon['damage_min'] + (int)floor($fighter['strength'] / 2);
+$dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -145,12 +155,25 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
             <?php include __DIR__ . '/_gladiator.php'; ?>
         </div>
         <div class="brute-info">
-            <h1><?= h($brute['name']) ?> <span class="level">Niv. <?= (int)$brute['level'] ?></span></h1>
+            <header class="brute-header">
+                <h1><?= h($brute['name']) ?> <span class="level">Niv. <?= (int)$brute['level'] ?></span></h1>
+                
+                <?php if ($isOwner): ?>
+                <div class="brute-wallet">
+                    <span class="wallet-item fragments" title="Fragments — utilisés à la forge">
+                        <img src="../assets/svg/weapons/axe.svg" alt=""> <?= (int)$brute['fragments'] ?>
+                    </span>
+                    <span class="wallet-item gold" title="Or — monnaie du marché noir">
+                        🪙 <?= (int)($brute['gold'] ?? 0) ?>
+                    </span>
+                </div>
+                <?php endif; ?>
+            </header>
 
             <div class="bars">
                 <div class="bar hp">
                     <div class="bar-fill" style="width:100%"></div>
-                    <span class="bar-label"><?= (int)$brute['hp_max'] ?> / <?= (int)$brute['hp_max'] ?> PV</span>
+                    <span class="bar-label"><?= (int)$fighter['hp_max'] ?> / <?= (int)$fighter['hp_max'] ?> PV</span>
                 </div>
                 <div class="bar xp">
                     <div class="bar-fill" style="width: <?= $xpPct ?>%"></div>
@@ -158,11 +181,19 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                 </div>
             </div>
 
-            <ul class="stats">
-                <li><span>Force</span><strong><?= (int)$brute['strength'] ?></strong></li>
-                <li><span>Agilité</span><strong><?= (int)$brute['agility'] ?></strong></li>
-                <li><span>Endurance</span><strong><?= (int)$brute['endurance'] ?></strong></li>
-            </ul>
+            <div class="stats-group">
+                <ul class="stats stats-primary">
+                    <li><span>Force</span><strong><?= (int)$brute['strength'] ?></strong></li>
+                    <li><span>Agilité</span><strong><?= (int)$brute['agility'] ?></strong></li>
+                    <li><span>Endurance</span><strong><?= (int)$brute['endurance'] ?></strong></li>
+                </ul>
+                <div class="stats stats-secondary">
+                    <div class="stat-damage" title="Bas&eacute; sur <?= h($currentWeapon['name']) ?>">
+                        <span>Dégâts estimés (<?= h($currentWeapon['name']) ?>)</span>
+                        <strong>⚔ <?= $dmgMin ?> — <?= $dmgMax ?></strong>
+                    </div>
+                </div>
+            </div>
 
             <?php if ($isOwner): ?>
                 <?php
@@ -172,50 +203,60 @@ $appearance = json_decode((string)$brute['appearance_seed'], true) ?: [];
                   $bonusLeft = (int)$brute['bonus_fights_available'];
                   $totalLeft = $baseLeft + $bonusLeft;
                 ?>
-                <p class="fights-left">
-                    <?= $baseLeft ?> combat(s) du jour
-                    <?php if ($bonusLeft > 0): ?>
-                        <span class="bonus-count" title="Gagn&eacute;s via qu&ecirc;tes, tournoi et pupilles">+ <?= $bonusLeft ?> bonus ⚔</span>
-                    <?php endif; ?>
-                </p>
-                <p class="muted small currency-row">
-                    <span title="Fragments — utilisés à la forge"><img src="../assets/svg/weapons/axe.svg" alt="" class="inline-icon-sm"> <?= (int)$brute['fragments'] ?></span>
-                    <span title="Or — monnaie du marché noir">🪙 <?= (int)($brute['gold'] ?? 0) ?></span>
-                </p>
-                <?php if ((int)$brute['pending_levelup'] === 1): ?>
-                    <p class="levelup-alert">Niveau gagné ! Choisis ton bonus ci-dessous.</p>
-                <?php else: ?>
-                    <form id="fight-form">
-                        <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                        <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                        <button class="btn btn-primary btn-large" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
-                            ⚔ Lancer un combat
-                            <?php if ($baseLeft === 0 && $bonusLeft > 0): ?>
-                                <small>(bonus)</small>
-                            <?php endif; ?>
-                        </button>
-                        <p class="form-msg" data-msg></p>
-                    </form>
 
-                    <?php if (!empty($pupils)): ?>
-                        <form id="duo-fight-form" class="duo-launch">
-                            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                            <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                            <label class="duo-partner-label">
-                                Avec ton pupille
-                                <select name="partner_id" class="duo-partner-select">
-                                    <?php foreach ($pupils as $p): ?>
-                                        <option value="<?= (int)$p['id'] ?>"><?= h($p['name']) ?> (Niv. <?= (int)$p['level'] ?>)</option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </label>
-                            <button class="btn btn-secondary" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
-                                ⚔⚔ Combat duo (2v2)
-                            </button>
-                            <p class="form-msg" data-msg></p>
-                        </form>
+                <div class="brute-actions">
+                    <div class="fights-status">
+                        <span class="fights-left-label"><?= $baseLeft ?> / 6 combats du jour</span>
+                        <?php if ($bonusLeft > 0): ?>
+                            <span class="bonus-count" title="Gagn&eacute;s via qu&ecirc;tes, tournoi et pupilles">+ <?= $bonusLeft ?> bonus</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ((int)$brute['pending_levelup'] === 1): ?>
+                        <div class="levelup-banner">
+                            <p class="levelup-alert">🔥 Niveau gagné ! Choisis ton bonus ci-dessous.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="action-buttons">
+                            <form id="fight-form">
+                                <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                                <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
+                                <button class="btn btn-primary btn-large" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
+                                    ⚔ Lancer un combat
+                                    <?php if ($baseLeft === 0 && $bonusLeft > 0): ?>
+                                        <small>(bonus)</small>
+                                    <?php endif; ?>
+                                </button>
+                                <p class="form-msg" data-msg></p>
+                            </form>
+
+                            <form id="training-form" class="training-launch">
+                                <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                                <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
+                                <button type="submit" class="btn btn-ghost" title="Gratuit - Ne rapporte rien">
+                                    🎯 Entraînement
+                                </button>
+                                <p class="form-msg" data-msg></p>
+                            </form>
+
+                            <?php if (!empty($pupils)): ?>
+                                <form id="duo-fight-form" class="duo-launch">
+                                    <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                                    <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
+                                    <select name="partner_id" class="duo-partner-select" aria-label="Choisir un partenaire">
+                                        <?php foreach ($pupils as $p): ?>
+                                            <option value="<?= (int)$p['id'] ?>"><?= h($p['name']) ?> (Niv. <?= (int)$p['level'] ?>)</option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button class="btn btn-secondary" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
+                                        ⚔⚔ Duo
+                                    </button>
+                                    <p class="form-msg" data-msg></p>
+                                </form>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
-                <?php endif; ?>
+                </div>
             <?php endif; ?>
         </div>
     </section>
