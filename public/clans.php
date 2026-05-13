@@ -36,29 +36,31 @@ $clans = list_clans(50);
 
 <main class="wrap">
     <section class="card">
-        <h1><img src="../assets/svg/ui/trophy.svg" alt="" class="inline-icon"> Clans</h1>
+        <h1>🛡️ Hall des Clans</h1>
         <p class="muted">
-            Rejoins un clan pour progresser en équipe. Le classement des clans est basé sur le MMR cumulé des membres.
-            Créer un clan coûte <strong><?= CLAN_CREATE_XP_COST ?> XP</strong>.
+            L'union fait la force. Seul, tu es un gladiateur ; en clan, vous êtes une légion. Le prestige de votre alliance est mesuré par la gloire cumulée de chaque membre au Panthéon.
         </p>
     </section>
 
     <section class="card">
-        <h2>Créer un clan</h2>
+        <h2>📜 Fonder une Alliance</h2>
+        <p class="muted small" style="margin-bottom: 20px;">L'investissement initial requis est de <strong><?= CLAN_CREATE_XP_COST ?> XP</strong>.</p>
         <form id="clan-create-form" class="clan-create-form">
             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
             <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
             <input type="hidden" name="action" value="create">
-            <label>Nom du clan
-                <input type="text" name="name" required minlength="3" maxlength="40" placeholder="Les Lions de Rome">
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px;">
+                <label>Nom de la Légion
+                    <input type="text" name="name" required minlength="3" maxlength="40" placeholder="Ex: Les Lions de Rome">
+                </label>
+                <label>Tag (2-5 lettres)
+                    <input type="text" name="tag" required minlength="2" maxlength="5" pattern="[A-Z0-9]{2,5}" placeholder="LION">
+                </label>
+            </div>
+            <label style="margin-top: 10px;">Devise du clan
+                <input type="text" name="description" maxlength="255" placeholder="Votre message au monde...">
             </label>
-            <label>Tag (2-5 lettres MAJ/chiffres)
-                <input type="text" name="tag" required minlength="2" maxlength="5" pattern="[A-Z0-9]{2,5}" placeholder="LION">
-            </label>
-            <label>Description (optionnelle)
-                <input type="text" name="description" maxlength="255" placeholder="Un clan de combattants aguerris.">
-            </label>
-            <button type="submit" class="btn btn-secondary">Fonder le clan (<?= CLAN_CREATE_XP_COST ?> XP)</button>
+            <button type="submit" class="btn btn-secondary btn-large" style="margin-top: 15px;">FORGER L'ALLIANCE</button>
             <p class="form-msg" data-msg></p>
         </form>
     </section>

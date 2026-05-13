@@ -41,68 +41,71 @@ function nav_active(string $page, string $current): string {
     <?php if ($navBrute): ?>
     <div class="nav-drawer-brute">
         <span class="d-name"><?= h($navBrute['name']) ?></span>
-        <span class="d-sub">Niveau <?= (int)$navBrute['level'] ?> · <?= (int)$navBrute['xp'] ?> XP</span>
+        <div class="d-sub-row">
+            <span class="d-sub-lvl">Niveau <?= (int)$navBrute['level'] ?></span>
+            <span class="d-sub-xp"><?= (int)$navBrute['xp'] ?> XP</span>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if ($navBrute): ?>
     <div class="nav-section">
-        <span class="nav-section-label">Arène</span>
+        <span class="nav-section-label">⚔ Citadelle</span>
         <ul>
             <li><a href="brute.php?id=<?= (int)$navBrute['id'] ?>" class="<?= nav_active('brute', $cp) ?>">
-                <img src="../assets/svg/ui/nav_fight.svg" alt=""> Combat
+                <img src="../assets/svg/ui/nav_fight.svg" alt=""> Profil du Héros
             </a></li>
             <li><a href="tournament.php" class="<?= nav_active('tournament', $cp) ?>">
-                <img src="../assets/svg/ui/trophy.svg" alt=""> Tournoi
+                <img src="../assets/svg/ui/trophy.svg" alt=""> Grands Tournois
             </a></li>
             <li><a href="boss.php" class="<?= nav_active('boss', $cp) ?>">
-                <img src="../assets/svg/skills/rage.svg" alt=""> Boss du jour
+                <img src="../assets/svg/skills/rage.svg" alt=""> Antre du Boss
             </a></li>
             <li><a href="challenges.php" class="<?= nav_active('challenges', $cp) ?>">
-                <img src="../assets/svg/weapons/sword.svg" alt=""> Défis
+                <img src="../assets/svg/weapons/sword.svg" alt=""> Salle des Défis
                 <?php if ($navInboxCount > 0): ?><span class="nav-badge"><?= $navInboxCount ?></span><?php endif; ?>
             </a></li>
         </ul>
     </div>
 
     <div class="nav-section">
-        <span class="nav-section-label">Progression</span>
+        <span class="nav-section-label">📜 Chroniques</span>
         <ul>
             <li><a href="quests.php" class="<?= nav_active('quests', $cp) ?>">
-                <img src="../assets/svg/ui/scroll.svg" alt=""> Quêtes
+                <img src="../assets/svg/ui/scroll.svg" alt=""> Quêtes de l'Aube
             </a></li>
             <li><a href="achievements.php" class="<?= nav_active('achievements', $cp) ?>">
-                <img src="../assets/svg/ui/trophy.svg" alt=""> Trophées
+                <img src="../assets/svg/ui/trophy.svg" alt=""> Salle des Trophées
             </a></li>
             <li><a href="codex.php" class="<?= nav_active('codex', $cp) ?>">
-                <img src="../assets/svg/ui/scroll.svg" alt=""> Codex
+                <img src="../assets/svg/ui/scroll.svg" alt=""> Codex Ancien
             </a></li>
             <li><a href="ranking.php" class="<?= nav_active('ranking', $cp) ?>">
-                <img src="../assets/svg/ui/nav_ranking.svg" alt=""> Classement
+                <img src="../assets/svg/ui/nav_ranking.svg" alt=""> Panthéon
             </a></li>
         </ul>
     </div>
 
     <div class="nav-section">
-        <span class="nav-section-label">Social</span>
+        <span class="nav-section-label">👥 Alliances</span>
         <ul>
             <li><a href="pupils.php" class="<?= nav_active('pupils', $cp) ?>">
-                <img src="../assets/svg/ui/nav_pupils.svg" alt=""> Pupilles
+                <img src="../assets/svg/ui/nav_pupils.svg" alt=""> Ordre des Pupilles
             </a></li>
             <li><a href="clans.php" class="<?= nav_active('clans', $cp) ?>">
-                <img src="../assets/svg/ui/nav_pupils.svg" alt=""> Clans
+                <img src="../assets/svg/ui/nav_pupils.svg" alt=""> Hall des Clans
             </a></li>
         </ul>
     </div>
 
     <div class="nav-section">
-        <span class="nav-section-label">Boutique</span>
+        <span class="nav-section-label">⚖ Commerce</span>
         <ul>
             <li><a href="forge.php" class="<?= nav_active('forge', $cp) ?>">
-                <img src="../assets/svg/weapons/axe.svg" alt=""> Forge
+                <img src="../assets/svg/weapons/axe.svg" alt=""> La Forge Royale
             </a></li>
             <li><a href="market.php" class="<?= nav_active('market', $cp) ?>">
-                <img src="../assets/svg/quests/hammer.svg" alt=""> Marché noir
+                <img src="../assets/svg/quests/hammer.svg" alt=""> Marché de l'Ombre
             </a></li>
         </ul>
     </div>

@@ -45,27 +45,27 @@ function render_tournament_section(array $t, array $entries, array $bracket, boo
     <section class="card tournament-header">
         <div>
             <h1>
-                <img src="../assets/svg/ui/trophy.svg" alt="" class="inline-icon">
-                <?= $type === 'weekly' ? 'Tournoi de la semaine' : 'Tournoi du ' . h(date('d/m/Y', strtotime($t['tour_date']))) ?>
+                🏆 <?= $type === 'weekly' ? 'Le Grand Tournoi Hebdomadaire' : 'Le Tournoi du Jour' ?>
             </h1>
             <p class="muted">
-                Bracket <?= (int)$t['size'] ?> gladiateurs.
-                Champion : <?= $xpChamp ?> XP + <?= $bfChamp ?> combats bonus ⚔.
-                Finaliste : <?= $xpFinal ?> XP + <?= $bfFinal ?> combat bonus.
-                Demi-finalistes : <?= $xpDemi ?> XP.
-                Les combats de tournoi ne consomment <strong>pas</strong> vos 6 combats journaliers.
+                Une épreuve de force pure où seuls les plus braves triomphent. Les combats de tournoi sont des duels d'honneur qui n'épuisent pas votre énergie journalière.
             </p>
+            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                <span class="gold-pill">🥇 <?= $xpChamp ?> XP + <?= $bfChamp ?> bonus</span>
+                <span class="gold-pill" style="filter: grayscale(1);">🥈 <?= $xpFinal ?> XP + <?= $bfFinal ?> bonus</span>
+                <span class="gold-pill" style="filter: sepia(1) saturate(2);">🥉 <?= $xpDemi ?> XP</span>
+            </div>
         </div>
         <div class="tournament-status status-<?= h($t['status']) ?>">
             <?php if ($t['status'] === 'open'): ?>
-                <span>Inscriptions ouvertes (<?= $humanCount ?> joueur<?= $humanCount > 1 ? 's' : '' ?> / <?= (int)$t['size'] ?> slots)</span>
+                <span class="status-indicator"><span class="dot online"></span> Inscriptions : <?= $humanCount ?> / <?= (int)$t['size'] ?></span>
             <?php elseif ($t['status'] === 'running'): ?>
-                <span>Tournoi en cours...</span>
+                <span class="status-indicator"><span class="dot online" style="background:var(--accent)"></span> Les duels ont commencé...</span>
             <?php else:
                 $winner = null;
                 foreach ($entries as $e) if ((int)$e['brute_id'] === (int)$t['winner_id']) $winner = $e;
             ?>
-                <span><strong>Champion :</strong> <?= $winner ? h($winner['brute_name']) : '?' ?></span>
+                <span class="entry-place first">👑 CHAMPION : <?= $winner ? h($winner['brute_name']) : '?' ?></span>
             <?php endif; ?>
         </div>
     </section>

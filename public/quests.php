@@ -36,12 +36,11 @@ $tab          = ($_GET['tab'] ?? 'daily') === 'weekly' ? 'weekly' : 'daily';
 
     <?php if ($tab === 'weekly'): ?>
     <section class="card">
-        <h1><img src="../assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Quêtes de la semaine</h1>
+        <h1>📜 Les Chroniques de la Semaine</h1>
         <p class="muted">
-            3 défis renouvelés chaque lundi. La progression s'accumule sur toute la semaine.
-            Les récompenses hebdomadaires sont plus généreuses que les journalières.
+            De grands accomplissements demandent du temps. Progressez dans ces quêtes épiques tout au long de la semaine pour recevoir les faveurs du conseil des anciens.
         </p>
-        <div class="quest-list">
+        <div class="scroll-grid">
             <?php foreach ($weeklyQuests as $q): ?>
             <?php
                 $target   = (int)$q['target'];
@@ -50,32 +49,35 @@ $tab          = ($_GET['tab'] ?? 'daily') === 'weekly' ? 'weekly' : 'daily';
                 $done     = $progress >= $target;
                 $pct      = $target > 0 ? min(100, (int)round($progress * 100 / $target)) : 0;
             ?>
-            <div class="quest-tile <?= $claimed ? 'quest-claimed' : ($done ? 'quest-done' : '') ?>">
-                <img class="quest-icon" src="../<?= h($q['icon_path']) ?>" alt="">
-                <div class="quest-body">
+            <div class="scroll-tile <?= $claimed ? 'is-claimed' : ($done ? 'is-done' : '') ?>">
+                <div class="scroll-icon-wrap">
+                    <img class="scroll-icon" src="../<?= h($q['icon_path']) ?>" alt="">
+                </div>
+                <div class="scroll-content">
                     <h3><?= h($q['label']) ?></h3>
-                    <p class="muted"><?= h($q['description']) ?></p>
+                    <p class="scroll-desc">"<?= h($q['description']) ?>"</p>
                     <div class="quest-progress">
-                        <div class="bar xp"><div class="bar-fill" style="width:<?= $pct ?>%"></div></div>
-                        <span><?= min($target, $progress) ?> / <?= $target ?></span>
+                        <div class="bar xp"><div class="bar-fill" style="width:<?= $pct ?>%; background: #6c1810;"></div></div>
+                        <span style="color: #5a3a1a;"><?= min($target, $progress) ?> / <?= $target ?></span>
                     </div>
                 </div>
-                <div class="quest-reward">
-                    <span class="reward-xp">+<?= (int)$q['reward_xp'] ?> XP</span>
+                <div class="scroll-reward">
+                    <span class="reward-pill">+<?= (int)$q['reward_xp'] ?> XP</span>
                     <?php if ((int)$q['reward_bonus_fights'] > 0): ?>
-                        <span class="reward-bonus" title="Combat bonus">+<?= (int)$q['reward_bonus_fights'] ?> ⚔</span>
+                        <span class="reward-pill" style="background: #6c1810; color: #fff;">+<?= (int)$q['reward_bonus_fights'] ?> ⚔</span>
                     <?php endif; ?>
+                    
                     <?php if ($claimed): ?>
-                        <span class="quest-status">Réclamée ✓</span>
+                        <span class="quest-status">Scellé</span>
                     <?php elseif ($done): ?>
                         <form class="weekly-quest-claim-form">
                             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                             <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
                             <input type="hidden" name="code" value="<?= h($q['quest_code']) ?>">
-                            <button class="btn btn-secondary" type="submit">Réclamer</button>
+                            <button class="btn btn-secondary btn-sm" type="submit">Réclamer</button>
                         </form>
                     <?php else: ?>
-                        <span class="quest-status">En cours...</span>
+                        <span class="quest-status" style="color: #7a6246;">En cours...</span>
                     <?php endif; ?>
                 </div>
             </div>
@@ -85,12 +87,11 @@ $tab          = ($_GET['tab'] ?? 'daily') === 'weekly' ? 'weekly' : 'daily';
 
     <?php else: ?>
     <section class="card">
-        <h1><img src="../assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Quêtes du jour</h1>
+        <h1>🌅 Les Faveurs de l'Aube</h1>
         <p class="muted">
-            3 défis renouvelés chaque jour. Chaque combat met à jour la progression.
-            Réclamez la récompense pour empocher l'XP bonus.
+            Chaque jour apporte son lot de défis. Accomplissez ces tâches quotidiennes pour renforcer votre légende et obtenir des ressources précieuses.
         </p>
-        <div class="quest-list">
+        <div class="scroll-grid">
             <?php foreach ($dailyQuests as $q): ?>
             <?php
                 $target   = (int)$q['target'];
@@ -99,32 +100,35 @@ $tab          = ($_GET['tab'] ?? 'daily') === 'weekly' ? 'weekly' : 'daily';
                 $done     = $progress >= $target;
                 $pct      = $target > 0 ? min(100, (int)round($progress * 100 / $target)) : 0;
             ?>
-            <div class="quest-tile <?= $claimed ? 'quest-claimed' : ($done ? 'quest-done' : '') ?>">
-                <img class="quest-icon" src="../<?= h($q['icon_path']) ?>" alt="">
-                <div class="quest-body">
+            <div class="scroll-tile <?= $claimed ? 'is-claimed' : ($done ? 'is-done' : '') ?>">
+                <div class="scroll-icon-wrap">
+                    <img class="scroll-icon" src="../<?= h($q['icon_path']) ?>" alt="">
+                </div>
+                <div class="scroll-content">
                     <h3><?= h($q['label']) ?></h3>
-                    <p class="muted"><?= h($q['description']) ?></p>
+                    <p class="scroll-desc">"<?= h($q['description']) ?>"</p>
                     <div class="quest-progress">
-                        <div class="bar xp"><div class="bar-fill" style="width:<?= $pct ?>%"></div></div>
-                        <span><?= min($target, $progress) ?> / <?= $target ?></span>
+                        <div class="bar xp"><div class="bar-fill" style="width:<?= $pct ?>%; background: #6c1810;"></div></div>
+                        <span style="color: #5a3a1a;"><?= min($target, $progress) ?> / <?= $target ?></span>
                     </div>
                 </div>
-                <div class="quest-reward">
-                    <span class="reward-xp">+<?= (int)$q['reward_xp'] ?> XP</span>
+                <div class="scroll-reward">
+                    <span class="reward-pill">+<?= (int)$q['reward_xp'] ?> XP</span>
                     <?php if ((int)$q['reward_bonus_fights'] > 0): ?>
-                        <span class="reward-bonus" title="Combat bonus">+<?= (int)$q['reward_bonus_fights'] ?> ⚔</span>
+                        <span class="reward-pill" style="background: #6c1810; color: #fff;">+<?= (int)$q['reward_bonus_fights'] ?> ⚔</span>
                     <?php endif; ?>
+                    
                     <?php if ($claimed): ?>
-                        <span class="quest-status">Réclamée ✓</span>
+                        <span class="quest-status">Scellé</span>
                     <?php elseif ($done): ?>
                         <form class="quest-claim-form">
                             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                             <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
                             <input type="hidden" name="code" value="<?= h($q['quest_code']) ?>">
-                            <button class="btn btn-secondary" type="submit">Réclamer</button>
+                            <button class="btn btn-secondary btn-sm" type="submit">Réclamer</button>
                         </form>
                     <?php else: ?>
-                        <span class="quest-status">En cours...</span>
+                        <span class="quest-status" style="color: #7a6246;">En cours...</span>
                     <?php endif; ?>
                 </div>
             </div>

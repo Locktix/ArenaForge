@@ -27,14 +27,14 @@ $prefilledMaster = (string)($_GET['master'] ?? '');
 
 <main class="wrap">
     <section class="card create-card">
-        <h1>Forge ton gladiateur</h1>
-        <p>Choisis un nom. Son apparence et ses statistiques seront générées à partir de celui-ci.</p>
+        <h1>🗡️ L'Appel de la Gloire</h1>
+        <p class="muted">Chaque légende commence par un nom. Choisissez-le avec soin : votre apparence et vos attributs divins en découleront par la force du destin.</p>
 
-        <form id="create-form">
+        <form id="create-form" style="margin-top: 24px;">
             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-            <label>Nom du gladiateur <input type="text" name="name" minlength="3" maxlength="20" pattern="[A-Za-z0-9_\-]+" required></label>
-            <label>Maître (optionnel) <input type="text" name="master_name" maxlength="20" placeholder="Nom d'un gladiateur existant" value="<?= h($prefilledMaster) ?>"></label>
-            <button type="submit" class="btn btn-primary">Entrer dans l'arène</button>
+            <label>Identité du Guerrier <input type="text" name="name" minlength="3" maxlength="20" pattern="[A-Za-z0-9_\-]+" placeholder="Ex: Maximus" required></label>
+            <label>Lignage (Maître optionnel) <input type="text" name="master_name" maxlength="20" placeholder="Nom de votre mentor" value="<?= h($prefilledMaster) ?>"></label>
+            <button type="submit" class="btn btn-primary btn-large btn-hero" style="width: 100%;">FORGER MON DESTIN</button>
             <p class="form-msg" data-msg></p>
         </form>
     </section>

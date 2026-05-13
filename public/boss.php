@@ -48,8 +48,8 @@ $appearance = $boss ? (json_decode((string)$boss['appearance_seed'], true) ?: []
 <main class="wrap">
     <?php if (!$boss): ?>
         <section class="card">
-            <h1>Boss du jour</h1>
-            <p class="muted">Aucun boss disponible pour le moment.</p>
+            <h1>Antre du Boss</h1>
+            <p class="muted">Le mal sommeille... Aucune menace n'a été détectée aujourd'hui.</p>
         </section>
     <?php else: ?>
         <section class="card boss-card">
@@ -58,73 +58,89 @@ $appearance = $boss ? (json_decode((string)$boss['appearance_seed'], true) ?: []
                 <div class="boss-aura"></div>
             </div>
             <div class="boss-info">
-                <span class="boss-tag">Boss du <?= h(date('d/m', strtotime((string)$boss['boss_date']))) ?></span>
+                <span class="boss-tag">⚠️ Menace Émergente</span>
                 <h1><?= h((string)$boss['name']) ?> <span class="level boss-level">Niv. <?= (int)$boss['level'] ?></span></h1>
-                <p class="muted"><?= h((string)$boss['description']) ?></p>
+                <p class="muted italic">"<?= h((string)$boss['description']) ?>"</p>
 
-                <ul class="stats boss-stats">
-                    <li><span>PV</span><strong><?= (int)$boss['hp_max'] ?></strong></li>
-                    <li><span>Force</span><strong><?= (int)$boss['strength'] ?></strong></li>
-                    <li><span>Agilité</span><strong><?= (int)$boss['agility'] ?></strong></li>
-                    <li><span>Endurance</span><strong><?= (int)$boss['endurance'] ?></strong></li>
-                </ul>
+                <div class="hero-stats boss-stats">
+                    <div class="stat-box">
+                        <span class="stat-label">Santé</span>
+                        <span class="stat-value"><?= (int)$boss['hp_max'] ?></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Force</span>
+                        <span class="stat-value"><?= (int)$boss['strength'] ?></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Agilité</span>
+                        <span class="stat-value"><?= (int)$boss['agility'] ?></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Endurance</span>
+                        <span class="stat-value"><?= (int)$boss['endurance'] ?></span>
+                    </div>
+                </div>
 
-                <p class="muted small">
-                    Arme : <strong><?= h($bossWeaponName ?: '—') ?></strong>
-                    · Compétence : <strong><?= h($bossSkillName ?: '—') ?></strong>
-                </p>
+                <div class="hero-weapon">
+                    <div class="weapon-info">
+                        <span class="weapon-name">⚔ <?= h($bossWeaponName ?: 'Poings nus') ?></span>
+                        <span class="weapon-damage">⚡ <?= h($bossSkillName ?: 'Aucune compétence') ?></span>
+                    </div>
+                </div>
 
                 <?php if ($attempt): ?>
                     <div class="boss-result">
                         <p>
-                            <strong>
-                                <?= (int)$attempt['won'] === 1 ? '🏆 Victoire !' : '💀 Défaite' ?>
-                            </strong>
-                            — <?= (int)$attempt['damage_dealt'] ?> dégâts infligés en <?= (int)$attempt['rounds'] ?> tours.
+                            <strong class="<?= (int)$attempt['won'] === 1 ? 'color-success' : 'color-danger' ?>">
+                                <?= (int)$attempt['won'] === 1 ? '🏆 VICTOIRE ÉPIQUE !' : '💀 VOUS AVEZ PÉRI' ?>
+                            </strong><br>
+                            <span class="muted"><?= (int)$attempt['damage_dealt'] ?> points de dégâts infligés au monstre.</span>
                         </p>
-                        <a class="btn btn-secondary" href="fight.php?id=<?= (int)$attempt['fight_id'] ?>">Revoir le combat</a>
+                        <a class="btn btn-secondary" href="fight.php?id=<?= (int)$attempt['fight_id'] ?>">Voir le replay de la bataille</a>
                     </div>
                 <?php else: ?>
-                    <form id="boss-attempt-form">
+                    <form id="boss-attempt-form" style="margin-top: 20px;">
                         <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                         <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
-                        <button class="btn btn-primary btn-large" type="submit">⚔ Affronter le boss (1/jour)</button>
+                        <button class="btn btn-primary btn-large btn-hero" type="submit">⚔ ENTAMER LE SIÈGE</button>
                         <p class="form-msg" data-msg></p>
                     </form>
-                    <p class="muted small">Une seule tentative par jour. Récompense en or proportionnelle aux dégâts infligés.</p>
+                    <p class="muted small text-center">Tentative unique. L'or de la cité sera distribué selon votre bravoure.</p>
                 <?php endif; ?>
             </div>
         </section>
 
         <section class="card">
-            <h2>Tableau de chasse</h2>
+            <h2>🏆 Tableau de chasse</h2>
             <?php if (empty($leaderboard)): ?>
                 <p class="muted">Personne n'a encore frappé le boss aujourd'hui. À toi de l'inaugurer.</p>
             <?php else: ?>
-                <table class="ranking boss-leaderboard">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Gladiateur</th>
-                            <th>Niv.</th>
-                            <th>Dégâts</th>
-                            <th>Tours</th>
-                            <th>Issue</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($leaderboard as $i => $row): ?>
-                            <tr<?= (int)$row['brute_id'] === $bruteId ? ' class="rank-me"' : '' ?>>
-                                <td><?= $i + 1 ?></td>
-                                <td><a href="brute.php?id=<?= (int)$row['brute_id'] ?>"><?= h((string)$row['name']) ?></a></td>
-                                <td><?= (int)$row['level'] ?></td>
-                                <td class="ranking-mmr"><?= (int)$row['damage_dealt'] ?></td>
-                                <td><?= (int)$row['rounds'] ?></td>
-                                <td><?= (int)$row['won'] === 1 ? '🏆' : '☠' ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="ranking-board">
+                    <?php foreach ($leaderboard as $i => $row): 
+                        $isMe = ((int)$row['brute_id'] === $bruteId);
+                    ?>
+                        <div class="rank-plaque <?= $isMe ? 'rank-me' : '' ?>">
+                            <div class="rank-num"><?= $i + 1 ?></div>
+                            <div class="rank-identity">
+                                <a href="brute.php?id=<?= (int)$row['brute_id'] ?>" class="rank-name"><?= h((string)$row['name']) ?></a>
+                                <div class="rank-meta">
+                                    <span class="muted small">Niveau <?= (int)$row['level'] ?></span>
+                                    <span class="muted small"><?= (int)$row['won'] === 1 ? '🏆 A triomphé' : '💀 A succombé' ?></span>
+                                </div>
+                            </div>
+                            <div class="rank-stats">
+                                <div class="rank-stat-item">
+                                    <label>Tours</label>
+                                    <span><?= (int)$row['rounds'] ?></span>
+                                </div>
+                                <div class="rank-stat-item">
+                                    <label>Dégâts</label>
+                                    <span class="ranking-mmr"><?= (int)$row['damage_dealt'] ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             <?php endif; ?>
         </section>
     <?php endif; ?>

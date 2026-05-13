@@ -31,7 +31,7 @@ $armors   = get_armors_for_brute($bruteId);
 <main class="wrap">
     <section class="card">
         <div class="forge-header">
-            <h1><img src="../assets/svg/weapons/axe.svg" alt="" class="inline-icon"> Forge</h1>
+            <h1>⚒ La Forge Royale</h1>
             <div class="fragment-count">
                 <span class="frag-icon">◆</span>
                 <span class="frag-value" data-fragments><?= $fragments ?></span>
@@ -39,49 +39,54 @@ $armors   = get_armors_for_brute($bruteId);
             </div>
         </div>
         <p class="muted">
-            Les <strong>fragments</strong> sont gagnés à chaque combat d'arène (3 en victoire, 1 en défaite).
-            Utilise-les pour améliorer tes armes ou acheter des armures.
+            Les <strong>fragments</strong> sont l'essence même de la création. Gagnés à la sueur du front en arène (3 par victoire, 1 par défaite), ils permettent de transcender tes armes et de revêtir les armures des plus grands champions.
         </p>
     </section>
 
     <section class="card">
-        <h2>Amélioration d'armes</h2>
-        <p class="muted small">Chaque niveau d'amélioration ajoute +10 % de dégâts infligés. Maximum niveau 5.</p>
-        <div class="forge-grid">
+        <h2>⚔️ Armes de Maître</h2>
+        <p class="muted small">Chaque niveau d'amélioration ajoute +10 % de dégâts infligés. L'excellence n'attend pas.</p>
+        <div class="workbench-grid">
             <?php foreach ($weapons as $w): ?>
                 <?php
                     $lvl  = (int)$w['upgrade_level'];
                     $cost = upgrade_cost($lvl);
                     $max  = $lvl >= FORGE_WEAPON_MAX_UPGRADE;
                 ?>
-                <div class="forge-item">
-                    <img class="forge-icon" src="../<?= h($w['icon_path']) ?>" alt="">
-                    <div class="forge-body">
-                        <strong><?= h($w['name']) ?></strong>
-                        <p class="muted small">
-                            <?= (int)$w['damage_min'] ?>–<?= (int)$w['damage_max'] ?> dégâts
-                            <?php if ($lvl > 0): ?>
-                                · <span class="upgrade-badge">+<?= $lvl * 10 ?>%</span>
-                            <?php endif; ?>
-                        </p>
-                        <div class="upgrade-track">
-                            <?php for ($i = 1; $i <= FORGE_WEAPON_MAX_UPGRADE; $i++): ?>
-                                <span class="upgrade-dot <?= $i <= $lvl ? 'filled' : '' ?>"></span>
-                            <?php endfor; ?>
+                <div class="workbench-card">
+                    <div class="workbench-header">
+                        <div class="workbench-icon-wrap">
+                            <img src="../<?= h($w['icon_path']) ?>" alt="" class="workbench-icon">
+                        </div>
+                        <div class="workbench-info">
+                            <h3><?= h($w['name']) ?></h3>
+                            <div class="upgrade-track">
+                                <?php for ($i = 1; $i <= FORGE_WEAPON_MAX_UPGRADE; $i++): ?>
+                                    <div class="upgrade-dot <?= $i <= $lvl ? 'filled' : '' ?>"></div>
+                                <?php endfor; ?>
+                            </div>
                         </div>
                     </div>
-                    <div class="forge-action">
+
+                    <div class="workbench-stats">
+                        <div class="stat-chip">⚔ <?= (int)$w['damage_min'] ?>–<?= (int)$w['damage_max'] ?> de base</div>
+                        <?php if ($lvl > 0): ?>
+                            <div class="stat-chip hp">Excellence +<?= $lvl * 10 ?>%</div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="workbench-footer">
                         <?php if ($max): ?>
-                            <span class="forge-maxed">Max</span>
+                            <span class="forge-maxed">ARTEFACT SUPRÊME</span>
                         <?php else: ?>
+                            <div class="forge-cost">
+                                <span>◆ <?= $cost ?></span>
+                            </div>
                             <form class="forge-upgrade-form" data-weapon-id="<?= (int)$w['id'] ?>">
                                 <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                                 <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
                                 <input type="hidden" name="weapon_id" value="<?= (int)$w['id'] ?>">
-                                <span class="forge-cost">◆ <?= $cost ?></span>
-                                <button class="btn btn-secondary" type="submit" <?= $fragments < $cost ? 'disabled' : '' ?>>
-                                    Forger
-                                </button>
+                                <button type="submit" class="btn btn-secondary btn-sm" <?= $fragments < $cost ? 'disabled' : '' ?>>Améliorer</button>
                             </form>
                         <?php endif; ?>
                     </div>
@@ -91,9 +96,9 @@ $armors   = get_armors_for_brute($bruteId);
     </section>
 
     <section class="card">
-        <h2>Armures</h2>
-        <p class="muted small">Les armures ajoutent des PV et réduisent les dégâts subis. Une armure par slot (tête / corps) équipée à la fois.</p>
-        <div class="forge-grid">
+        <h2>🛡️ Armures de Légende</h2>
+        <p class="muted small">Seule une pièce d'armure peut être portée par emplacement pour protéger votre essence.</p>
+        <div class="workbench-grid">
             <?php foreach ($armors as $a):
                 $owned    = (int)$a['owned']    === 1;
                 $equipped = (int)$a['equipped'] === 1;
@@ -101,37 +106,46 @@ $armors   = get_armors_for_brute($bruteId);
                 $tier     = (int)$a['tier'];
                 $tierRoman = ['I', 'II', 'III'][$tier - 1] ?? (string)$tier;
             ?>
-                <div class="forge-item armor-tier-<?= $tier ?> <?= $equipped ? 'armor-equipped' : '' ?>">
-                    <img class="forge-icon" src="../<?= h($a['icon_path']) ?>" alt="">
-                    <div class="forge-body">
-                        <strong><?= h($a['name']) ?></strong>
-                        <div class="armor-meta">
-                            <span class="armor-slot"><?= $a['slot'] === 'head' ? 'Tête' : 'Corps' ?></span>
-                            <span class="armor-tier tier-<?= $tier ?>">Tier <?= h($tierRoman) ?></span>
+                <div class="workbench-card <?= $equipped ? 'armor-equipped' : '' ?>">
+                    <div class="workbench-header">
+                        <div class="workbench-icon-wrap">
+                            <img src="../<?= h($a['icon_path']) ?>" alt="" class="workbench-icon">
                         </div>
-                        <p class="armor-stats">
-                            <?php if ((int)$a['hp_bonus']): ?><span class="stat-chip hp">+<?= (int)$a['hp_bonus'] ?> PV</span><?php endif; ?>
-                            <?php if ((int)$a['damage_reduction']): ?><span class="stat-chip red">-<?= (int)$a['damage_reduction'] ?> dégâts</span><?php endif; ?>
-                        </p>
+                        <div class="workbench-info">
+                            <h3><?= h($a['name']) ?></h3>
+                            <div class="armor-meta">
+                                <span class="armor-slot"><?= $a['slot'] === 'head' ? 'Heaume' : 'Plastron' ?></span>
+                                <span class="armor-tier tier-<?= $tier ?>">Tier <?= h($tierRoman) ?></span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="forge-action">
+
+                    <div class="workbench-stats">
+                        <?php if ((int)$a['hp_bonus']): ?><div class="stat-chip hp">+<?= (int)$a['hp_bonus'] ?> Vitalité</div><?php endif; ?>
+                        <?php if ((int)$a['damage_reduction']): ?><div class="stat-chip red">Défense +<?= (int)$a['damage_reduction'] ?></div><?php endif; ?>
+                    </div>
+
+                    <div class="workbench-footer">
                         <?php if (!$owned): ?>
+                            <div class="forge-cost">
+                                <span>◆ <?= (int)$a['cost_fragments'] ?></span>
+                            </div>
                             <form class="forge-armor-form" data-armor-id="<?= (int)$a['id'] ?>" data-action="buy">
                                 <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                                 <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
                                 <input type="hidden" name="armor_id" value="<?= (int)$a['id'] ?>">
                                 <input type="hidden" name="action" value="buy">
-                                <span class="forge-cost">◆ <?= (int)$a['cost_fragments'] ?></span>
-                                <button class="btn btn-secondary" type="submit" <?= !$canBuy ? 'disabled' : '' ?>>Acheter</button>
+                                <button type="submit" class="btn btn-secondary btn-sm" <?= !$canBuy ? 'disabled' : '' ?>>Forger</button>
                             </form>
                         <?php else: ?>
+                            <span class="muted small"><?= $equipped ? 'Actuellement portée' : 'En réserve' ?></span>
                             <form class="forge-armor-form" data-armor-id="<?= (int)$a['id'] ?>" data-action="equip">
                                 <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                                 <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
                                 <input type="hidden" name="armor_id" value="<?= (int)$a['id'] ?>">
                                 <input type="hidden" name="action" value="equip">
-                                <button class="btn <?= $equipped ? 'btn-primary' : 'btn-secondary' ?>" type="submit">
-                                    <?= $equipped ? 'Déséquiper' : 'Équiper' ?>
+                                <button class="btn <?= $equipped ? 'btn-primary' : 'btn-secondary' ?> btn-sm" type="submit">
+                                    <?= $equipped ? 'Déséquiper' : 'Revêtir' ?>
                                 </button>
                             </form>
                         <?php endif; ?>

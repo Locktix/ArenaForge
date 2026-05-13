@@ -81,12 +81,9 @@ function render_codex_section(string $type, array $items): void {
 
 <main class="wrap">
     <section class="card">
-        <h1><img src="../assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Codex de l'arène</h1>
+        <h1>📖 Le Codex Ancien</h1>
         <p class="muted">
-            Plus tu utilises une arme, une compétence ou un compagnon, plus tu en
-            apprends son histoire. Trois paliers de lore se débloquent à
-            <strong><?= CODEX_TIERS[0] ?></strong>, <strong><?= CODEX_TIERS[1] ?></strong>
-            et <strong><?= CODEX_TIERS[2] ?></strong> utilisations.
+            La connaissance est une arme aussi affûtée qu'un glaive. À travers l'expérience du combat, vous dévoilez peu à peu les origines et les secrets des artefacts et techniques de la cité.
         </p>
     </section>
 

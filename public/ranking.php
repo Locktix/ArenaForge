@@ -35,16 +35,16 @@ $pastRewards = $me ? brute_season_rewards((int)$me['id']) : [];
 <main class="wrap">
     <section class="card">
         <div class="ranking-header">
-            <h1>Classement</h1>
+            <h1>🏛️ Le Panthéon</h1>
             <?php if ($season): ?>
                 <span class="season-tag"><?= h($season['label']) ?></span>
             <?php endif; ?>
         </div>
-        <p class="muted">Hiérarchie basée sur le MMR (match rating). Chaque victoire te fait monter, chaque défaite te fait chuter selon l'écart avec l'adversaire.</p>
+        <p class="muted">La hiérarchie éternelle des guerriers. Chaque duel forge ton destin, chaque victoire t'élève vers la divinité, chaque défaite te rappelle ta condition de mortel.</p>
 
         <?php if ($me && $myRank && $myDiv): ?>
             <div class="my-rank">
-                <span class="my-rank-position">#<?= (int)$myRank ?></span>
+                <span class="my-rank-position">Rang #<?= (int)$myRank ?></span>
                 <span class="my-rank-name"><?= h($me['name']) ?></span>
                 <span class="tier-badge" style="--tier-color: <?= h($myDiv['tier']['color']) ?>">
                     <?= h($myDiv['division_label']) ?>
@@ -53,7 +53,7 @@ $pastRewards = $me ? brute_season_rewards((int)$me['id']) : [];
                 <?php if (!empty($myDiv['next_threshold'])): ?>
                     <div class="division-progress">
                         <div class="bar small"><div class="bar-fill" style="width:<?= (int)$myDiv['progress_pct'] ?>%; background: <?= h($myDiv['tier']['color']) ?>;"></div></div>
-                        <small class="muted">→ <?= (int)$myDiv['next_threshold'] ?> MMR</small>
+                        <small class="muted">Suivant : <?= (int)$myDiv['next_threshold'] ?> MMR</small>
                     </div>
                 <?php endif; ?>
             </div>
@@ -78,34 +78,33 @@ $pastRewards = $me ? brute_season_rewards((int)$me['id']) : [];
             </div>
         <?php endif; ?>
 
-        <table class="ranking">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Gladiateur</th>
-                    <th>Palier</th>
-                    <th>MMR</th>
-                    <th>Pic</th>
-                    <th>Niv.</th>
-                    <th>V</th>
-                    <th>D</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($rows as $i => $r): $div = elo_division_for((int)$r['mmr']); ?>
-                    <tr<?= $me && (int)$r['id'] === (int)$me['id'] ? ' class="rank-me"' : '' ?>>
-                        <td><?= $i + 1 ?></td>
-                        <td><a href="brute.php?id=<?= (int)$r['id'] ?>"><?= h($r['name']) ?></a></td>
-                        <td><span class="tier-badge" style="--tier-color: <?= h($div['tier']['color']) ?>"><?= h($div['division_label']) ?></span></td>
-                        <td class="ranking-mmr"><?= (int)$r['mmr'] ?></td>
-                        <td class="muted small"><?= (int)$r['peak_mmr'] ?></td>
-                        <td><?= (int)$r['level'] ?></td>
-                        <td><?= (int)$r['wins'] ?></td>
-                        <td><?= (int)$r['losses'] ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="ranking-board">
+            <?php foreach ($rows as $i => $r): 
+                $div = elo_division_for((int)$r['mmr']); 
+                $isMe = ($me && (int)$r['id'] === (int)$me['id']);
+            ?>
+                <div class="rank-plaque <?= $isMe ? 'rank-me' : '' ?>">
+                    <div class="rank-num"><?= $i + 1 ?></div>
+                    <div class="rank-identity">
+                        <a href="brute.php?id=<?= (int)$r['id'] ?>" class="rank-name"><?= h($r['name']) ?></a>
+                        <div class="rank-meta">
+                            <span class="tier-badge" style="--tier-color: <?= h($div['tier']['color']) ?>"><?= h($div['division_label']) ?></span>
+                            <span class="muted small">Niveau <?= (int)$r['level'] ?></span>
+                        </div>
+                    </div>
+                    <div class="rank-stats">
+                        <div class="rank-stat-item">
+                            <label>Victoires</label>
+                            <span><?= (int)$r['wins'] ?></span>
+                        </div>
+                        <div class="rank-stat-item">
+                            <label>MMR</label>
+                            <span class="ranking-mmr"><?= (int)$r['mmr'] ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </section>
 
     <?php if (!empty($pastRewards)): ?>

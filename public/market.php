@@ -39,46 +39,43 @@ function offer_label_type(string $t): string {
 <main class="wrap">
     <section class="card">
         <div class="market-header">
-            <h1><img src="../assets/svg/quests/hammer.svg" alt="" class="inline-icon"> Marché noir</h1>
+            <h1>🌑 Marché de l'Ombre</h1>
             <div class="gold-counter">
                 <span class="gold-pill gold-pill-lg"><?= $gold ?> 🪙</span>
-                <small class="muted">Or disponible</small>
+                <small class="muted">Trésor personnel</small>
             </div>
         </div>
         <p class="muted">
-            Quatre offres tirées au sort chaque jour à minuit. Identique pour tous
-            les gladiateurs, mais limitée à un seul achat par offre.
-            L'or se gagne en remportant des combats.
+            Certains trésors ne se forgent pas, ils s'échangent dans le secret. Chaque jour à minuit, de nouvelles marchandises rares apparaissent. Saisis ta chance, car une fois acquises par un marchand, elles disparaissent dans la brume.
         </p>
 
-        <div class="market-grid">
+        <div class="mystic-grid">
             <?php foreach ($offers as $o):
                 $bought = (int)$o['bought'] === 1;
                 $canBuy = !$bought && $gold >= (int)$o['cost_gold'];
             ?>
-                <article class="market-tile <?= $bought ? 'is-bought' : '' ?>">
-                    <img class="market-icon" src="../<?= h($o['icon_path']) ?>" alt="">
+                <div class="mystic-card <?= $bought ? 'is-bought' : '' ?>">
+                    <img src="../<?= h($o['icon_path']) ?>" alt="" class="mystic-icon">
                     <h3><?= h($o['label']) ?></h3>
-                    <p class="market-effect">
-                        <strong>+<?= (int)$o['item_value'] ?></strong>
-                        <span class="muted small"><?= h(offer_label_type((string)$o['item_type'])) ?></span>
-                    </p>
-                    <div class="market-cost">
-                        <span class="gold-pill"><?= (int)$o['cost_gold'] ?> 🪙</span>
+                    
+                    <div class="mystic-effect">
+                        +<?= (int)$o['item_value'] ?>
+                        <small><?= h(strtoupper(offer_label_type((string)$o['item_type']))) ?></small>
                     </div>
+
                     <?php if ($bought): ?>
-                        <button class="btn btn-ghost" disabled>Acheté ✓</button>
+                        <span class="mystic-cost" style="border-color: var(--muted); color: var(--muted);">ACQUIS</span>
                     <?php else: ?>
                         <form class="market-buy-form">
                             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                             <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
                             <input type="hidden" name="offer_id" value="<?= (int)$o['id'] ?>">
-                            <button class="btn btn-secondary" type="submit" <?= $canBuy ? '' : 'disabled' ?>>
-                                <?= $canBuy ? 'Acheter' : 'Or insuffisant' ?>
+                            <button type="submit" class="btn btn-secondary" <?= $canBuy ? '' : 'disabled' ?>>
+                                S'approprier (<?= (int)$o['cost_gold'] ?> 🪙)
                             </button>
                         </form>
                     <?php endif; ?>
-                </article>
+                </div>
             <?php endforeach; ?>
         </div>
 
