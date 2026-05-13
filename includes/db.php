@@ -20,6 +20,10 @@ function db(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
+
+        // Vérification automatique des migrations SQL
+        require_once __DIR__ . '/migration_engine.php';
+        check_migrations($pdo);
     }
     return $pdo;
 }
