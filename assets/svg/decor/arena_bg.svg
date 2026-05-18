@@ -1,69 +1,273 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" preserveAspectRatio="xMidYMid slice">
   <defs>
-    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#2a1814"/>
-      <stop offset="0.6" stop-color="#4a2a1a"/>
-      <stop offset="1" stop-color="#6b3a22"/>
+    <!-- Ciel / fond -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#120a04"/>
+      <stop offset="55%"  stop-color="#2e1708"/>
+      <stop offset="100%" stop-color="#4a2810"/>
     </linearGradient>
-    <linearGradient id="sand" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#8b5a3c"/>
-      <stop offset="1" stop-color="#5a3620"/>
+    <!-- Mur de pierre arrière -->
+    <linearGradient id="backwall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#3a2210"/>
+      <stop offset="100%" stop-color="#2a1808"/>
     </linearGradient>
-    <pattern id="stones" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">
-      <rect width="40" height="20" fill="#5a4030"/>
-      <path d="M0 10 L20 10 L20 20 L0 20 Z" fill="#4a3020" stroke="#2a1a10" stroke-width="1"/>
-      <path d="M20 0 L40 0 L40 10 L20 10 Z" fill="#4a3020" stroke="#2a1a10" stroke-width="1"/>
-      <path d="M0 0 L20 0 L20 10 L0 10 Z" fill="#6a4838" stroke="#2a1a10" stroke-width="1"/>
-      <path d="M20 10 L40 10 L40 20 L20 20 Z" fill="#6a4838" stroke="#2a1a10" stroke-width="1"/>
+    <!-- Colonne gauche -->
+    <linearGradient id="colL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#0e0804"/>
+      <stop offset="45%"  stop-color="#4a2e18"/>
+      <stop offset="80%"  stop-color="#5e3c22"/>
+      <stop offset="100%" stop-color="#3a2210"/>
+    </linearGradient>
+    <!-- Colonne droite -->
+    <linearGradient id="colR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#3a2210"/>
+      <stop offset="20%"  stop-color="#5e3c22"/>
+      <stop offset="55%"  stop-color="#4a2e18"/>
+      <stop offset="100%" stop-color="#0e0804"/>
+    </linearGradient>
+    <!-- Sol / sable -->
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#a07040"/>
+      <stop offset="40%"  stop-color="#7a4e28"/>
+      <stop offset="100%" stop-color="#3a2010"/>
+    </linearGradient>
+    <!-- Lueur torche gauche -->
+    <radialGradient id="glowL" cx="18%" cy="50%" r="38%">
+      <stop offset="0%"   stop-color="#f0c060" stop-opacity="0.30"/>
+      <stop offset="60%"  stop-color="#e07020" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#e07020" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Lueur torche droite -->
+    <radialGradient id="glowR" cx="82%" cy="50%" r="38%">
+      <stop offset="0%"   stop-color="#f0c060" stop-opacity="0.30"/>
+      <stop offset="60%"  stop-color="#e07020" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#e07020" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Motif pierres (mur arrière) -->
+    <pattern id="stones" x="0" y="0" width="64" height="28" patternUnits="userSpaceOnUse">
+      <rect width="64" height="28" fill="#3a2210"/>
+      <rect x="1"  y="1"  width="30" height="12" fill="#4a2e18" rx="1"/>
+      <rect x="33" y="1"  width="30" height="12" fill="#422818" rx="1"/>
+      <rect x="1"  y="15" width="20" height="12" fill="#422818" rx="1"/>
+      <rect x="23" y="15" width="20" height="12" fill="#4a2e18" rx="1"/>
+      <rect x="45" y="15" width="18" height="12" fill="#3e2616" rx="1"/>
     </pattern>
+    <!-- Motif pierres colonnes (vertical) -->
+    <pattern id="colStones" x="0" y="0" width="40" height="32" patternUnits="userSpaceOnUse">
+      <rect width="40" height="32" fill="#4a2e18"/>
+      <rect x="2" y="2"  width="36" height="12" fill="#56361e" rx="1"/>
+      <rect x="2" y="18" width="36" height="12" fill="#503418" rx="1"/>
+    </pattern>
+    <!-- Ombre portée des colonnes sur le sol -->
+    <linearGradient id="shadowL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="rgba(0,0,0,0.55)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+    </linearGradient>
+    <linearGradient id="shadowR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="rgba(0,0,0,0)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.55)"/>
+    </linearGradient>
   </defs>
 
-  <!-- Ciel -->
-  <rect width="800" height="200" fill="url(#sky)"/>
+  <!-- ═══════════ FOND / CIEL ═══════════ -->
+  <rect width="800" height="340" fill="url(#sky)"/>
 
-  <!-- Gradins extérieurs (silhouettes) -->
-  <g fill="#1a0f08" opacity="0.6">
-    <path d="M0 140 L80 120 L160 130 L240 110 L320 125 L400 115 L480 130 L560 115 L640 125 L720 110 L800 130 L800 200 L0 200 Z"/>
+  <!-- ═══════════ GRADINS / FOULE (arrière-plan haut) ═══════════ -->
+  <!-- Rangées de spectateurs stylisées -->
+  <g opacity="0.55">
+    <!-- Rangée 1 (la plus haute, la plus petite) -->
+    <rect x="0" y="0" width="800" height="28" fill="#1a0e06"/>
+    <g fill="#0e0804">
+      <!-- Silhouettes tête/buste répétées -->
+      <ellipse cx="20"  cy="20" rx="7"  ry="9"/>  <ellipse cx="20"  cy="12" rx="4" ry="4"/>
+      <ellipse cx="45"  cy="22" rx="8"  ry="10"/> <ellipse cx="45"  cy="13" rx="5" ry="5"/>
+      <ellipse cx="70"  cy="19" rx="7"  ry="9"/>  <ellipse cx="70"  cy="11" rx="4" ry="4"/>
+      <ellipse cx="98"  cy="22" rx="8"  ry="10"/> <ellipse cx="98"  cy="13" rx="5" ry="5"/>
+      <ellipse cx="124" cy="20" rx="7"  ry="9"/>  <ellipse cx="124" cy="12" rx="4" ry="4"/>
+      <ellipse cx="152" cy="22" rx="8"  ry="10"/> <ellipse cx="152" cy="13" rx="5" ry="5"/>
+      <ellipse cx="178" cy="19" rx="7"  ry="9"/>  <ellipse cx="178" cy="11" rx="4" ry="4"/>
+      <ellipse cx="206" cy="22" rx="8"  ry="10"/> <ellipse cx="206" cy="13" rx="5" ry="5"/>
+      <ellipse cx="232" cy="20" rx="7"  ry="9"/>  <ellipse cx="232" cy="12" rx="4" ry="4"/>
+      <ellipse cx="260" cy="22" rx="8"  ry="10"/> <ellipse cx="260" cy="13" rx="5" ry="5"/>
+      <ellipse cx="286" cy="19" rx="7"  ry="9"/>  <ellipse cx="286" cy="11" rx="4" ry="4"/>
+      <ellipse cx="314" cy="22" rx="8"  ry="10"/> <ellipse cx="314" cy="13" rx="5" ry="5"/>
+      <ellipse cx="340" cy="20" rx="7"  ry="9"/>  <ellipse cx="340" cy="12" rx="4" ry="4"/>
+      <ellipse cx="368" cy="22" rx="8"  ry="10"/> <ellipse cx="368" cy="13" rx="5" ry="5"/>
+      <ellipse cx="394" cy="19" rx="7"  ry="9"/>  <ellipse cx="394" cy="11" rx="4" ry="4"/>
+      <ellipse cx="422" cy="22" rx="8"  ry="10"/> <ellipse cx="422" cy="13" rx="5" ry="5"/>
+      <ellipse cx="448" cy="20" rx="7"  ry="9"/>  <ellipse cx="448" cy="12" rx="4" ry="4"/>
+      <ellipse cx="476" cy="22" rx="8"  ry="10"/> <ellipse cx="476" cy="13" rx="5" ry="5"/>
+      <ellipse cx="502" cy="19" rx="7"  ry="9"/>  <ellipse cx="502" cy="11" rx="4" ry="4"/>
+      <ellipse cx="530" cy="22" rx="8"  ry="10"/> <ellipse cx="530" cy="13" rx="5" ry="5"/>
+      <ellipse cx="556" cy="20" rx="7"  ry="9"/>  <ellipse cx="556" cy="12" rx="4" ry="4"/>
+      <ellipse cx="584" cy="22" rx="8"  ry="10"/> <ellipse cx="584" cy="13" rx="5" ry="5"/>
+      <ellipse cx="610" cy="19" rx="7"  ry="9"/>  <ellipse cx="610" cy="11" rx="4" ry="4"/>
+      <ellipse cx="638" cy="22" rx="8"  ry="10"/> <ellipse cx="638" cy="13" rx="5" ry="5"/>
+      <ellipse cx="664" cy="20" rx="7"  ry="9"/>  <ellipse cx="664" cy="12" rx="4" ry="4"/>
+      <ellipse cx="692" cy="22" rx="8"  ry="10"/> <ellipse cx="692" cy="13" rx="5" ry="5"/>
+      <ellipse cx="718" cy="19" rx="7"  ry="9"/>  <ellipse cx="718" cy="11" rx="4" ry="4"/>
+      <ellipse cx="746" cy="22" rx="8"  ry="10"/> <ellipse cx="746" cy="13" rx="5" ry="5"/>
+      <ellipse cx="772" cy="20" rx="7"  ry="9"/>  <ellipse cx="772" cy="12" rx="4" ry="4"/>
+    </g>
+    <!-- Rangée 2 (légèrement plus grande) -->
+    <rect x="0" y="28" width="800" height="32" fill="#1e1208"/>
+    <g fill="#150d04">
+      <ellipse cx="10"  cy="52" rx="9"  ry="11"/> <ellipse cx="10"  cy="42" rx="6" ry="6"/>
+      <ellipse cx="38"  cy="50" rx="10" ry="12"/> <ellipse cx="38"  cy="39" rx="6" ry="6"/>
+      <ellipse cx="68"  cy="52" rx="9"  ry="11"/> <ellipse cx="68"  cy="42" rx="6" ry="6"/>
+      <ellipse cx="100" cy="50" rx="10" ry="12"/> <ellipse cx="100" cy="39" rx="6" ry="6"/>
+      <ellipse cx="130" cy="52" rx="9"  ry="11"/> <ellipse cx="130" cy="42" rx="6" ry="6"/>
+      <ellipse cx="162" cy="50" rx="10" ry="12"/> <ellipse cx="162" cy="39" rx="6" ry="6"/>
+      <ellipse cx="192" cy="52" rx="9"  ry="11"/> <ellipse cx="192" cy="42" rx="6" ry="6"/>
+      <ellipse cx="224" cy="50" rx="10" ry="12"/> <ellipse cx="224" cy="39" rx="6" ry="6"/>
+      <ellipse cx="254" cy="52" rx="9"  ry="11"/> <ellipse cx="254" cy="42" rx="6" ry="6"/>
+      <ellipse cx="286" cy="50" rx="10" ry="12"/> <ellipse cx="286" cy="39" rx="6" ry="6"/>
+      <ellipse cx="316" cy="52" rx="9"  ry="11"/> <ellipse cx="316" cy="42" rx="6" ry="6"/>
+      <ellipse cx="348" cy="50" rx="10" ry="12"/> <ellipse cx="348" cy="39" rx="6" ry="6"/>
+      <ellipse cx="378" cy="52" rx="9"  ry="11"/> <ellipse cx="378" cy="42" rx="6" ry="6"/>
+      <ellipse cx="410" cy="50" rx="10" ry="12"/> <ellipse cx="410" cy="39" rx="6" ry="6"/>
+      <ellipse cx="440" cy="52" rx="9"  ry="11"/> <ellipse cx="440" cy="42" rx="6" ry="6"/>
+      <ellipse cx="472" cy="50" rx="10" ry="12"/> <ellipse cx="472" cy="39" rx="6" ry="6"/>
+      <ellipse cx="502" cy="52" rx="9"  ry="11"/> <ellipse cx="502" cy="42" rx="6" ry="6"/>
+      <ellipse cx="534" cy="50" rx="10" ry="12"/> <ellipse cx="534" cy="39" rx="6" ry="6"/>
+      <ellipse cx="564" cy="52" rx="9"  ry="11"/> <ellipse cx="564" cy="42" rx="6" ry="6"/>
+      <ellipse cx="596" cy="50" rx="10" ry="12"/> <ellipse cx="596" cy="39" rx="6" ry="6"/>
+      <ellipse cx="626" cy="52" rx="9"  ry="11"/> <ellipse cx="626" cy="42" rx="6" ry="6"/>
+      <ellipse cx="658" cy="50" rx="10" ry="12"/> <ellipse cx="658" cy="39" rx="6" ry="6"/>
+      <ellipse cx="688" cy="52" rx="9"  ry="11"/> <ellipse cx="688" cy="42" rx="6" ry="6"/>
+      <ellipse cx="720" cy="50" rx="10" ry="12"/> <ellipse cx="720" cy="39" rx="6" ry="6"/>
+      <ellipse cx="750" cy="52" rx="9"  ry="11"/> <ellipse cx="750" cy="42" rx="6" ry="6"/>
+      <ellipse cx="782" cy="50" rx="10" ry="12"/> <ellipse cx="782" cy="39" rx="6" ry="6"/>
+    </g>
   </g>
 
-  <!-- Mur de pierre -->
-  <rect x="0" y="160" width="800" height="60" fill="url(#stones)"/>
+  <!-- ═══════════ MUR ARRIÈRE (entre les colonnes) ═══════════ -->
+  <rect x="130" y="60" width="540" height="155" fill="url(#stones)"/>
+  <!-- Coins arrondis du mur -->
+  <rect x="130" y="60" width="540" height="3" fill="#5a3820" opacity="0.6"/>
 
-  <!-- Bannière -->
-  <g transform="translate(360 120)">
-    <rect x="0" y="0" width="80" height="40" fill="#9e2a1f" stroke="#2a1a10" stroke-width="2"/>
-    <polygon points="0,40 40,56 80,40" fill="#9e2a1f" stroke="#2a1a10" stroke-width="2"/>
-    <path d="M40 10 L50 20 L46 30 L34 30 L30 20 Z" fill="#d4a355" stroke="#2a1a10" stroke-width="1"/>
+  <!-- Arche décorative dans le mur -->
+  <path d="M 280 60 Q 280 95 320 100 L 480 100 Q 520 95 520 60 Z"
+        fill="#2a1808" opacity="0.8"/>
+  <!-- Bannière centrale -->
+  <g transform="translate(340, 62)">
+    <rect x="0" y="0" width="120" height="55" fill="#7a1810" stroke="#4a0e08" stroke-width="2"/>
+    <polygon points="0,55 60,72 120,55" fill="#7a1810" stroke="#4a0e08" stroke-width="2"/>
+    <line x1="10" y1="12" x2="110" y2="12" stroke="#d4a355" stroke-width="1.5" opacity="0.6"/>
+    <line x1="10" y1="44" x2="110" y2="44" stroke="#d4a355" stroke-width="1.5" opacity="0.6"/>
+    <text x="60" y="34" text-anchor="middle" font-size="22" fill="#d4a355"
+          font-family="Georgia,serif" font-weight="bold">⚔</text>
+    <circle cx="60" cy="62" r="4" fill="#d4a355" opacity="0.7"/>
   </g>
 
-  <!-- Sable / sol -->
-  <rect y="200" width="800" height="120" fill="url(#sand)"/>
-  <!-- Grains -->
-  <g fill="#4a2a10" opacity="0.4">
-    <circle cx="80"  cy="240" r="2"/>
-    <circle cx="180" cy="260" r="2.5"/>
-    <circle cx="260" cy="220" r="2"/>
-    <circle cx="360" cy="250" r="2.5"/>
-    <circle cx="450" cy="230" r="2"/>
-    <circle cx="540" cy="260" r="3"/>
-    <circle cx="640" cy="240" r="2"/>
-    <circle cx="720" cy="220" r="2.5"/>
+  <!-- ═══════════ COLONNE GAUCHE (perspective : s'élargit vers le bas) ═══════════ -->
+  <!-- Corps principal de la colonne -->
+  <polygon points="0,0 152,0 185,340 0,340" fill="url(#colStones)"/>
+  <polygon points="0,0 152,0 185,340 0,340" fill="url(#colL)" opacity="0.7"/>
+  <!-- Arête intérieure lumineuse -->
+  <polygon points="142,0 165,0 195,340 165,340" fill="#6a4028" opacity="0.5"/>
+  <!-- Rainures verticales (détail architectural) -->
+  <g stroke="#2a1808" stroke-width="1.5" opacity="0.4">
+    <line x1="50"  y1="0" x2="65"  y2="340"/>
+    <line x1="95"  y1="0" x2="118" y2="340"/>
+  </g>
+  <!-- Bande décorative en haut de la colonne -->
+  <rect x="0" y="55" width="185" height="10" fill="#5a3820" opacity="0.6"/>
+  <rect x="0" y="58" width="185" height="4"  fill="#d4a355" opacity="0.2"/>
+
+  <!-- ═══════════ COLONNE DROITE ═══════════ -->
+  <polygon points="648,0 800,0 800,340 615,340" fill="url(#colStones)"/>
+  <polygon points="648,0 800,0 800,340 615,340" fill="url(#colR)" opacity="0.7"/>
+  <!-- Arête intérieure -->
+  <polygon points="635,0 658,0 635,340 605,340" fill="#6a4028" opacity="0.5"/>
+  <!-- Rainures -->
+  <g stroke="#2a1808" stroke-width="1.5" opacity="0.4">
+    <line x1="705" y1="0" x2="682" y2="340"/>
+    <line x1="752" y1="0" x2="735" y2="340"/>
+  </g>
+  <!-- Bande décorative -->
+  <rect x="615" y="55" width="185" height="10" fill="#5a3820" opacity="0.6"/>
+  <rect x="615" y="58" width="185" height="4"  fill="#d4a355" opacity="0.2"/>
+
+  <!-- ═══════════ SOL EN SABLE (trapèze perspectif) ═══════════ -->
+  <polygon points="0,340 800,340 660,215 140,215" fill="url(#sand)"/>
+  <!-- Lignes de fuite sur le sable (perspective) -->
+  <g stroke="#8a5a2a" stroke-width="1" opacity="0.20">
+    <line x1="400" y1="215" x2="0"   y2="340"/>
+    <line x1="400" y1="215" x2="160" y2="340"/>
+    <line x1="400" y1="215" x2="320" y2="340"/>
+    <line x1="400" y1="215" x2="480" y2="340"/>
+    <line x1="400" y1="215" x2="640" y2="340"/>
+    <line x1="400" y1="215" x2="800" y2="340"/>
+  </g>
+  <!-- Lignes horizontales (profondeur) -->
+  <g stroke="#8a5a2a" stroke-width="0.8" opacity="0.15">
+    <line x1="196" y1="240" x2="604" y2="240"/>
+    <line x1="120" y1="268" x2="680" y2="268"/>
+    <line x1="60"  y1="298" x2="740" y2="298"/>
+  </g>
+  <!-- Lisière du sable (ligne de séparation mur/sol) -->
+  <line x1="140" y1="215" x2="660" y2="215" stroke="#c08840" stroke-width="2" opacity="0.45"/>
+  <!-- Détails sable : cailloux et traces -->
+  <g fill="#5a3010" opacity="0.35">
+    <circle cx="220" cy="260" r="3.5"/>
+    <circle cx="350" cy="290" r="2.5"/>
+    <circle cx="490" cy="278" r="3"/>
+    <circle cx="580" cy="310" r="2"/>
+    <circle cx="320" cy="315" r="4"/>
+    <circle cx="640" cy="285" r="2.5"/>
   </g>
   <!-- Taches de sang -->
-  <g fill="#6b1810" opacity="0.6">
-    <ellipse cx="200" cy="280" rx="20" ry="5"/>
-    <ellipse cx="600" cy="290" rx="14" ry="4"/>
+  <ellipse cx="260" cy="285" rx="24" ry="6.5" fill="#4a0e08" opacity="0.50"/>
+  <ellipse cx="560" cy="295" rx="16" ry="5"   fill="#4a0e08" opacity="0.45"/>
+  <ellipse cx="420" cy="320" rx="10" ry="3"   fill="#4a0e08" opacity="0.35"/>
+  <!-- Ombres des colonnes sur le sol -->
+  <polygon points="185,215 320,215 300,340 0,340 0,300" fill="url(#shadowL)" opacity="0.6"/>
+  <polygon points="480,215 615,215 800,300 800,340 500,340" fill="url(#shadowR)" opacity="0.6"/>
+
+  <!-- ═══════════ TORCHE GAUCHE ═══════════ -->
+  <g transform="translate(162, 88)">
+    <!-- Manche -->
+    <rect x="-3.5" y="32" width="7" height="52" fill="#3a2010" rx="2"/>
+    <!-- Socle -->
+    <rect x="-7" y="26" width="14" height="10" fill="#4a2a14" rx="2"/>
+    <!-- Flamme ext. -->
+    <ellipse cx="0" cy="13" rx="10" ry="18" fill="#e09030" opacity="0.9"/>
+    <!-- Flamme mid -->
+    <ellipse cx="0" cy="17" rx="7"  ry="13" fill="#d04010"/>
+    <!-- Coeur brillant -->
+    <ellipse cx="0" cy="20" rx="4"  ry="7"  fill="#f8d060"/>
+    <!-- Scintillement -->
+    <ellipse cx="-3" cy="8" rx="2" ry="4"   fill="#fff8c0" opacity="0.7"/>
   </g>
 
-  <!-- Torches -->
-  <g transform="translate(40 100)">
-    <rect x="-2" y="40" width="4" height="60" fill="#3d2414"/>
-    <ellipse cx="0" cy="30" rx="8" ry="14" fill="#f0c170"/>
-    <ellipse cx="0" cy="34" rx="5" ry="10" fill="#d6431e"/>
+  <!-- ═══════════ TORCHE DROITE ═══════════ -->
+  <g transform="translate(638, 88)">
+    <rect x="-3.5" y="32" width="7" height="52" fill="#3a2010" rx="2"/>
+    <rect x="-7"   y="26" width="14" height="10" fill="#4a2a14" rx="2"/>
+    <ellipse cx="0" cy="13" rx="10" ry="18" fill="#e09030" opacity="0.9"/>
+    <ellipse cx="0" cy="17" rx="7"  ry="13" fill="#d04010"/>
+    <ellipse cx="0" cy="20" rx="4"  ry="7"  fill="#f8d060"/>
+    <ellipse cx="3" cy="8"  rx="2"  ry="4"  fill="#fff8c0" opacity="0.7"/>
   </g>
-  <g transform="translate(760 100)">
-    <rect x="-2" y="40" width="4" height="60" fill="#3d2414"/>
-    <ellipse cx="0" cy="30" rx="8" ry="14" fill="#f0c170"/>
-    <ellipse cx="0" cy="34" rx="5" ry="10" fill="#d6431e"/>
+
+  <!-- ═══════════ LUEURS DES TORCHES ═══════════ -->
+  <rect width="800" height="340" fill="url(#glowL)"/>
+  <rect width="800" height="340" fill="url(#glowR)"/>
+
+  <!-- ═══════════ PARTICULES / POUSSIÈRE ═══════════ -->
+  <g fill="#d4a355" opacity="0.12">
+    <circle cx="270" cy="245" r="1.5"/>
+    <circle cx="390" cy="220" r="1"/>
+    <circle cx="430" cy="235" r="1.5"/>
+    <circle cx="510" cy="250" r="1"/>
+    <circle cx="330" cy="260" r="2"/>
+    <circle cx="580" cy="230" r="1.5"/>
+    <circle cx="460" cy="215" r="1"/>
+    <circle cx="340" cy="230" r="1"/>
   </g>
+
+  <!-- ═══════════ ARCHE OMBRE (vignette en haut pour focus sur les combattants) ═══════════ -->
+  <path d="M 0 0 L 800 0 L 800 190 Q 640 140 400 128 Q 160 140 0 190 Z"
+        fill="rgba(0,0,0,0.50)"/>
 </svg>

@@ -9,8 +9,9 @@
     const f2El    = document.getElementById('fighter2');
     const flash   = document.getElementById('flash');
     const logEl   = document.getElementById('combat-log');
-    const replayBtn = document.getElementById('replay-btn');
-    const skipBtn   = document.getElementById('skip-btn');
+    const replayBtn    = document.getElementById('replay-btn');
+    const skipBtn      = document.getElementById('skip-btn');
+    const logToggleBtn = document.getElementById('log-toggle-btn');
     const speedBtns = Array.from(document.querySelectorAll('[data-speed]'));
     const petLeftBox  = document.getElementById('pet-left');
     const petRightBox = document.getElementById('pet-right');
@@ -396,14 +397,32 @@
 
                 case 'ult_trigger': {
                     const slot = ev.actor_slot || null;
+                    const isRevive = ev.effect_type === 'ult_revive_pct';
                     sfx('counter');
-                    appendLine('ult', `T${ev.turn} • ⚡ ${ev.actor} déclenche ${ev.skill_name} !`);
+                    if (isRevive) {
+                        appendLine('ult', `T${ev.turn} • ⚡ SECONDE VIE — ${ev.actor} revient d'entre les morts !`);
+                    } else {
+                        appendLine('ult', `T${ev.turn} • ⚡ ${ev.actor} déclenche ${ev.skill_name} !`);
+                    }
                     if (slot) {
                         const el = elForSlot(slot);
                         if (el) {
-                            el.classList.add('ult-flash');
-                            await wait(280);
-                            el.classList.remove('ult-flash');
+                            if (isRevive && !skipping) {
+                                flash.classList.remove('revive-flash');
+                                void flash.offsetWidth;
+                                flash.classList.add('revive-flash');
+                                el.classList.remove('ko', 'ult-flash', 'revive');
+                                void el.offsetWidth;
+                                el.classList.add('revive');
+                                await wait(950);
+                                el.classList.remove('revive');
+                                flash.classList.remove('revive-flash');
+                            } else {
+                                if (isRevive) el.classList.remove('ko');
+                                el.classList.add('ult-flash');
+                                await wait(280);
+                                el.classList.remove('ult-flash');
+                            }
                         }
                     }
                     if (ev.actor_hp != null && slot) setHp(slot, ev.actor_hp);
@@ -446,6 +465,23 @@
             skipping = true;
         });
     }
+    if (logToggleBtn) {
+        logToggleBtn.addEventListener('click', () => {
+            const hidden = logEl.style.display === 'none';
+            logEl.style.display = hidden ? '' : 'none';
+            logToggleBtn.classList.toggle('active', hidden);
+            if (hidden) logEl.scrollTop = logEl.scrollHeight;
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            if (!skipping && skipBtn && !skipBtn.disabled) {
+                skipping = true;
+            }
+        }
+    });
 
     play(F.log);
 })();

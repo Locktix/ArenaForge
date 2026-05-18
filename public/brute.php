@@ -412,6 +412,18 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     </section>
 </main>
 
+<?php if ($isOwner): ?>
+<div id="opponent-modal" class="opponent-modal" aria-hidden="true" style="display:none">
+    <div class="opponent-modal-inner card">
+        <h3 class="opp-modal-title">⚔ Choisissez votre adversaire</h3>
+        <div id="opponent-choices" class="opponent-choices"></div>
+        <div class="opp-modal-footer">
+            <button type="button" id="opponent-cancel" class="btn btn-ghost">Annuler</button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <script>window.APPEARANCE = <?= json_encode($appearance) ?>;</script>
 <script src="../assets/js/brute.js"></script>
 </body>

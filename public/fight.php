@@ -94,7 +94,7 @@ if ($isBossFight) {
             <div class="arena-flash" id="flash"></div>
         </div>
 
-        <div class="combat-log" id="combat-log"></div>
+        <div class="combat-log" id="combat-log" style="display:none"></div>
 
         <div class="combat-controls">
             <div class="speed-controls" role="group" aria-label="Vitesse de replay">
@@ -104,6 +104,7 @@ if ($isBossFight) {
                 <button class="speed-btn" data-speed="2" type="button">2×</button>
                 <button class="speed-btn" data-speed="4" type="button">4×</button>
             </div>
+            <button class="btn btn-ghost" id="log-toggle-btn" type="button">📋 Logs</button>
             <button class="btn btn-ghost" id="skip-btn" type="button">Aller au résultat</button>
             <button class="btn btn-secondary" id="replay-btn">Rejouer</button>
             <?php if ($canRematch): ?>

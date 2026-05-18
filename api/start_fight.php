@@ -32,46 +32,55 @@ if ($bruteId <= 0) {
     exit;
 }
 
-$pdo = db();
-
-$stmt = $pdo->prepare('SELECT * FROM brutes WHERE id = ? AND user_id = ? LIMIT 1');
-$stmt->execute([$bruteId, $uid]);
-$brute = $stmt->fetch();
-if (!$brute) {
-    http_response_code(403);
-    echo json_encode(['ok' => false, 'error' => 'Ce gladiateur ne vous appartient pas']);
-    exit;
-}
-
-// Reset du compteur journalier si changement de jour
-$today = date('Y-m-d');
-if ($brute['last_fight_date'] !== $today) {
-    $pdo->prepare('UPDATE brutes SET fights_today = 0, last_fight_date = ? WHERE id = ?')
-        ->execute([$today, $bruteId]);
-    $brute['fights_today'] = 0;
-    $brute['last_fight_date'] = $today;
-}
-
-$baseLeft  = max(0, 6 - (int)$brute['fights_today']);
-$bonusAvail = (int)$brute['bonus_fights_available'];
-
-if ($baseLeft + $bonusAvail <= 0) {
-    echo json_encode(['ok' => false, 'error' => 'Plus aucun combat disponible (gagnez des bonus via les quêtes et le tournoi)']);
-    exit;
-}
-
-if ((int)$brute['pending_levelup'] === 1) {
-    echo json_encode(['ok' => false, 'error' => 'Vous devez choisir votre bonus de niveau']);
-    exit;
-}
-
-$opp = find_opponent_ranked($bruteId, (int)$brute['level'], (int)$brute['mmr']);
-if (!$opp) {
-    echo json_encode(['ok' => false, 'error' => 'Aucun adversaire disponible']);
-    exit;
-}
-
 try {
+    $pdo = db();
+
+    $stmt = $pdo->prepare('SELECT * FROM brutes WHERE id = ? AND user_id = ? LIMIT 1');
+    $stmt->execute([$bruteId, $uid]);
+    $brute = $stmt->fetch();
+    if (!$brute) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Ce gladiateur ne vous appartient pas']);
+        exit;
+    }
+
+    // Reset du compteur journalier si changement de jour
+    $today = date('Y-m-d');
+    if ($brute['last_fight_date'] !== $today) {
+        $pdo->prepare('UPDATE brutes SET fights_today = 0, last_fight_date = ? WHERE id = ?')
+            ->execute([$today, $bruteId]);
+        $brute['fights_today'] = 0;
+        $brute['last_fight_date'] = $today;
+    }
+
+    $baseLeft  = max(0, 6 - (int)$brute['fights_today']);
+    $bonusAvail = (int)$brute['bonus_fights_available'];
+
+    if ($baseLeft + $bonusAvail <= 0) {
+        echo json_encode(['ok' => false, 'error' => 'Plus aucun combat disponible (gagnez des bonus via les quêtes et le tournoi)']);
+        exit;
+    }
+
+    if ((int)$brute['pending_levelup'] === 1) {
+        echo json_encode(['ok' => false, 'error' => 'Vous devez choisir votre bonus de niveau']);
+        exit;
+    }
+
+    // Si un opponent_id est fourni (via le modal de choix), on le valide
+    $forcedOppId = (int)($_POST['opponent_id'] ?? 0);
+    if ($forcedOppId > 0) {
+        $stmt = $pdo->prepare('SELECT * FROM brutes WHERE id = ? AND user_id != ? LIMIT 1');
+        $stmt->execute([$forcedOppId, $uid]);
+        $opp = $stmt->fetch() ?: null;
+    } else {
+        $opp = find_opponent_ranked($bruteId, (int)$brute['level'], (int)$brute['mmr']);
+    }
+
+    if (!$opp) {
+        echo json_encode(['ok' => false, 'error' => 'Aucun adversaire disponible']);
+        exit;
+    }
+
     $result = run_fight($bruteId, (int)$opp['id']);
 
     $isWinner = ($result['winner_id'] === $bruteId);

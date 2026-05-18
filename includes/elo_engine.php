@@ -289,6 +289,51 @@ function find_opponent_ranked(int $bruteId, int $level, int $mmr): ?array
     return $stmt->fetch() ?: null;
 }
 
+function find_opponents_ranked(int $bruteId, int $level, int $mmr, int $count = 2): array
+{
+    $pdo     = db();
+    $results = [];
+    $usedIds = [$bruteId];
+
+    while (count($results) < $count) {
+        $ph   = implode(',', array_fill(0, count($usedIds), '?'));
+        $base = array_merge($usedIds, [$bruteId]);
+        $opp  = null;
+
+        $tiers = [
+            ["AND b.mmr BETWEEN ? AND ? AND b.level BETWEEN ? AND ? ORDER BY RAND()",
+             [$mmr - 150, $mmr + 150, max(1, $level - 3), $level + 3]],
+            ["AND b.mmr BETWEEN ? AND ? AND b.level BETWEEN ? AND ? ORDER BY RAND()",
+             [$mmr - 300, $mmr + 300, max(1, $level - 5), $level + 5]],
+            ["AND b.level BETWEEN ? AND ? ORDER BY ABS(b.mmr - ?) ASC, RAND()",
+             [max(1, $level - 5), $level + 5, $mmr]],
+            ["ORDER BY (ABS(b.mmr - ?) + ABS(b.level - ?) * 40) ASC, RAND()",
+             [$mmr, $level]],
+        ];
+        foreach ($tiers as $tier) {
+            $extra  = $tier[0];
+            $params = $tier[1];
+            $stmt = $pdo->prepare("
+                SELECT b.id, b.name, b.level, b.mmr, b.appearance_seed
+                FROM brutes b
+                WHERE b.id NOT IN ($ph)
+                  AND b.user_id != (SELECT user_id FROM brutes WHERE id = ?)
+                  $extra
+                LIMIT 1
+            ");
+            $stmt->execute(array_merge($base, $params));
+            $opp = $stmt->fetch() ?: null;
+            if ($opp) break;
+        }
+
+        if (!$opp) break;
+        $results[] = $opp;
+        $usedIds[] = (int)$opp['id'];
+    }
+
+    return $results;
+}
+
 // ============================================================
 // Classement
 // ============================================================
