@@ -155,6 +155,7 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
             <div class="hero-identity">
                 <h1><?= h($brute['name']) ?></h1>
                 <span class="hero-level">Niveau <?= (int)$brute['level'] ?></span>
+                <span class="hero-mmr">MMR <?= (int)($brute['mmr'] ?? 1000) ?></span>
             </div>
             
             <?php if ($isOwner): ?>
@@ -325,7 +326,7 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
 
     <?php if (!empty($pets)): ?>
         <section class="card">
-            <h2>Compagnon</h2>
+            <h2>🐾 Compagnon</h2>
             <div class="pet-grid">
                 <?php foreach ($pets as $p): ?>
                     <div class="pet-item" title="<?= h($p['description']) ?>">
@@ -342,7 +343,7 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     <?php endif; ?>
 
     <section class="card">
-        <h2>Arsenal</h2>
+        <h2>⚔ Arsenal</h2>
         <div class="icon-grid">
             <?php foreach ($weapons as $w): ?>
                 <div class="icon-item" title="<?= h($w['name']) ?> (<?= (int)$w['damage_min'] ?>-<?= (int)$w['damage_max'] ?> dég.)">
@@ -354,7 +355,7 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     </section>
 
     <section class="card">
-        <h2>Compétences</h2>
+        <h2>✦ Compétences</h2>
         <?php if (empty($skills)): ?>
             <p class="muted">Aucune compétence apprise.</p>
         <?php else: ?>
@@ -371,7 +372,7 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     </section>
 
     <section class="card">
-        <h2>Derniers combats</h2>
+        <h2>⚡ Derniers combats</h2>
         <p class="muted small"><a href="stats.php?id=<?= $id ?>">📊 Voir les statistiques détaillées →</a></p>
         <?php if (empty($history)): ?>
             <p class="muted">Aucun combat pour l'instant.</p>
@@ -396,7 +397,7 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     </section>
 
     <section class="card" id="pupils">
-        <h2>Pupilles</h2>
+        <h2>👥 Pupilles</h2>
         <?php if (empty($pupils)): ?>
             <p class="muted">Aucun pupille pour l'instant. <?php if ($isOwner): ?><a href="pupils.php">Obtenir votre lien de parrainage →</a><?php endif; ?></p>
         <?php else: ?>
