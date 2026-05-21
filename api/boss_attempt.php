@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/boss_engine.php';
+require_once __DIR__ . '/../includes/brute_generator.php';
+require_once __DIR__ . '/../includes/combat_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -19,6 +21,7 @@ if (!csrf_check($_POST['csrf'] ?? null)) {
 }
 
 $bruteId = (int)($_POST['brute_id'] ?? 0);
+$action  = (string)($_POST['action'] ?? 'challenge');
 
 $stmt = db()->prepare('SELECT id FROM brutes WHERE id = ? AND user_id = ? LIMIT 1');
 $stmt->execute([$bruteId, $uid]);
@@ -29,7 +32,11 @@ if (!$stmt->fetchColumn()) {
 }
 
 try {
-    echo json_encode(attempt_daily_boss($bruteId));
+    if ($action === 'claim') {
+        echo json_encode(claim_pvp_throne($bruteId));
+    } else {
+        echo json_encode(challenge_pvp_boss($bruteId));
+    }
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Erreur : ' . $e->getMessage()]);

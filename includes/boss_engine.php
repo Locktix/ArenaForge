@@ -273,3 +273,207 @@ function attempt_daily_boss(int $bruteId): array
         'redirect'        => 'fight.php?id=' . $fightId,
     ];
 }
+
+// ============================================================
+// Boss PvP — Trône du Maître
+// ============================================================
+
+const BOSS_DAILY_XP = 10;
+
+function get_pvp_boss(): ?array
+{
+    $stmt = db()->prepare('
+        SELECT t.*, b.name, b.level, b.mmr, b.strength, b.agility, b.endurance,
+               b.hp_max, b.appearance_seed
+        FROM pvp_boss_throne t
+        JOIN brutes b ON b.id = t.brute_id
+        LIMIT 1
+    ');
+    $stmt->execute();
+    return $stmt->fetch() ?: null;
+}
+
+function get_pvp_boss_challengers(): array
+{
+    $boss = get_pvp_boss();
+    if (!$boss) return [];
+
+    $stmt = db()->prepare("
+        SELECT f.id AS fight_id, f.winner_id, f.created_at,
+               c.id AS challenger_id, c.name AS challenger_name, c.level AS challenger_level
+        FROM fights f
+        JOIN brutes c ON c.id = f.brute1_id
+        WHERE f.context = 'pvp_boss'
+          AND f.brute2_id = ?
+          AND f.created_at >= ?
+        ORDER BY f.created_at DESC
+        LIMIT 50
+    ");
+    $stmt->execute([(int)$boss['brute_id'], $boss['since_date']]);
+    return $stmt->fetchAll();
+}
+
+function get_pvp_boss_history(int $limit = 5): array
+{
+    $stmt = db()->prepare('
+        SELECT l.*, b.name, b.level,
+               c.name AS challenger_name
+        FROM pvp_boss_log l
+        JOIN brutes b ON b.id = l.brute_id
+        LEFT JOIN brutes c ON c.id = l.dethroned_by
+        ORDER BY l.dethroned_at DESC
+        LIMIT ?
+    ');
+    $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function maybe_award_boss_daily_xp(): void
+{
+    $pdo = db();
+    $stmt = $pdo->prepare('SELECT * FROM pvp_boss_throne LIMIT 1');
+    $stmt->execute();
+    $throne = $stmt->fetch();
+    if (!$throne) return;
+
+    $today = date('Y-m-d');
+    if ($throne['last_xp_award_date'] === $today) return;
+
+    $bruteId = (int)$throne['brute_id'];
+    $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
+    $stmt->execute([$bruteId]);
+    $b = $stmt->fetch();
+    if (!$b) return;
+
+    $newXp    = (int)$b['xp'] + BOSS_DAILY_XP;
+    $newLevel = (int)$b['level'];
+    $levelUp  = false;
+    while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUp = true; }
+
+    $pdo->prepare('UPDATE brutes SET xp = ?, level = ?,
+        pending_levelup = CASE WHEN ? = 1 THEN 1 ELSE pending_levelup END
+        WHERE id = ?')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bruteId]);
+
+    $pdo->prepare('UPDATE pvp_boss_throne SET last_xp_award_date = ? WHERE brute_id = ?')
+        ->execute([$today, $bruteId]);
+}
+
+function claim_pvp_throne(int $bruteId): array
+{
+    $pdo = db();
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM pvp_boss_throne');
+    $stmt->execute();
+    if ((int)$stmt->fetchColumn() > 0) {
+        return ['ok' => false, 'error' => 'Le Trône est déjà occupé'];
+    }
+
+    $stmt = $pdo->prepare('SELECT pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+    $stmt->execute([$bruteId]);
+    $b = $stmt->fetch();
+    if (!$b) return ['ok' => false, 'error' => 'Gladiateur introuvable'];
+    if ((int)$b['pending_levelup'] === 1) {
+        return ['ok' => false, 'error' => 'Choisis ton bonus de niveau avant de revendiquer le Trône'];
+    }
+
+    $pdo->prepare('INSERT INTO pvp_boss_throne (brute_id, since_date, last_xp_award_date, defense_wins) VALUES (?, NOW(), NULL, 0)')
+        ->execute([$bruteId]);
+    return ['ok' => true, 'redirect' => 'boss.php'];
+}
+
+function challenge_pvp_boss(int $challengerId): array
+{
+    $pdo = db();
+
+    $boss = get_pvp_boss();
+    if (!$boss) {
+        return ['ok' => false, 'error' => 'Le Trône est vacant — revendique-le !'];
+    }
+
+    $bossId = (int)$boss['brute_id'];
+    if ($challengerId === $bossId) {
+        return ['ok' => false, 'error' => 'Vous régnez déjà sur ce Trône'];
+    }
+
+    // 1 tentative par jour par brute
+    $stmt = $pdo->prepare('SELECT boss_last_challenge_date FROM brutes WHERE id = ? LIMIT 1');
+    $stmt->execute([$challengerId]);
+    $challenger = $stmt->fetch();
+    if (!$challenger) return ['ok' => false, 'error' => 'Gladiateur introuvable'];
+    if ($challenger['boss_last_challenge_date'] === date('Y-m-d')) {
+        return ['ok' => false, 'error' => 'Vous avez déjà défié le Trône aujourd\'hui'];
+    }
+    if ((int)($challenger['pending_levelup'] ?? 0) === 1) {
+        return ['ok' => false, 'error' => 'Choisis ton bonus de niveau avant d\'attaquer le Trône'];
+    }
+
+    $result = run_fight($challengerId, $bossId);
+    $challengerWon = ($result['winner_id'] === $challengerId);
+
+    $pdo->prepare("
+        INSERT INTO fights (brute1_id, brute2_id, winner_id, log_json, xp_gained, context)
+        VALUES (?, ?, ?, ?, ?, 'pvp_boss')
+    ")->execute([
+        $challengerId, $bossId, $result['winner_id'],
+        json_encode($result['log'], JSON_UNESCAPED_UNICODE),
+        $challengerWon ? 8 : 2,
+    ]);
+    $fightId = (int)$pdo->lastInsertId();
+
+    // Marquer la tentative du jour
+    $pdo->prepare('UPDATE brutes SET boss_last_challenge_date = CURDATE() WHERE id = ?')
+        ->execute([$challengerId]);
+
+    // XP challenger
+    $xpC = $challengerWon ? 8 : 2;
+    $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
+    $stmt->execute([$challengerId]);
+    $cRow = $stmt->fetch();
+    $cXp = (int)$cRow['xp'] + $xpC;
+    $cLvl = (int)$cRow['level'];
+    $cLup = false;
+    while ($cXp >= xp_for_level($cLvl + 1)) { $cLvl++; $cLup = true; }
+    $pdo->prepare('UPDATE brutes SET xp=?, level=?,
+        pending_levelup = CASE WHEN ?=1 THEN 1 ELSE pending_levelup END WHERE id=?')
+        ->execute([$cXp, $cLvl, $cLup ? 1 : 0, $challengerId]);
+
+    // XP boss (défense réussie = +5, défaite = +3 quand même)
+    $xpB = $challengerWon ? 3 : 5;
+    $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
+    $stmt->execute([$bossId]);
+    $bRow = $stmt->fetch();
+    $bXp = (int)$bRow['xp'] + $xpB;
+    $bLvl = (int)$bRow['level'];
+    $bLup = false;
+    while ($bXp >= xp_for_level($bLvl + 1)) { $bLvl++; $bLup = true; }
+    $pdo->prepare('UPDATE brutes SET xp=?, level=?,
+        pending_levelup = CASE WHEN ?=1 THEN 1 ELSE pending_levelup END WHERE id=?')
+        ->execute([$bXp, $bLvl, $bLup ? 1 : 0, $bossId]);
+
+    if ($challengerWon) {
+        $stmt = $pdo->prepare('SELECT since_date, defense_wins FROM pvp_boss_throne WHERE brute_id = ? LIMIT 1');
+        $stmt->execute([$bossId]);
+        $throneRow = $stmt->fetch();
+
+        $pdo->prepare('INSERT INTO pvp_boss_log (brute_id, became_boss_at, dethroned_at, dethroned_by, defense_wins)
+            VALUES (?, ?, NOW(), ?, ?)')->execute([
+                $bossId, $throneRow['since_date'], $challengerId, (int)$throneRow['defense_wins']
+            ]);
+
+        $pdo->prepare('DELETE FROM pvp_boss_throne')->execute();
+        $pdo->prepare('INSERT INTO pvp_boss_throne (brute_id, since_date, last_xp_award_date, defense_wins)
+            VALUES (?, NOW(), NULL, 0)')->execute([$challengerId]);
+    } else {
+        $pdo->prepare('UPDATE pvp_boss_throne SET defense_wins = defense_wins + 1 WHERE brute_id = ?')
+            ->execute([$bossId]);
+    }
+
+    return [
+        'ok'       => true,
+        'fight_id' => $fightId,
+        'won'      => $challengerWon,
+        'xp_gained'=> $xpC,
+        'level_up' => $cLup,
+        'redirect' => 'fight.php?id=' . $fightId,
+    ];
+}

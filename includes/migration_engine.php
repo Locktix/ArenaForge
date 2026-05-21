@@ -95,6 +95,40 @@ function check_migrations(PDO $pdo): void
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ");
 
+        // --- Boss PvP : Trône du Maître ---
+        ensure_table($pdo, 'pvp_boss_throne', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            brute_id INT UNSIGNED NOT NULL,
+            since_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_xp_award_date DATE NULL,
+            defense_wins INT UNSIGNED NOT NULL DEFAULT 0,
+            UNIQUE KEY uk_throne_brute (brute_id)
+        ");
+
+        ensure_table($pdo, 'pvp_boss_log', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            brute_id INT UNSIGNED NOT NULL,
+            became_boss_at DATETIME NOT NULL,
+            dethroned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            dethroned_by INT UNSIGNED NULL,
+            defense_wins INT UNSIGNED NOT NULL DEFAULT 0
+        ");
+
+        // --- Mini-jeux ---
+        if (table_exists($pdo, 'brutes')) {
+            ensure_column($pdo, 'brutes', 'minigame_claimed_at', 'DATETIME NULL');
+            ensure_column($pdo, 'brutes', 'boss_last_challenge_date', 'DATE NULL');
+        }
+
+        ensure_table($pdo, 'minigame_scores', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            brute_id INT UNSIGNED NOT NULL,
+            game VARCHAR(20) NOT NULL DEFAULT 'snake',
+            score INT UNSIGNED NOT NULL,
+            achieved_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_game_score (game, score DESC)
+        ");
+
         // 3. Insertion de données vitales
         if (table_exists($pdo, 'quest_definitions')) {
             sync_weekly_quests($pdo);

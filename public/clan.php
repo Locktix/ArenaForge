@@ -71,7 +71,7 @@ $totalMmr = array_sum(array_map(fn($m) => (int)$m['mmr'], $members));
                     <button type="submit" class="btn btn-secondary">Rejoindre</button>
                 </form>
             <?php endif; ?>
-            <a href="clans.php" class="btn btn-secondary">Tous les clans</a>
+            <a href="clans.php?browse=1" class="btn btn-secondary">Tous les clans</a>
         </div>
     </section>
 

@@ -230,65 +230,56 @@ function elo_apply_fight(int $winnerId, int $loserId): array
 }
 
 /**
- * Recherche d'adversaire privilégiant la proximité MMR, avec garde-fou niveau.
+ * Recherche d'adversaire par rang réel :
+ * Constitue un pool des 3 joueurs les mieux classés (MMR) au-dessus de moi
+ * et des 3 joueurs juste en-dessous, puis tire aléatoirement parmi eux.
+ * Garantit la variété (pas toujours le même adversaire) tout en restant équitable.
+ * Fallback progressif si le pool est trop petit.
  */
 function find_opponent_ranked(int $bruteId, int $level, int $mmr): ?array
 {
     $pdo = db();
 
-    // Palier 1 : MMR ±150 et niveau ±3
-    $stmt = $pdo->prepare('
-        SELECT b.* FROM brutes b
-        WHERE b.id != ?
-          AND b.mmr BETWEEN ? AND ?
-          AND b.level BETWEEN ? AND ?
-          AND b.user_id != (SELECT user_id FROM brutes WHERE id = ?)
-        ORDER BY RAND()
-        LIMIT 1
-    ');
-    $stmt->execute([$bruteId, $mmr - 150, $mmr + 150, max(1, $level - 3), $level + 3, $bruteId]);
-    $opp = $stmt->fetch();
-    if ($opp) return $opp;
+    $excludeSelf = 'AND b.user_id != (SELECT user_id FROM brutes WHERE id = ?)';
 
-    // Palier 2 : MMR ±300 et niveau ±5
-    $stmt = $pdo->prepare('
+    // 3 plus proches AU-DESSUS (MMR ≥ moi, triés croissant = les plus proches d'abord)
+    $stmtAbove = $pdo->prepare("
         SELECT b.* FROM brutes b
-        WHERE b.id != ?
-          AND b.mmr BETWEEN ? AND ?
-          AND b.level BETWEEN ? AND ?
-          AND b.user_id != (SELECT user_id FROM brutes WHERE id = ?)
-        ORDER BY RAND()
-        LIMIT 1
-    ');
-    $stmt->execute([$bruteId, $mmr - 300, $mmr + 300, max(1, $level - 5), $level + 5, $bruteId]);
-    $opp = $stmt->fetch();
-    if ($opp) return $opp;
+        WHERE b.id != ? AND b.mmr >= ? $excludeSelf
+        ORDER BY b.mmr ASC
+        LIMIT 3
+    ");
+    $stmtAbove->execute([$bruteId, $mmr, $bruteId]);
+    $above = $stmtAbove->fetchAll();
 
-    // Palier 3 : niveau ±5, MMR le plus proche possible
-    $stmt = $pdo->prepare('
+    // 3 plus proches EN-DESSOUS (MMR < moi, triés décroissant = les plus proches d'abord)
+    $stmtBelow = $pdo->prepare("
         SELECT b.* FROM brutes b
-        WHERE b.id != ?
-          AND b.level BETWEEN ? AND ?
-          AND b.user_id != (SELECT user_id FROM brutes WHERE id = ?)
-        ORDER BY ABS(b.mmr - ?) ASC, RAND()
-        LIMIT 1
-    ');
-    $stmt->execute([$bruteId, max(1, $level - 5), $level + 5, $bruteId, $mmr]);
-    $opp = $stmt->fetch();
-    if ($opp) return $opp;
+        WHERE b.id != ? AND b.mmr < ? $excludeSelf
+        ORDER BY b.mmr DESC
+        LIMIT 3
+    ");
+    $stmtBelow->execute([$bruteId, $mmr, $bruteId]);
+    $below = $stmtBelow->fetchAll();
 
-    // Ultime fallback : n'importe qui, MMR+niveau le plus proche
-    $stmt = $pdo->prepare('
+    $pool = array_merge($above, $below);
+
+    if (!empty($pool)) {
+        return $pool[array_rand($pool)];
+    }
+
+    // Fallback : n'importe qui, le plus proche en score composé
+    $stmt = $pdo->prepare("
         SELECT b.* FROM brutes b
-        WHERE b.id != ?
-          AND b.user_id != (SELECT user_id FROM brutes WHERE id = ?)
+        WHERE b.id != ? $excludeSelf
         ORDER BY (ABS(b.mmr - ?) + ABS(b.level - ?) * 40) ASC, RAND()
         LIMIT 1
-    ');
+    ");
     $stmt->execute([$bruteId, $bruteId, $mmr, $level]);
     return $stmt->fetch() ?: null;
 }
 
+// Conservé pour compatibilité avec tout appel restant
 function find_opponents_ranked(int $bruteId, int $level, int $mmr, int $count = 2): array
 {
     $pdo     = db();
@@ -301,10 +292,10 @@ function find_opponents_ranked(int $bruteId, int $level, int $mmr, int $count = 
         $opp  = null;
 
         $tiers = [
-            ["AND b.mmr BETWEEN ? AND ? AND b.level BETWEEN ? AND ? ORDER BY RAND()",
-             [$mmr - 150, $mmr + 150, max(1, $level - 3), $level + 3]],
-            ["AND b.mmr BETWEEN ? AND ? AND b.level BETWEEN ? AND ? ORDER BY RAND()",
-             [$mmr - 300, $mmr + 300, max(1, $level - 5), $level + 5]],
+            ["AND b.mmr BETWEEN ? AND ? AND b.level BETWEEN ? AND ? ORDER BY ABS(b.mmr - ?) ASC, RAND()",
+             [$mmr - 100, $mmr + 100, max(1, $level - 1), $level + 1, $mmr]],
+            ["AND b.mmr BETWEEN ? AND ? AND b.level BETWEEN ? AND ? ORDER BY ABS(b.mmr - ?) ASC, RAND()",
+             [$mmr - 350, $mmr + 350, max(1, $level - 3), $level + 3, $mmr]],
             ["AND b.level BETWEEN ? AND ? ORDER BY ABS(b.mmr - ?) ASC, RAND()",
              [max(1, $level - 5), $level + 5, $mmr]],
             ["ORDER BY (ABS(b.mmr - ?) + ABS(b.level - ?) * 40) ASC, RAND()",

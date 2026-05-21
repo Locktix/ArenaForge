@@ -2,42 +2,45 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/boss_engine.php';
+require_once __DIR__ . '/../includes/brute_generator.php';
 require_login();
 
-$brute = current_brute();
-if (!$brute) {
-    header('Location: dashboard.php');
-    exit;
-}
-
+$brute   = current_brute();
+if (!$brute) { header('Location: dashboard.php'); exit; }
 $bruteId = (int)$brute['id'];
-$boss    = ensure_today_boss();
-$attempt = $boss ? get_boss_attempt((int)$boss['id'], $bruteId) : null;
-$leaderboard = $boss ? get_boss_leaderboard((int)$boss['id'], 15) : [];
-$csrf = csrf_token();
 
-$bossWeaponName = '';
-$bossSkillName  = '';
+// Distribuer les XP journaliers au boss si nouvelle journée
+maybe_award_boss_daily_xp();
+
+$boss        = get_pvp_boss();
+$history     = get_pvp_boss_history(5);
+$challengers = get_pvp_boss_challengers();
+$csrf        = csrf_token();
+
+$isBoss        = $boss && ((int)$boss['brute_id'] === $bruteId);
+$throneVacant  = ($boss === null);
+$canChallenge  = !$throneVacant && !$isBoss && ($brute['boss_last_challenge_date'] ?? '') !== date('Y-m-d');
+$alreadyTriedToday = !$throneVacant && !$isBoss && ($brute['boss_last_challenge_date'] ?? '') === date('Y-m-d');
+
+// Données portrait boss
+$bossAppearance = [];
 if ($boss) {
-    if (!empty($boss['weapon_id'])) {
-        $stmt = db()->prepare('SELECT name FROM weapons WHERE id = ? LIMIT 1');
-        $stmt->execute([(int)$boss['weapon_id']]);
-        $bossWeaponName = (string)$stmt->fetchColumn();
-    }
-    if (!empty($boss['skill_id'])) {
-        $stmt = db()->prepare('SELECT name FROM skills WHERE id = ? LIMIT 1');
-        $stmt->execute([(int)$boss['skill_id']]);
-        $bossSkillName = (string)$stmt->fetchColumn();
-    }
+    $bossAppearance = json_decode((string)$boss['appearance_seed'], true) ?: [];
 }
 
-$appearance = $boss ? (json_decode((string)$boss['appearance_seed'], true) ?: []) : [];
+// Durée de règne
+$reignDays = 0;
+if ($boss) {
+    $since     = new DateTimeImmutable($boss['since_date']);
+    $now       = new DateTimeImmutable();
+    $reignDays = max(0, (int)$since->diff($now)->days);
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Boss du jour — ArenaForge</title>
+<title>Antre du Trône — ArenaForge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="../assets/svg/logo/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/main.css">
@@ -46,127 +49,178 @@ $appearance = $boss ? (json_decode((string)$boss['appearance_seed'], true) ?: []
 <?php include __DIR__ . '/_nav.php'; ?>
 
 <main class="wrap">
-    <?php if (!$boss): ?>
-        <section class="card">
-            <h1>Antre du Boss</h1>
-            <p class="muted">Le mal sommeille... Aucune menace n'a été détectée aujourd'hui.</p>
-        </section>
+
+    <?php if ($throneVacant): ?>
+    <!-- Trône vacant -->
+    <section class="card boss-vacant-card text-center">
+        <div class="boss-vacant-icon">👑</div>
+        <h1>Le Trône est Vacant</h1>
+        <p class="muted">Aucun roi ne règne. Le premier gladiateur à revendiquer ce trône en deviendra le Maître.</p>
+        <?php if ((int)$brute['pending_levelup'] !== 1): ?>
+        <form id="claim-form" style="margin-top:24px">
+            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+            <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
+            <input type="hidden" name="action" value="claim">
+            <button class="btn btn-primary btn-hero" type="submit">👑 Revendiquer le Trône</button>
+            <p class="form-msg" data-msg></p>
+        </form>
+        <?php else: ?>
+        <p class="muted small">Choisis d'abord ton bonus de niveau avant de revendiquer le Trône.</p>
+        <?php endif; ?>
+    </section>
+
     <?php else: ?>
-        <section class="card boss-card">
-            <div class="boss-portrait">
-                <?php include __DIR__ . '/_gladiator.php'; ?>
+    <!-- Trône occupé -->
+    <section class="card boss-throne-card">
+        <div class="boss-throne-banner">
+            <span class="boss-tag-crown">👑 MAÎTRE DU TRÔNE</span>
+        </div>
+
+        <div class="boss-profile-layout">
+            <div class="boss-portrait-wrap">
+                <?php
+                $appearance = $bossAppearance;
+                include __DIR__ . '/_gladiator.php';
+                ?>
                 <div class="boss-aura"></div>
             </div>
-            <div class="boss-info">
-                <span class="boss-tag">⚠️ Menace Émergente</span>
-                <h1><?= h((string)$boss['name']) ?> <span class="level boss-level">Niv. <?= (int)$boss['level'] ?></span></h1>
-                <p class="muted italic">"<?= h((string)$boss['description']) ?>"</p>
 
-                <div class="hero-stats boss-stats">
-                    <div class="stat-box">
-                        <span class="stat-label">Santé</span>
-                        <span class="stat-value"><?= (int)$boss['hp_max'] ?></span>
+            <div class="boss-throne-info">
+                <h1 class="boss-name"><?= h((string)$boss['name']) ?></h1>
+                <p class="boss-sub">Niveau <?= (int)$boss['level'] ?> · MMR <?= (int)$boss['mmr'] ?></p>
+
+                <div class="boss-reign-stats">
+                    <div class="reign-stat">
+                        <span class="reign-num"><?= $reignDays ?></span>
+                        <span class="reign-lbl">Jour<?= $reignDays > 1 ? 's' : '' ?> de règne</span>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-label">Force</span>
-                        <span class="stat-value"><?= (int)$boss['strength'] ?></span>
+                    <div class="reign-stat">
+                        <span class="reign-num"><?= (int)$boss['defense_wins'] ?></span>
+                        <span class="reign-lbl">Défense<?= (int)$boss['defense_wins'] > 1 ? 's' : '' ?> réussie<?= (int)$boss['defense_wins'] > 1 ? 's' : '' ?></span>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-label">Agilité</span>
-                        <span class="stat-value"><?= (int)$boss['agility'] ?></span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">Endurance</span>
-                        <span class="stat-value"><?= (int)$boss['endurance'] ?></span>
+                    <div class="reign-stat">
+                        <span class="reign-num">+<?= BOSS_DAILY_XP ?></span>
+                        <span class="reign-lbl">XP / jour</span>
                     </div>
                 </div>
 
-                <div class="hero-weapon">
-                    <div class="weapon-info">
-                        <span class="weapon-name">⚔ <?= h($bossWeaponName ?: 'Poings nus') ?></span>
-                        <span class="weapon-damage">⚡ <?= h($bossSkillName ?: 'Aucune compétence') ?></span>
-                    </div>
+                <?php if ($isBoss): ?>
+                <div class="boss-self-panel">
+                    <p class="boss-self-msg">⚔ Vous régnez sur ce Trône. Défendez-le contre les challengers !</p>
+                    <p class="muted small">Chaque victoire en défense vous rapporte +5 XP. Vous gagnez automatiquement <?= BOSS_DAILY_XP ?> XP par jour de règne.</p>
                 </div>
 
-                <?php if ($attempt): ?>
-                    <div class="boss-result">
-                        <p>
-                            <strong class="<?= (int)$attempt['won'] === 1 ? 'color-success' : 'color-danger' ?>">
-                                <?= (int)$attempt['won'] === 1 ? '🏆 VICTOIRE ÉPIQUE !' : '💀 VOUS AVEZ PÉRI' ?>
-                            </strong><br>
-                            <span class="muted"><?= (int)$attempt['damage_dealt'] ?> points de dégâts infligés au monstre.</span>
-                        </p>
-                        <a class="btn btn-secondary" href="fight.php?id=<?= (int)$attempt['fight_id'] ?>">Voir le replay de la bataille</a>
-                    </div>
+                <?php elseif ($canChallenge): ?>
+                <form id="challenge-form" style="margin-top:20px">
+                    <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                    <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
+                    <input type="hidden" name="action" value="challenge">
+                    <button class="btn btn-primary btn-hero" type="submit">⚔ DÉFIER LE MAÎTRE</button>
+                    <p class="form-msg" data-msg></p>
+                </form>
+                <p class="muted small text-center" style="margin-top:8px">
+                    Victoire : vous devenez le nouveau Maître · Défaite : +2 XP
+                </p>
+
+                <?php elseif ($alreadyTriedToday): ?>
+                <div class="boss-result muted" style="margin-top:20px">
+                    Vous avez déjà défié le Trône aujourd'hui. Revenez demain.
+                </div>
+
                 <?php else: ?>
-                    <form id="boss-attempt-form" style="margin-top: 20px;">
-                        <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                        <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
-                        <button class="btn btn-primary btn-large btn-hero" type="submit">⚔ ENTAMER LE SIÈGE</button>
-                        <p class="form-msg" data-msg></p>
-                    </form>
-                    <p class="muted small text-center">Tentative unique. L'or de la cité sera distribué selon votre bravoure.</p>
+                <p class="muted small" style="margin-top:16px">Choisis ton bonus de niveau avant de défier le Maître.</p>
                 <?php endif; ?>
             </div>
-        </section>
-
-        <section class="card">
-            <h2>🏆 Tableau de chasse</h2>
-            <?php if (empty($leaderboard)): ?>
-                <p class="muted">Personne n'a encore frappé le boss aujourd'hui. À toi de l'inaugurer.</p>
-            <?php else: ?>
-                <div class="ranking-board">
-                    <?php foreach ($leaderboard as $i => $row): 
-                        $isMe = ((int)$row['brute_id'] === $bruteId);
-                    ?>
-                        <div class="rank-plaque <?= $isMe ? 'rank-me' : '' ?>">
-                            <div class="rank-num"><?= $i + 1 ?></div>
-                            <div class="rank-identity">
-                                <a href="brute.php?id=<?= (int)$row['brute_id'] ?>" class="rank-name"><?= h((string)$row['name']) ?></a>
-                                <div class="rank-meta">
-                                    <span class="muted small">Niveau <?= (int)$row['level'] ?></span>
-                                    <span class="muted small"><?= (int)$row['won'] === 1 ? '🏆 A triomphé' : '💀 A succombé' ?></span>
-                                </div>
-                            </div>
-                            <div class="rank-stats">
-                                <div class="rank-stat-item">
-                                    <label>Tours</label>
-                                    <span><?= (int)$row['rounds'] ?></span>
-                                </div>
-                                <div class="rank-stat-item">
-                                    <label>Dégâts</label>
-                                    <span class="ranking-mmr"><?= (int)$row['damage_dealt'] ?></span>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </section>
+        </div>
+    </section>
     <?php endif; ?>
+
+    <!-- Challengers du règne actuel -->
+    <?php if (!empty($challengers)): ?>
+    <section class="card">
+        <h2>⚔ Challengers de ce règne</h2>
+        <p class="muted small" style="margin-top:-10px">Réinitialisé à chaque nouveau couronnement.</p>
+        <div class="boss-challengers-list">
+            <?php foreach ($challengers as $row):
+                $won = ((int)$row['winner_id'] === (int)$row['challenger_id']);
+            ?>
+            <div class="boss-challenger-row <?= $won ? 'bc-win' : 'bc-loss' ?>">
+                <span class="bc-result">
+                    <?= $won ? '🏆' : '💀' ?>
+                </span>
+                <a href="brute.php?id=<?= (int)$row['challenger_id'] ?>" class="bc-name">
+                    <?= h((string)$row['challenger_name']) ?>
+                </a>
+                <span class="bc-level muted small">Niv. <?= (int)$row['challenger_level'] ?></span>
+                <a href="fight.php?id=<?= (int)$row['fight_id'] ?>" class="bc-replay muted small">replay →</a>
+                <span class="bc-date muted small"><?= date('d/m H\hi', strtotime($row['created_at'])) ?></span>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- Historique des 5 derniers règnes -->
+    <?php if (!empty($history)): ?>
+    <section class="card">
+        <h2>📜 Annales du Trône</h2>
+        <div class="boss-history-list">
+            <?php foreach ($history as $i => $row):
+                $duration = '';
+                try {
+                    $s = new DateTimeImmutable($row['became_boss_at']);
+                    $e = new DateTimeImmutable($row['dethroned_at']);
+                    $d = max(0, (int)$s->diff($e)->days);
+                    $duration = $d . ' jour' . ($d > 1 ? 's' : '');
+                } catch (\Throwable $t) {}
+            ?>
+            <div class="boss-history-row">
+                <span class="bh-rank">#<?= $i + 1 ?></span>
+                <a href="brute.php?id=<?= (int)$row['brute_id'] ?>" class="bh-name"><?= h((string)$row['name']) ?></a>
+                <span class="bh-meta muted">Niv. <?= (int)$row['level'] ?></span>
+                <span class="bh-defense"><?= (int)$row['defense_wins'] ?> déf.</span>
+                <span class="bh-duration muted small"><?= h($duration) ?></span>
+                <?php if (!empty($row['challenger_name'])): ?>
+                <span class="bh-dethroned muted small">Détrôné par <a href="#"><?= h((string)$row['challenger_name']) ?></a></span>
+                <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
 </main>
 
 <script>
-const bossForm = document.getElementById('boss-attempt-form');
-if (bossForm) {
-    bossForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const msg = bossForm.querySelector('[data-msg]');
-        if (msg) { msg.className = 'form-msg'; msg.textContent = '…'; }
-        try {
-            const res = await fetch('../api/boss_attempt.php', { method: 'POST', body: new FormData(bossForm) });
-            const data = await res.json();
-            if (data.ok && data.redirect) {
-                window.location.href = data.redirect;
-            } else if (msg) {
-                msg.className = 'form-msg error';
-                msg.textContent = data.error || 'Erreur';
+(function () {
+    function bindForm(id, endpoint) {
+        const form = document.getElementById(id);
+        if (!form) return;
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button[type=submit]');
+            const msg = form.querySelector('[data-msg]');
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ En cours…'; }
+            if (msg) { msg.className = 'form-msg'; msg.textContent = '…'; }
+            try {
+                const res  = await fetch(endpoint, { method: 'POST', body: new FormData(form) });
+                const data = await res.json();
+                if (data.ok && data.redirect) {
+                    window.location.href = data.redirect;
+                } else if (msg) {
+                    msg.className = 'form-msg error';
+                    msg.textContent = data.error || 'Erreur';
+                    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Réessayer'; }
+                }
+            } catch {
+                if (msg) { msg.className = 'form-msg error'; msg.textContent = 'Erreur réseau'; }
+                if (btn) btn.disabled = false;
             }
-        } catch (err) {
-            if (msg) { msg.className = 'form-msg error'; msg.textContent = 'Erreur réseau'; }
-        }
-    });
-}
+        });
+    }
+    bindForm('claim-form',     '../api/boss_attempt.php');
+    bindForm('challenge-form', '../api/boss_attempt.php');
+})();
 </script>
 </body>
 </html>

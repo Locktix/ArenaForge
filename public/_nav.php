@@ -69,6 +69,15 @@ function nav_active(string $page, string $current): string {
     </div>
 
     <div class="nav-section">
+        <span class="nav-section-label">🎮 Divertissements</span>
+        <ul>
+            <li><a href="minigames.php" class="<?= nav_active('minigames', $cp) ?>">
+                <img src="../assets/svg/ui/scroll.svg" alt=""> Mini-Jeux
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="nav-section">
         <span class="nav-section-label">📜 Chroniques</span>
         <ul>
             <li><a href="quests.php" class="<?= nav_active('quests', $cp) ?>">

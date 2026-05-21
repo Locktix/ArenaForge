@@ -81,19 +81,27 @@ function get_notifications(array $brute): array
         ];
     }
 
-    // --- Boss du jour pas tenté ---
-    $boss = get_today_boss();
-    if ($boss) {
-        $attempt = get_boss_attempt((int)$boss['id'], $bruteId);
-        if (!$attempt) {
+    // --- Antre du Trône PvP ---
+    $pvpBoss = get_pvp_boss();
+    if ($pvpBoss && (int)$pvpBoss['brute_id'] !== $bruteId) {
+        $alreadyChallenged = ($brute['boss_last_challenge_date'] ?? '') === date('Y-m-d');
+        if (!$alreadyChallenged) {
             $notifs[] = [
                 'kind'  => 'boss',
                 'icon'  => 'assets/svg/skills/rage.svg',
-                'title' => 'Boss du jour : ' . (string)$boss['name'],
-                'body'  => 'Niveau ' . (int)$boss['level'] . ' — 1 essai par jour.',
+                'title' => '👑 ' . h((string)$pvpBoss['name']) . ' règne sur le Trône',
+                'body'  => 'Niv. ' . (int)$pvpBoss['level'] . ' · ' . (int)$pvpBoss['defense_wins'] . ' défense(s) — Défiez-le !',
                 'href'  => 'boss.php',
             ];
         }
+    } elseif (!$pvpBoss) {
+        $notifs[] = [
+            'kind'  => 'boss',
+            'icon'  => 'assets/svg/skills/rage.svg',
+            'title' => '👑 Le Trône est vacant !',
+            'body'  => 'Aucun Maître en place — revendique-le maintenant.',
+            'href'  => 'boss.php',
+        ];
     }
 
     // --- Marché du jour ---

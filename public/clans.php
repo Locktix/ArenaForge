@@ -14,8 +14,8 @@ $bruteId = (int)$brute['id'];
 $csrf    = csrf_token();
 $myClan  = get_brute_clan($bruteId);
 
-// Si dans un clan, rediriger vers sa page
-if ($myClan) {
+// Si dans un clan et pas en mode navigation explicite, rediriger vers sa page
+if ($myClan && empty($_GET['browse'])) {
     header('Location: clan.php?id=' . (int)$myClan['id']);
     exit;
 }
@@ -86,16 +86,20 @@ $clans = list_clans(50);
                             </p>
                         </div>
                         <div class="clan-action">
-                            <?php if ((int)$c['member_count'] < (int)$c['max_members']): ?>
-                                <form class="clan-join-form">
-                                    <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                                    <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
-                                    <input type="hidden" name="action" value="join">
-                                    <input type="hidden" name="clan_id" value="<?= (int)$c['id'] ?>">
-                                    <button type="submit" class="btn btn-secondary">Rejoindre</button>
-                                </form>
-                            <?php else: ?>
-                                <span class="clan-full">Complet</span>
+                            <?php if ($myClan && (int)$c['id'] === (int)$myClan['id']): ?>
+                                <a href="clan.php?id=<?= (int)$c['id'] ?>" class="btn btn-secondary">Entrer</a>
+                            <?php elseif (!$myClan): ?>
+                                <?php if ((int)$c['member_count'] < (int)$c['max_members']): ?>
+                                    <form class="clan-join-form">
+                                        <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                                        <input type="hidden" name="brute_id" value="<?= $bruteId ?>">
+                                        <input type="hidden" name="action" value="join">
+                                        <input type="hidden" name="clan_id" value="<?= (int)$c['id'] ?>">
+                                        <button type="submit" class="btn btn-secondary">Rejoindre</button>
+                                    </form>
+                                <?php else: ?>
+                                    <span class="clan-full">Complet</span>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                     </div>

@@ -4178,6 +4178,241 @@ code {
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.55));
 }
 
+/* ============================================================
+   Antre du Trône PvP
+   ============================================================ */
+
+.boss-vacant-card { text-align: center; padding: 48px 28px; }
+.boss-vacant-icon { font-size: 4em; margin-bottom: 12px; }
+
+.boss-throne-card { padding: 0; overflow: hidden; }
+.boss-throne-banner {
+    background: linear-gradient(135deg, rgba(212,163,85,0.14), rgba(158,42,31,0.1));
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.boss-tag-crown {
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: 1em;
+    letter-spacing: 0.12em;
+    color: var(--accent-3);
+    text-transform: uppercase;
+}
+
+.boss-profile-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 28px;
+    padding: 28px;
+    align-items: center;
+}
+@media (max-width: 700px) { .boss-profile-layout { grid-template-columns: 1fr; } }
+
+.boss-portrait-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.boss-portrait-wrap .gladiator { max-width: 200px; }
+.boss-aura {
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,163,85,0.18), transparent 70%);
+    pointer-events: none;
+    animation: bossAuraPulse 3s ease-in-out infinite;
+}
+@keyframes bossAuraPulse {
+    0%,100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.06); }
+}
+
+.boss-name {
+    font-size: 2.2em;
+    margin: 0 0 4px;
+    background: linear-gradient(175deg, #fffbe8, #f0c170, #c8782a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.boss-sub { color: var(--muted); font-size: 0.9em; margin: 0 0 20px; }
+
+.boss-reign-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.reign-stat {
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r);
+    padding: 10px 18px;
+    text-align: center;
+    min-width: 80px;
+}
+.reign-num  { display: block; font-size: 1.9em; font-family: var(--font-title); color: var(--accent-2); }
+.reign-lbl  { display: block; font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+.boss-self-panel {
+    background: linear-gradient(135deg, rgba(212,163,85,0.08), transparent);
+    border: 1px solid rgba(212,163,85,0.25);
+    border-radius: var(--r-lg);
+    padding: 16px 20px;
+}
+.boss-self-msg { font-weight: 600; color: var(--accent-2); margin: 0 0 8px; }
+
+/* Historique boss */
+.boss-history-list { display: flex; flex-direction: column; gap: 10px; }
+.boss-history-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r);
+    flex-wrap: wrap;
+}
+.bh-rank  { font-family: var(--font-title); font-weight: 700; color: var(--accent); width: 28px; flex-shrink: 0; }
+.bh-name  { font-weight: 600; color: var(--text); flex: 1; min-width: 80px; }
+.bh-defense { font-family: var(--font-title); color: var(--accent-2); font-size: 0.9em; }
+.bh-duration, .bh-dethroned { color: var(--muted); font-size: 0.8em; }
+
+/* Boss — Challengers list */
+.boss-challengers-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.boss-challenger-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 10px;
+    background: rgba(0,0,0,.15);
+    border-radius: 6px;
+    border-left: 3px solid var(--border);
+}
+.bc-result { font-size: 1.2em; flex-shrink: 0; }
+.boss-challenger-row.bc-win  { border-left-color: var(--accent); }
+.boss-challenger-row.bc-loss { border-left-color: var(--danger); }
+.bc-name  { font-weight: 600; color: var(--text); flex: 1; min-width: 80px; }
+.bc-level { color: var(--muted); font-size: 0.82em; }
+.bc-replay { color: var(--accent-2); font-size: 0.82em; text-decoration: none; }
+.bc-replay:hover { text-decoration: underline; }
+.bc-date  { color: var(--muted); font-size: 0.78em; margin-left: auto; }
+
+/* ============================================================
+   Mini-Jeux
+   ============================================================ */
+
+.minigame-rewards-legend {
+    display: flex;
+    gap: 10px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+}
+.mg-reward-tier {
+    flex: 1;
+    min-width: 100px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r);
+    padding: 10px 12px;
+    text-align: center;
+}
+.mg-reward-tier.highlight {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(212,163,85,0.1), var(--bg-2));
+}
+.mg-tier-score { display: block; font-size: 1.15em; font-weight: 700; color: var(--accent-2); }
+.mg-tier-label { display: block; font-size: 0.78em; color: var(--text-2); margin-top: 3px; }
+
+.mg-cooldown-notice {
+    background: rgba(91,138,160,0.1);
+    border: 1px solid rgba(91,138,160,0.3);
+    border-radius: var(--r);
+    padding: 10px 16px;
+    color: #9ecce0;
+    font-size: 0.9em;
+    margin-bottom: 16px;
+}
+
+.snake-wrapper { margin-top: 20px; }
+.snake-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.snake-title { font-family: var(--font-title); font-weight: 700; font-size: 1.1em; color: var(--accent-2); }
+.snake-score-display { font-family: var(--font-mono); font-size: 1em; color: var(--text-2); }
+
+.snake-canvas-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+#snake-canvas {
+    border: 2px solid var(--border);
+    border-radius: var(--r);
+    display: block;
+    max-width: 100%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 30px rgba(79,200,90,0.08);
+}
+.snake-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,6,3,0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r);
+    backdrop-filter: blur(4px);
+}
+.snake-overlay-inner {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+}
+.snake-over-title { font-family: var(--font-title); font-size: 1.4em; color: var(--accent-2); margin: 0; }
+.snake-over-score { font-size: 1.1em; margin: 0; color: var(--text); }
+.snake-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+.form-msg.success { color: var(--success-2); }
+
+/* Leaderboard mini-jeux */
+.mg-leaderboard { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.mg-lb-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--r);
+    transition: border-color 0.15s;
+}
+.mg-lb-row:hover   { border-color: var(--border-hi); }
+.mg-lb-me          { border-color: var(--accent) !important; background: rgba(212,163,85,0.07); }
+.mg-lb-rank        { width: 28px; flex-shrink: 0; font-size: 1.1em; text-align: center; }
+.mg-lb-name        { flex: 1; font-weight: 600; color: var(--text); font-size: 0.92em; }
+.mg-lb-score       { font-family: var(--font-title); font-weight: 700; color: var(--accent-2); font-size: 0.95em; white-space: nowrap; }
+.mg-my-best        { margin-top: 14px; padding: 8px 12px; border-top: 1px solid var(--border-soft); color: var(--text-2); font-size: 0.88em; }
+
+@media (max-width: 700px) {
+    main.wrap[style*="grid-template-columns"] { display: block !important; }
+}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
