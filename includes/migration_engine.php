@@ -129,6 +129,23 @@ function check_migrations(PDO $pdo): void
             KEY idx_game_score (game, score DESC)
         ");
 
+        // --- Table WEAPONS ---
+        if (table_exists($pdo, 'weapons')) {
+            ensure_column($pdo, 'weapons', 'defense_bonus', 'TINYINT UNSIGNED NOT NULL DEFAULT 0');
+            // Mettre à jour le Bouclier existant si defense_bonus est encore à 0
+            $pdo->exec("UPDATE weapons SET defense_bonus = 2 WHERE name = 'Bouclier' AND defense_bonus = 0");
+        }
+
+        // --- Achievements mini-jeux ---
+        if (table_exists($pdo, 'achievements')) {
+            $pdo->exec("INSERT IGNORE INTO achievements (code, title, description, category, reward_xp, icon_path, sort_order) VALUES
+                ('snake_score_5',  'Grignoteur',         'Mange 5 pommes en une partie de Snake.',   'minigame', 5,  'assets/svg/ui/scroll.svg',    70),
+                ('snake_score_10', 'Affame',             'Mange 10 pommes en une partie de Snake.',  'minigame', 10, 'assets/svg/ui/scroll.svg',    71),
+                ('snake_score_20', 'Insatiable',         'Mange 20 pommes en une partie de Snake.',  'minigame', 20, 'assets/svg/ui/scroll.svg',    72),
+                ('snake_score_50', 'Serpent legendaire', 'Mange 50 pommes en une partie de Snake.',  'minigame', 50, 'assets/svg/quests/crown.svg', 73)
+            ");
+        }
+
         // 3. Insertion de données vitales
         if (table_exists($pdo, 'quest_definitions')) {
             sync_weekly_quests($pdo);

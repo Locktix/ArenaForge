@@ -11,6 +11,16 @@ if (!$brute) {
 }
 
 $bruteId = (int)$brute['id'];
+
+// Rattrapage : trophées de niveau et mini-jeux manquants
+$already = array_flip(get_unlocked_codes($bruteId));
+foreach (['level_5' => 5, 'level_10' => 10, 'level_25' => 25, 'level_50' => 50] as $code => $threshold) {
+    if ((int)$brute['level'] >= $threshold && !isset($already[$code])) {
+        award_achievement($bruteId, $code);
+    }
+}
+check_achievements_minigame($bruteId);
+
 $grouped = get_all_achievements_for_brute($bruteId);
 $stats   = achievement_stats($bruteId);
 $pct     = $stats['total'] > 0 ? (int)round($stats['earned'] * 100 / $stats['total']) : 0;
@@ -22,6 +32,7 @@ $CATEGORY_LABELS = [
     'social'      => ['Social',        'assets/svg/ui/nav_pupils.svg'],
     'tournament'  => ['Tournoi',       'assets/svg/quests/trophy.svg'],
     'forge'       => ['Forge',         'assets/svg/weapons/axe.svg'],
+    'minigame'    => ['Mini-Jeux',     'assets/svg/ui/scroll.svg'],
 ];
 ?>
 <!DOCTYPE html>

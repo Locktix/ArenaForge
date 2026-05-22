@@ -216,13 +216,11 @@ function check_achievements_after_fight(
     $try('combo_crit_3',         $analysis['crits'] >= 3);
     $try('survive_overwhelming', $won && $analysis['my_hp_final'] !== null && $analysis['my_hp_final'] > 0 && $analysis['my_hp_final'] < 5);
 
-    // Progression (niveau atteint)
-    if ($leveledUp) {
-        $try('level_5',  $newLevel >= 5);
-        $try('level_10', $newLevel >= 10);
-        $try('level_25', $newLevel >= 25);
-        $try('level_50', $newLevel >= 50);
-    }
+    // Progression (niveau atteint) — vérifié à chaque combat pour rattraper les niveaux passés
+    $try('level_5',  $newLevel >= 5);
+    $try('level_10', $newLevel >= 10);
+    $try('level_25', $newLevel >= 25);
+    $try('level_50', $newLevel >= 50);
 
     return $unlocked;
 }
@@ -371,6 +369,35 @@ function check_achievements_clan(int $bruteId, bool $isFounder): array
         $res = award_achievement($bruteId, 'clan_founder');
         if ($res) $unlocked[] = $res;
     }
+
+    return $unlocked;
+}
+
+/**
+ * Vérifie les trophées liés aux mini-jeux (Snake).
+ */
+function check_achievements_minigame(int $bruteId): array
+{
+    $pdo = db();
+
+    $stmt = $pdo->prepare('SELECT MAX(score) FROM minigame_scores WHERE brute_id = ? AND game = ?');
+    $stmt->execute([$bruteId, 'snake']);
+    $bestScore = (int)($stmt->fetchColumn() ?: 0);
+
+    $already = array_flip(get_unlocked_codes($bruteId));
+    $unlocked = [];
+    $try = function (string $code, bool $cond) use (&$already, &$unlocked, $bruteId) {
+        if ($cond && !isset($already[$code])) {
+            $res = award_achievement($bruteId, $code);
+            if ($res) $unlocked[] = $res;
+            $already[$code] = true;
+        }
+    };
+
+    $try('snake_score_5',  $bestScore >= 5);
+    $try('snake_score_10', $bestScore >= 10);
+    $try('snake_score_20', $bestScore >= 20);
+    $try('snake_score_50', $bestScore >= 50);
 
     return $unlocked;
 }

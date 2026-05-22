@@ -377,8 +377,8 @@ function pick_weapon(array $fighter): array
             'crit_chance' => 5,
         ];
     }
-    // Choix pondéré : on préfère la meilleure arme (hors bouclier)
-    $combat = array_values(array_filter($fighter['weapons'], fn($w) => strtolower($w['name']) !== 'bouclier'));
+    // Choix pondéré : on préfère la meilleure arme (hors armes purement défensives)
+    $combat = array_values(array_filter($fighter['weapons'], fn($w) => (int)$w['defense_bonus'] === 0 || (int)$w['damage_max'] > 3));
     if (empty($combat)) {
         return $fighter['weapons'][0];
     }
@@ -822,7 +822,7 @@ function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?arra
         }
     }
 
-    // Armure / bouclier (maître défenseur uniquement)
+    // Armure / défense (maître défenseur uniquement)
     if ($def['role'] === 'master') {
         if ($s = has_skill($def, 'armor_flat')) {
             $damage = max(1, $damage - (int)$s['effect_value']);
@@ -831,11 +831,16 @@ function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?arra
         if (!empty($def['armor_reduction'])) {
             $damage = max(1, $damage - (int)$def['armor_reduction']);
         }
+        // defense_bonus des armes (ex : bouclier), scalé par upgrade_level (+10%/niveau)
+        $weaponDefense = 0;
         foreach ($def['weapons'] as $w) {
-            if (strtolower($w['name']) === 'bouclier') {
-                $damage = max(1, $damage - 2);
-                break;
-            }
+            $base = (int)$w['defense_bonus'];
+            if ($base <= 0) continue;
+            $upg = (int)($w['upgrade_level'] ?? 0);
+            $weaponDefense += $upg > 0 ? (int)floor($base * (1 + 0.10 * $upg)) : $base;
+        }
+        if ($weaponDefense > 0) {
+            $damage = max(1, $damage - $weaponDefense);
         }
     }
 

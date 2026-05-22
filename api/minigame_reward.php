@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
+require_once __DIR__ . '/../includes/achievement_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -102,6 +103,9 @@ $pdo->prepare('
 // Enregistrer le score dans le leaderboard global (toujours, même si hors cooldown)
 $pdo->prepare('INSERT INTO minigame_scores (brute_id, game, score) VALUES (?, "snake", ?)')
     ->execute([$bruteId, $score]);
+
+// Trophées mini-jeux
+check_achievements_minigame($bruteId);
 
 echo json_encode([
     'ok'          => true,

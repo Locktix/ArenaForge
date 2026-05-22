@@ -69,9 +69,13 @@ $armors   = get_armors_for_brute($bruteId);
                     </div>
 
                     <div class="workbench-stats">
-                        <div class="stat-chip">⚔ <?= (int)$w['damage_min'] ?>–<?= (int)$w['damage_max'] ?> de base</div>
+                        <?php if ((int)$w['defense_bonus'] > 0): ?>
+                            <div class="stat-chip">🛡 -<?= (int)floor($w['defense_bonus'] * (1 + 0.10 * $lvl)) ?> dég. reçus</div>
+                        <?php else: ?>
+                            <div class="stat-chip">⚔ <?= (int)$w['damage_min'] ?>–<?= (int)$w['damage_max'] ?> de base</div>
+                        <?php endif; ?>
                         <?php if ($lvl > 0): ?>
-                            <div class="stat-chip hp">Excellence +<?= $lvl * 10 ?>%</div>
+                            <div class="stat-chip hp"><?= (int)$w['defense_bonus'] > 0 ? 'Défense' : 'Excellence' ?> +<?= $lvl * 10 ?>%</div>
                         <?php endif; ?>
                     </div>
 

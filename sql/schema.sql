@@ -114,6 +114,7 @@ CREATE TABLE weapons (
   damage_max INT UNSIGNED NOT NULL,
   speed INT NOT NULL DEFAULT 0,
   crit_chance INT UNSIGNED NOT NULL DEFAULT 5,
+  defense_bonus TINYINT UNSIGNED NOT NULL DEFAULT 0,
   icon_path VARCHAR(128) NOT NULL
 ) ENGINE=InnoDB;
 
@@ -383,15 +384,15 @@ ALTER TABLE brutes
 -- ============================================================
 -- Données de base : armes
 -- ============================================================
-INSERT INTO weapons (name, damage_min, damage_max, speed, crit_chance, icon_path) VALUES
-  ('Poings nus',   2,  4, 3, 5,  'assets/svg/weapons/fists.svg'),
-  ('Dague',        3,  6, 4, 15, 'assets/svg/weapons/dagger.svg'),
-  ('Epee',         5, 10, 2, 10, 'assets/svg/weapons/sword.svg'),
-  ('Hache',        7, 14, 1, 8,  'assets/svg/weapons/axe.svg'),
-  ('Masse',        6, 12, 1, 6,  'assets/svg/weapons/mace.svg'),
-  ('Lance',        4,  9, 3, 12, 'assets/svg/weapons/spear.svg'),
-  ('Arc',          4,  8, 2, 18, 'assets/svg/weapons/bow.svg'),
-  ('Bouclier',     1,  3, 0, 2,  'assets/svg/weapons/shield.svg');
+INSERT INTO weapons (name, damage_min, damage_max, speed, crit_chance, defense_bonus, icon_path) VALUES
+  ('Poings nus',   2,  4, 3, 5,  0, 'assets/svg/weapons/fists.svg'),
+  ('Dague',        3,  6, 4, 15, 0, 'assets/svg/weapons/dagger.svg'),
+  ('Epee',         5, 10, 2, 10, 0, 'assets/svg/weapons/sword.svg'),
+  ('Hache',        7, 14, 1, 8,  0, 'assets/svg/weapons/axe.svg'),
+  ('Masse',        6, 12, 1, 6,  0, 'assets/svg/weapons/mace.svg'),
+  ('Lance',        4,  9, 3, 12, 0, 'assets/svg/weapons/spear.svg'),
+  ('Arc',          4,  8, 2, 18, 0, 'assets/svg/weapons/bow.svg'),
+  ('Bouclier',     1,  3, 0, 2,  2, 'assets/svg/weapons/shield.svg');
 
 -- ============================================================
 -- Données de base : compétences
@@ -476,7 +477,12 @@ INSERT INTO achievements (code, title, description, category, reward_xp, icon_pa
   -- Forge
   ('forge_first',          'Premier forgeage',        'Ameliore ta premiere arme.',                               'forge',       15,  'assets/svg/weapons/axe.svg',    60),
   ('forge_master',         'Maitre forgeron',         'Porte une arme au niveau d''amelioration 5.',              'forge',       40,  'assets/svg/weapons/axe.svg',    61),
-  ('armor_first',          'Premiere armure',         'Equipe-toi d''une premiere armure.',                       'forge',       15,  'assets/svg/skills/armor.svg',   62);
+  ('armor_first',          'Premiere armure',         'Equipe-toi d''une premiere armure.',                       'forge',       15,  'assets/svg/skills/armor.svg',   62),
+  -- Mini-jeux (Snake)
+  ('snake_score_5',        'Grignoteur',              'Mange 5 pommes en une partie de Snake.',                   'minigame',    5,   'assets/svg/ui/scroll.svg',      70),
+  ('snake_score_10',       'Affame',                  'Mange 10 pommes en une partie de Snake.',                  'minigame',    10,  'assets/svg/ui/scroll.svg',      71),
+  ('snake_score_20',       'Insatiable',              'Mange 20 pommes en une partie de Snake.',                  'minigame',    20,  'assets/svg/ui/scroll.svg',      72),
+  ('snake_score_50',       'Serpent legendaire',      'Mange 50 pommes en une partie de Snake.',                  'minigame',    50,  'assets/svg/quests/crown.svg',   73);
 
 -- ============================================================
 -- Données de base : armures (Forge)

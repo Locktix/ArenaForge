@@ -346,7 +346,7 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
         <h2>⚔ Arsenal</h2>
         <div class="icon-grid">
             <?php foreach ($weapons as $w): ?>
-                <div class="icon-item" title="<?= h($w['name']) ?> (<?= (int)$w['damage_min'] ?>-<?= (int)$w['damage_max'] ?> dég.)">
+                <div class="icon-item" title="<?= h($w['name']) ?><?= (int)$w['defense_bonus'] > 0 ? ' (-'.(int)$w['defense_bonus'].' dég. reçus)' : ' ('.(int)$w['damage_min'].'-'.(int)$w['damage_max'].' dég.)' ?>">
                     <img src="../<?= h($w['icon_path']) ?>" alt="<?= h($w['name']) ?>">
                     <span><?= h($w['name']) ?></span>
                 </div>
