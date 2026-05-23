@@ -31,6 +31,11 @@ if ($navUid !== null) {
 if ($navBrute) {
     try { $navInboxCount = pending_inbox_count((int)$navBrute['id']); } catch (Throwable $e) { $navInboxCount = 0; }
 }
+// Badge urgent : level-up en attente + défis reçus (calculé sans requête supplémentaire)
+$navNotifBadge = 0;
+if ($navBrute) {
+    $navNotifBadge = (int)($navBrute['pending_levelup'] ?? 0) + $navInboxCount;
+}
 
 $cp = basename($_SERVER['PHP_SELF'], '.php'); // page courante pour lien actif
 function nav_active(string $page, string $current): string {
@@ -176,6 +181,14 @@ function nav_active(string $page, string $current): string {
                 <?php if ($navInboxCount > 0): ?><span class="nav-badge"><?= $navInboxCount ?></span><?php endif; ?>
             </a>
         <?php endif; ?>
+        <?php if ($navBrute): ?>
+        <button id="notif-btn" class="notif-btn" aria-label="Notifications" aria-expanded="false" title="Centre de notifications">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            </svg>
+            <span class="notif-badge" id="notif-badge-srv"<?= $navNotifBadge <= 0 ? ' hidden' : '' ?>><?= $navNotifBadge > 9 ? '9+' : $navNotifBadge ?></span>
+        </button>
+        <?php endif; ?>
     </div>
 </nav>
 
@@ -278,4 +291,27 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 })();
 </script>
+<?php endif; ?>
+
+<?php if ($navBrute): ?>
+<!-- ============ NOTIFICATION CENTER ============ -->
+<div id="notif-overlay" class="notif-overlay" aria-hidden="true"></div>
+<aside id="notif-panel" class="notif-panel" aria-label="Centre de notifications" aria-hidden="true">
+    <div class="notif-panel-head">
+        <span class="notif-panel-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            </svg>
+            Notifications
+        </span>
+        <button class="notif-panel-close" id="notif-panel-close" aria-label="Fermer les notifications">✕</button>
+    </div>
+    <div class="notif-panel-body" id="notif-body">
+        <div class="notif-spinner">
+            <span class="notif-spinner-icon">⚔</span>
+            <p>Les oracles délibèrent…</p>
+        </div>
+    </div>
+</aside>
+<script src="../assets/js/notifications.js" defer></script>
 <?php endif; ?>
