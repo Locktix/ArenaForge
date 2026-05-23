@@ -148,6 +148,23 @@ function check_migrations(PDO $pdo): void
             KEY idx_brute_type_date (brute_id, type, created_at)
         ");
 
+        // --- Notifications persistantes ---
+        ensure_table($pdo, 'notifications', "
+            id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            brute_id   INT UNSIGNED NOT NULL,
+            kind       VARCHAR(30)  NOT NULL DEFAULT 'info',
+            title      VARCHAR(160) NOT NULL,
+            body       VARCHAR(320) NOT NULL DEFAULT '',
+            href       VARCHAR(160) NOT NULL DEFAULT '',
+            icon       VARCHAR(120) NOT NULL DEFAULT 'assets/svg/ui/scroll.svg',
+            read_at    DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_brute_notif (brute_id, created_at DESC)
+        ");
+        if (table_exists($pdo, 'brutes')) {
+            ensure_column($pdo, 'brutes', 'notifs_unread_count', 'INT UNSIGNED NOT NULL DEFAULT 0');
+        }
+
         // --- Achievements mini-jeux ---
         if (table_exists($pdo, 'achievements')) {
             $pdo->exec("INSERT IGNORE INTO achievements (code, title, description, category, reward_xp, icon_path, sort_order) VALUES

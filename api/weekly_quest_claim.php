@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/quest_engine.php';
+require_once __DIR__ . '/../includes/notif_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -33,11 +34,23 @@ if (!$stmt->fetchColumn()) {
     exit;
 }
 
+$stmtLabel = db()->prepare('SELECT label FROM quest_definitions WHERE code = ? LIMIT 1');
+$stmtLabel->execute([$code]);
+$questLabel = (string)($stmtLabel->fetchColumn() ?: $code);
+
 $res = claim_weekly_quest($bruteId, $code);
 if (!$res['ok']) {
     echo json_encode($res);
     exit;
 }
+
+push_notif(
+    $bruteId, 'quest',
+    '✅ ' . $questLabel,
+    '+' . $res['reward_xp'] . ' XP (quête hebdo)',
+    'quests.php?tab=weekly',
+    'assets/svg/ui/scroll.svg'
+);
 
 echo json_encode([
     'ok'        => true,

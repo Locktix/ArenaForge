@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/brute_generator.php';
+require_once __DIR__ . '/notif_helper.php';
 
 // ============================================================
 // Utilitaires bas niveau
@@ -70,6 +71,15 @@ function award_achievement(int $bruteId, string $code): ?array
             ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bruteId]);
         }
     }
+
+    push_notif(
+        $bruteId,
+        'achievement',
+        '🏆 ' . $def['title'],
+        !empty($def['description']) ? $def['description'] : '',
+        'achievements.php',
+        $def['icon_path'] ?? 'assets/svg/ui/trophy.svg'
+    );
 
     return [
         'code'        => $def['code'],

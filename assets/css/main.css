@@ -5367,6 +5367,41 @@ a.notif-item:hover,
     letter-spacing: 0;
 }
 
+/* Unread dot on event icon */
+.notif-item-media { position: relative; }
+.notif-item-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    border: 2px solid var(--bg-2);
+    pointer-events: none;
+}
+
+/* Unread event item */
+.notif-item--unread {
+    background: rgba(212, 163, 85, 0.07);
+    border-left-color: var(--accent);
+}
+.notif-item--unread:hover {
+    background: rgba(212, 163, 85, 0.13);
+}
+.notif-item--unread .notif-item-title { color: var(--accent-2); }
+
+/* Timestamp on persistent events */
+.notif-item-time {
+    font-size: 0.68em;
+    color: var(--muted-2);
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: flex-start;
+    padding-top: 2px;
+    font-style: italic;
+}
+
 /* Loading spinner */
 .notif-spinner {
     display: flex;

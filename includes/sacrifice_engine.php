@@ -6,6 +6,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/notif_helper.php';
 
 // ============================================================
 // Définitions des sacrifices
@@ -357,6 +358,20 @@ function perform_sacrifice(int $bruteId, int $userId, string $type): array
         if ($pdo->inTransaction()) $pdo->rollBack();
         return ['ok' => false, 'error' => 'Erreur durant le rituel : ' . $t->getMessage()];
     }
+
+    $sacDef  = SACRIFICE_DEFS[$type];
+    $sacIcon = match($outcome['code']) {
+        'jackpot', 'weapon' => 'assets/svg/ui/trophy.svg',
+        'bad', 'nothing'    => 'assets/svg/weapons/sword.svg',
+        default             => 'assets/svg/skills/rage.svg',
+    };
+    push_notif(
+        $bruteId, 'sacrifice',
+        '☠ Rituel : ' . $sacDef['name'],
+        $finalLabel,
+        'sacrifice.php',
+        $sacIcon
+    );
 
     return [
         'ok'           => true,

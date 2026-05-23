@@ -404,6 +404,22 @@ function assign_tournament_placement(
 
     require_once __DIR__ . '/achievement_engine.php';
     check_achievements_tournament($bruteId, $placement);
+
+    require_once __DIR__ . '/notif_helper.php';
+    $placementLabel = match($placement) {
+        1 => '🥇 Champion du tournoi',
+        2 => '🥈 Finaliste',
+        3 => '🥉 Demi-finaliste',
+        4 => '4ème place',
+        default => 'Participant (top ' . $placement . ')',
+    };
+    push_notif(
+        $bruteId, 'tournament',
+        '⚔ Tournoi terminé — ' . $placementLabel,
+        '+' . $xp . ' XP' . ($bonusFights > 0 ? ' · +' . $bonusFights . ' combat(s) bonus' : ''),
+        'tournament.php',
+        'assets/svg/ui/trophy.svg'
+    );
 }
 
 // ============================================================

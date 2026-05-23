@@ -10,8 +10,18 @@
     const body     = document.getElementById('notif-body');
     const badgeEl  = document.getElementById('notif-badge-srv');
 
-    let isOpen  = false;
-    let loaded  = false;
+    let isOpen = false;
+    let loaded = false;
+    let csrfToken = '';
+
+    // Récupère le CSRF depuis la meta ou depuis un input existant sur la page
+    function getCsrf() {
+        const m = document.querySelector('meta[name="csrf-token"]');
+        if (m) return m.content;
+        const i = document.querySelector('input[name="csrf"]');
+        if (i) return i.value;
+        return '';
+    }
 
     // ---- Open / Close ----
 
@@ -47,8 +57,10 @@
             const data = await res.json();
             if (!data.ok) throw new Error(data.error || 'Erreur');
             loaded = true;
-            renderAll(data.notifications);
-            updateBadge(data.urgent_count);
+            render(data.events || [], data.live || []);
+            updateBadge(data.urgent_count || 0);
+            // Marquer comme lus si on a des non-lus
+            if (data.unread_count > 0) markRead();
         } catch {
             body.innerHTML =
                 '<div class="notif-empty">' +
@@ -56,6 +68,19 @@
                 '<p>Impossible de consulter les oracles.<br><small>Réessaie dans un moment.</small></p>' +
                 '</div>';
         }
+    }
+
+    async function markRead() {
+        try {
+            const fd = new FormData();
+            fd.append('csrf', getCsrf());
+            await fetch('../api/notifications.php', { method: 'POST', body: fd });
+            if (badgeEl) {
+                // Garde uniquement le compte urgent (live)
+                const urgentSpan = panel.querySelectorAll('.notif-item--urgent').length;
+                updateBadge(urgentSpan);
+            }
+        } catch { /* silent */ }
     }
 
     // ---- Badge ----
@@ -72,15 +97,26 @@
 
     // ---- Render ----
 
-    const CATEGORY_LABELS = {
-        urgent:   '⚠ Urgent',
-        action:   '⚔ À faire',
-        activity: '📜 Activité récente',
-        info:     '✦ En cours',
+    const KIND_ICONS = {
+        achievement : 'assets/svg/ui/trophy.svg',
+        quest       : 'assets/svg/ui/scroll.svg',
+        sacrifice   : 'assets/svg/skills/rage.svg',
+        tournament  : 'assets/svg/ui/trophy.svg',
+        info        : 'assets/svg/ui/scroll.svg',
     };
 
-    function renderAll(notifs) {
-        if (!notifs || !notifs.length) {
+    const LIVE_LABELS = {
+        urgent   : '⚠ Urgent',
+        action   : '⚔ À faire',
+        activity : '📜 Activité récente',
+        info     : '✦ En cours',
+    };
+
+    function render(events, live) {
+        const hasEvents = events && events.length > 0;
+        const hasLive   = live   && live.length   > 0;
+
+        if (!hasEvents && !hasLive) {
             body.innerHTML =
                 '<div class="notif-empty">' +
                 '<div class="notif-empty-glyph">☮</div>' +
@@ -89,29 +125,65 @@
             return;
         }
 
-        const groups = {};
-        const ORDER  = ['urgent', 'action', 'activity', 'info'];
-        for (const n of notifs) {
-            const cat = n.category || 'info';
-            if (!groups[cat]) groups[cat] = [];
-            groups[cat].push(n);
+        let html = '';
+
+        // Section événements persistants
+        if (hasEvents) {
+            html += '<div class="notif-section-label">📣 Événements récents</div>';
+            for (const e of events) html += renderEvent(e);
         }
 
-        let html = '';
-        for (const cat of ORDER) {
-            if (!groups[cat] || !groups[cat].length) continue;
-            html += '<div class="notif-section-label">' + esc(CATEGORY_LABELS[cat] || cat) + '</div>';
-            for (const n of groups[cat]) html += renderItem(n);
+        // Section live (urgent + action + activity + info)
+        if (hasLive) {
+            const groups = {};
+            const ORDER  = ['urgent', 'action', 'activity', 'info'];
+            for (const n of live) {
+                const cat = n.category || 'info';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(n);
+            }
+            for (const cat of ORDER) {
+                if (!groups[cat] || !groups[cat].length) continue;
+                html += '<div class="notif-section-label">' + esc(LIVE_LABELS[cat] || cat) + '</div>';
+                for (const n of groups[cat]) html += renderLiveItem(n);
+            }
         }
 
         body.innerHTML = html;
     }
 
-    function renderItem(n) {
+    // Événement persistant (depuis la BDD)
+    function renderEvent(e) {
+        const unread  = !!e.unread;
+        const cls     = ['notif-item', 'notif-item--event'];
+        if (unread) cls.push('notif-item--unread');
+
+        const icon    = '../' + esc(e.icon || KIND_ICONS[e.kind] || 'assets/svg/ui/scroll.svg');
+        const timeStr = relativeTime(e.created_at);
+
+        const inner =
+            '<span class="notif-item-media">' +
+            '<img src="' + icon + '" alt="" class="notif-item-icon" loading="lazy">' +
+            (unread ? '<span class="notif-item-dot" aria-hidden="true"></span>' : '') +
+            '</span>' +
+            '<span class="notif-item-content">' +
+            '<strong class="notif-item-title">' + esc(e.title || '') + '</strong>' +
+            '<span class="notif-item-body">' + esc(e.body || '') + '</span>' +
+            '</span>' +
+            '<span class="notif-item-time">' + esc(timeStr) + '</span>';
+
+        if (e.href) {
+            return '<a href="' + esc(e.href) + '" class="' + cls.join(' ') + '">' + inner + '</a>';
+        }
+        return '<div class="' + cls.join(' ') + '">' + inner + '</div>';
+    }
+
+    // Notification live (calculée en temps réel)
+    function renderLiveItem(n) {
         const cls = ['notif-item'];
-        if (n.urgent)                        cls.push('notif-item--urgent');
-        if (n.kind === 'fight' && n.win)  cls.push('notif-item--win');
-        if (n.kind === 'fight' && !n.win) cls.push('notif-item--loss');
+        if (n.urgent)                         cls.push('notif-item--urgent');
+        if (n.kind === 'fight' && n.win)      cls.push('notif-item--win');
+        if (n.kind === 'fight' && n.win === false) cls.push('notif-item--loss');
 
         const iconSrc = '../' + esc(n.icon || 'assets/svg/ui/scroll.svg');
         const arrow   = n.urgent
@@ -132,6 +204,24 @@
             return '<a href="' + esc(n.href) + '" class="' + cls.join(' ') + '">' + inner + '</a>';
         }
         return '<div class="' + cls.join(' ') + '">' + inner + '</div>';
+    }
+
+    // Temps relatif (ex: "il y a 2 h", "hier", "lun. 14:32")
+    function relativeTime(dateStr) {
+        if (!dateStr) return '';
+        const d     = new Date(dateStr.replace(' ', 'T'));
+        const now   = new Date();
+        const diff  = Math.floor((now - d) / 1000);
+
+        if (diff < 60)       return 'À l\'instant';
+        if (diff < 3600)     return 'il y a ' + Math.floor(diff / 60) + ' min';
+        if (diff < 86400)    return 'il y a ' + Math.floor(diff / 3600) + ' h';
+        if (diff < 172800)   return 'hier';
+
+        const days  = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+        const hh    = String(d.getHours()).padStart(2, '0');
+        const mm    = String(d.getMinutes()).padStart(2, '0');
+        return days[d.getDay()] + ' ' + hh + ':' + mm;
     }
 
     function esc(s) {

@@ -31,10 +31,12 @@ if ($navUid !== null) {
 if ($navBrute) {
     try { $navInboxCount = pending_inbox_count((int)$navBrute['id']); } catch (Throwable $e) { $navInboxCount = 0; }
 }
-// Badge urgent : level-up en attente + défis reçus (calculé sans requête supplémentaire)
+// Badge : notifications non lues (persistantes) + level-up + défis reçus
 $navNotifBadge = 0;
 if ($navBrute) {
-    $navNotifBadge = (int)($navBrute['pending_levelup'] ?? 0) + $navInboxCount;
+    $navNotifBadge = (int)($navBrute['notifs_unread_count'] ?? 0)
+                   + (int)($navBrute['pending_levelup']     ?? 0)
+                   + $navInboxCount;
 }
 
 $cp = basename($_SERVER['PHP_SELF'], '.php'); // page courante pour lien actif
