@@ -23,12 +23,18 @@ function render_codex_section(string $type, array $items): void {
         $progress = $nextThreshold !== null
             ? min(100, (int)round(($count - ($thresholds[$tierCur - 1] ?? 0)) * 100 / max(1, $nextThreshold - ($thresholds[$tierCur - 1] ?? 0))))
             : 100;
+        $rarityClass = ($type === 'weapon' && isset($item['rarity'])) ? weapon_rarity_class($item['rarity']) : '';
 ?>
-        <article class="codex-tile">
+        <article class="codex-tile <?= $rarityClass ?>">
             <div class="codex-head">
                 <img src="../<?= h($item['icon_path']) ?>" alt="" class="codex-icon">
                 <div>
-                    <h3><?= h($item['name']) ?></h3>
+                    <h3>
+                        <?= h($item['name']) ?>
+                        <?php if ($type === 'weapon' && isset($item['rarity'])): ?>
+                            <em class="rarity-badge"><?= weapon_rarity_label($item['rarity']) ?></em>
+                        <?php endif; ?>
+                    </h3>
                     <p class="muted small">
                         <?= $count ?> utilisations
                         · Palier <?= $tierCur ?>/3

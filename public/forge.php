@@ -49,17 +49,18 @@ $armors   = get_armors_for_brute($bruteId);
         <div class="workbench-grid">
             <?php foreach ($weapons as $w): ?>
                 <?php
-                    $lvl  = (int)$w['upgrade_level'];
-                    $cost = upgrade_cost($lvl);
-                    $max  = $lvl >= FORGE_WEAPON_MAX_UPGRADE;
+                    $lvl     = (int)$w['upgrade_level'];
+                    $cost    = upgrade_cost($lvl);
+                    $max     = $lvl >= FORGE_WEAPON_MAX_UPGRADE;
+                    $wRarity = $w['rarity'] ?? 'commun';
                 ?>
-                <div class="workbench-card">
+                <div class="workbench-card <?= weapon_rarity_class($wRarity) ?>">
                     <div class="workbench-header">
                         <div class="workbench-icon-wrap">
                             <img src="../<?= h($w['icon_path']) ?>" alt="" class="workbench-icon">
                         </div>
                         <div class="workbench-info">
-                            <h3><?= h($w['name']) ?></h3>
+                            <h3><?= h($w['name']) ?> <em class="rarity-badge"><?= weapon_rarity_label($wRarity) ?></em></h3>
                             <div class="upgrade-track">
                                 <?php for ($i = 1; $i <= FORGE_WEAPON_MAX_UPGRADE; $i++): ?>
                                     <div class="upgrade-dot <?= $i <= $lvl ? 'filled' : '' ?>"></div>

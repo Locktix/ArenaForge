@@ -133,8 +133,11 @@ function check_migrations(PDO $pdo): void
         // --- Table WEAPONS ---
         if (table_exists($pdo, 'weapons')) {
             ensure_column($pdo, 'weapons', 'defense_bonus', 'TINYINT UNSIGNED NOT NULL DEFAULT 0');
-            // Mettre à jour le Bouclier existant si defense_bonus est encore à 0
             $pdo->exec("UPDATE weapons SET defense_bonus = 2 WHERE name = 'Bouclier' AND defense_bonus = 0");
+
+            ensure_column($pdo, 'weapons', 'rarity', "ENUM('commun','rare','epique') NOT NULL DEFAULT 'commun'");
+            $pdo->exec("UPDATE weapons SET rarity = 'rare'   WHERE name IN ('Epee','Masse','Lance') AND rarity = 'commun'");
+            $pdo->exec("UPDATE weapons SET rarity = 'epique' WHERE name IN ('Hache','Bouclier')    AND rarity = 'commun'");
         }
 
         // --- Sacrifices ---

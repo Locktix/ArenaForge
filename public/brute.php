@@ -73,7 +73,7 @@ if ($isOwner && (int)$brute['pending_levelup'] === 1) {
         $allW = db()->query('SELECT * FROM weapons')->fetchAll();
         foreach ($allW as $w) {
             if (!in_array((int)$w['id'], array_map('intval', $ownedW), true)) {
-                $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '../' . $w['icon_path']];
+                $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '../' . $w['icon_path'], 'rarity' => $w['rarity'] ?? 'commun'];
             }
         }
         // Compétences non possédées (les ultimes sont préfixés par ⚡)
@@ -191,9 +191,10 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
                     </div>
                 </div>
 
-                <div class="hero-weapon">
+                <div class="hero-weapon <?= weapon_rarity_class($currentWeapon['rarity'] ?? 'commun') ?>">
                     <div class="weapon-info">
                         <span class="weapon-name">⚔ <?= h($currentWeapon['name']) ?></span>
+                        <em class="rarity-badge"><?= weapon_rarity_label($currentWeapon['rarity'] ?? 'commun') ?></em>
                         <span class="weapon-damage"><?= $dmgMin ?> — <?= $dmgMax ?> Dégâts</span>
                     </div>
                 </div>
@@ -264,13 +265,19 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
         <section class="card levelup-card">
             <h2>Choisis ton bonus de niveau</h2>
             <div class="bonus-grid">
-                <?php foreach ($bonusChoices as $b): ?>
-                    <form class="bonus-choice levelup-form">
+                <?php foreach ($bonusChoices as $b):
+                    $bRarity = $b['rarity'] ?? 'commun';
+                    $isWeapon = str_starts_with($b['key'], 'weapon:');
+                ?>
+                    <form class="bonus-choice levelup-form <?= $isWeapon ? weapon_rarity_class($bRarity) : '' ?>">
                         <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                         <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
                         <input type="hidden" name="choice" value="<?= h($b['key']) ?>">
                         <img src="<?= h($b['icon']) ?>" alt="">
                         <span><?= h($b['label']) ?></span>
+                        <?php if ($isWeapon && $bRarity !== 'commun'): ?>
+                            <em class="rarity-badge"><?= weapon_rarity_label($bRarity) ?></em>
+                        <?php endif; ?>
                         <button class="btn btn-secondary">Choisir</button>
                     </form>
                 <?php endforeach; ?>
@@ -324,10 +331,13 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     <section class="card">
         <h2>⚔ Arsenal</h2>
         <div class="icon-grid">
-            <?php foreach ($weapons as $w): ?>
-                <div class="icon-item" title="<?= h($w['name']) ?><?= (int)$w['defense_bonus'] > 0 ? ' (-'.(int)$w['defense_bonus'].' dég. reçus)' : ' ('.(int)$w['damage_min'].'-'.(int)$w['damage_max'].' dég.)' ?>">
+            <?php foreach ($weapons as $w):
+                $wRarity = $w['rarity'] ?? 'commun';
+            ?>
+                <div class="icon-item <?= weapon_rarity_class($wRarity) ?>" title="<?= h($w['name']) ?><?= (int)$w['defense_bonus'] > 0 ? ' (-'.(int)$w['defense_bonus'].' dég. reçus)' : ' ('.(int)$w['damage_min'].'-'.(int)$w['damage_max'].' dég.)' ?>">
                     <img src="../<?= h($w['icon_path']) ?>" alt="<?= h($w['name']) ?>">
                     <span><?= h($w['name']) ?></span>
+                    <em class="rarity-badge"><?= weapon_rarity_label($wRarity) ?></em>
                 </div>
             <?php endforeach; ?>
         </div>

@@ -76,3 +76,17 @@ function h(string $s): string
 {
     return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
+
+function weapon_rarity_label(string $rarity): string
+{
+    return match($rarity) {
+        'rare'   => 'Rare',
+        'epique' => 'Épique',
+        default  => 'Commun',
+    };
+}
+
+function weapon_rarity_class(string $rarity): string
+{
+    return 'rarity-' . (in_array($rarity, ['rare', 'epique'], true) ? $rarity : 'commun');
+}

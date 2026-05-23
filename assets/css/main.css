@@ -5077,6 +5077,105 @@ code {
 }
 
 /* ============================================================
+   WEAPON RARITY SYSTEM
+   ============================================================ */
+
+/* Per-rarity CSS tokens */
+.rarity-commun { --rc: #8a93a0; --rc-a: rgba(138,147,160,.14); --rc-b: rgba(138,147,160,.28); }
+.rarity-rare   { --rc: #5fa8e8; --rc-a: rgba(95,168,232,.12);  --rc-b: rgba(95,168,232,.32); }
+.rarity-epique { --rc: #b47cd8; --rc-a: rgba(180,124,216,.12); --rc-b: rgba(180,124,216,.35); }
+
+/* ---- Rarity badge pill ---- */
+.rarity-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6em;
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rc, #8a93a0);
+    background: var(--rc-a, rgba(138,147,160,.14));
+    border: 1px solid var(--rc-b, rgba(138,147,160,.28));
+    white-space: nowrap;
+    line-height: 1.6;
+    vertical-align: middle;
+}
+
+/* ---- Arsenal grid (icon-item) ---- */
+.icon-item.rarity-rare,
+.icon-item.rarity-epique {
+    border: 1px solid var(--rc-b);
+    background: linear-gradient(180deg, var(--rc-a), transparent 60%);
+}
+.icon-item.rarity-rare img {
+    filter: drop-shadow(0 0 5px rgba(95,168,232,.5));
+}
+.icon-item.rarity-epique img {
+    filter: drop-shadow(0 0 6px rgba(180,124,216,.65));
+    animation: rarity-epic-pulse 3.5s ease-in-out infinite;
+}
+@keyframes rarity-epic-pulse {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(180,124,216,.5)); }
+    50%       { filter: drop-shadow(0 0 12px rgba(180,124,216,.9)); }
+}
+
+/* ---- Hero weapon (profile) ---- */
+.hero-weapon.rarity-rare   .weapon-name { color: #5fa8e8; }
+.hero-weapon.rarity-epique .weapon-name {
+    color: #b47cd8;
+    text-shadow: 0 0 12px rgba(180,124,216,.5);
+}
+.hero-weapon .weapon-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ---- Forge workbench-card ---- */
+.workbench-card { position: relative; }
+
+.workbench-card.rarity-rare::before,
+.workbench-card.rarity-epique::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 8px 8px 0 0;
+    background: linear-gradient(90deg, transparent, var(--rc), transparent);
+}
+.workbench-card.rarity-epique h3 .rarity-badge {
+    animation: rarity-epic-pulse-text 3.5s ease-in-out infinite;
+}
+@keyframes rarity-epic-pulse-text {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; opacity: 0.85; }
+    50%       { box-shadow: 0 0 8px rgba(180,124,216,.5); opacity: 1; }
+}
+
+/* ---- Level-up bonus choice (arme) ---- */
+.bonus-choice.rarity-rare,
+.bonus-choice.rarity-epique {
+    border-color: var(--rc-b) !important;
+    background: linear-gradient(180deg, var(--rc-a), transparent 70%) !important;
+}
+.bonus-choice.rarity-rare   img { filter: drop-shadow(0 0 4px rgba(95,168,232,.5));  }
+.bonus-choice.rarity-epique img { filter: drop-shadow(0 0 6px rgba(180,124,216,.65)); animation: rarity-epic-pulse 3.5s ease-in-out infinite; }
+
+/* ---- Codex tile (arme) ---- */
+.codex-tile.rarity-rare,
+.codex-tile.rarity-epique {
+    border-left: 3px solid var(--rc);
+}
+.codex-tile.rarity-rare   .codex-icon { filter: drop-shadow(0 0 4px rgba(95,168,232,.45)); }
+.codex-tile.rarity-epique .codex-icon { filter: drop-shadow(0 0 6px rgba(180,124,216,.6)); animation: rarity-epic-pulse 3.5s ease-in-out infinite; }
+
+/* ============================================================
    NOTIFICATION CENTER
    ============================================================ */
 
