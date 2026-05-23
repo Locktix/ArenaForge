@@ -3,7 +3,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
 require_once __DIR__ . '/../includes/quest_engine.php';
-require_once __DIR__ . '/../includes/notification_engine.php';
 require_once __DIR__ . '/../includes/combat_engine.php';
 require_login();
 
@@ -104,7 +103,6 @@ if ($isOwner && (int)$brute['pending_levelup'] === 1) {
 }
 
 $csrf = csrf_token();
-$notifications = $isOwner ? get_notifications($brute) : [];
 $xpCur  = (int)$brute['xp'];
 $xpNext = xp_for_level((int)$brute['level'] + 1);
 $xpPrev = xp_for_level((int)$brute['level']);
@@ -130,25 +128,6 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
 <?php include __DIR__ . '/_nav.php'; ?>
 
 <main class="wrap">
-    <?php if (!empty($notifications)): ?>
-        <section class="card notif-hub">
-            <h2><img src="../assets/svg/ui/scroll.svg" alt="" class="inline-icon"> Centre d'actions</h2>
-            <ul class="notif-list">
-                <?php foreach ($notifications as $n): ?>
-                    <li class="notif-item <?= !empty($n['urgent']) ? 'is-urgent' : '' ?> notif-kind-<?= h($n['kind']) ?>">
-                        <a href="<?= h($n['href']) ?>">
-                            <img class="notif-icon" src="../<?= h($n['icon']) ?>" alt="">
-                            <div class="notif-body">
-                                <strong><?= h($n['title']) ?></strong>
-                                <span class="muted small"><?= h($n['body']) ?></span>
-                            </div>
-                            <span class="notif-arrow">›</span>
-                        </a>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </section>
-    <?php endif; ?>
 
     <section class="card brute-profile">
         <div class="profile-header">
