@@ -47,7 +47,22 @@ function sacrifice_outcome_class(string $code): string {
         </p>
     </section>
 
-    <section class="sacrifice-grid">
+    <?php $lockedByLevel = (int)$brute['level'] < 10; ?>
+    <?php if ($lockedByLevel): ?>
+    <section class="card sacrifice-locked">
+        <span class="sacrifice-locked-icon">🔒</span>
+        <div>
+            <strong>Niveau 10 requis</strong>
+            <p class="muted">Seuls les gladiateurs aguerris peuvent approcher l'autel. Reviens quand tu auras prouvé ta valeur en arène.</p>
+            <div class="sacrifice-locked-progress">
+                <div class="sacrifice-locked-bar" style="width:<?= min(100, round((int)$brute['level'] / 10 * 100)) ?>%"></div>
+            </div>
+            <span class="muted small">Niveau <?= (int)$brute['level'] ?> / 10</span>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <section class="sacrifice-grid<?= $lockedByLevel ? ' sacrifice-grid-locked' : '' ?>">
     <?php foreach (SACRIFICE_DEFS as $type => $def):
         $isAvailable = $availability[$type] ?? false;
         [$canAfford, $affordErr] = sacrifice_can_afford($brute, $type);
@@ -84,7 +99,9 @@ function sacrifice_outcome_class(string $code): string {
             </div>
 
             <div class="sacrifice-action">
-                <?php if (!$isAvailable): ?>
+                <?php if ($lockedByLevel): ?>
+                    <button class="btn btn-secondary" disabled>Niveau 10 requis</button>
+                <?php elseif (!$isAvailable): ?>
                     <button class="btn btn-secondary" disabled>
                         <?= $isGrand ? 'Rituel hebdomadaire accompli' : 'Rituel du jour accompli' ?>
                     </button>

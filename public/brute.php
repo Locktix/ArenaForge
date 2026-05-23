@@ -4,6 +4,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/brute_generator.php';
 require_once __DIR__ . '/../includes/quest_engine.php';
 require_once __DIR__ . '/../includes/combat_engine.php';
+require_once __DIR__ . '/../includes/title_engine.php';
 require_login();
 
 $id = (int)($_GET['id'] ?? 0);
@@ -68,12 +69,18 @@ if ($isOwner && (int)$brute['pending_levelup'] === 1) {
         foreach (['hp_max' => '+5 PV max', 'strength' => '+1 Force', 'agility' => '+1 Agilité', 'endurance' => '+1 Endurance'] as $k => $lbl) {
             $pool[] = ['key' => "stat:$k", 'label' => $lbl, 'icon' => '../assets/svg/ui/nav_fight.svg'];
         }
-        // Armes non possédées
-        $ownedW = array_column($weapons, 'id');
+        // Armes non possédées et débloquées au niveau actuel
+        $ownedW  = array_column($weapons, 'id');
+        $bruteLevel = (int)$brute['level'];
         $allW = db()->query('SELECT * FROM weapons')->fetchAll();
         foreach ($allW as $w) {
-            if (!in_array((int)$w['id'], array_map('intval', $ownedW), true)) {
-                $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => 'Arme : ' . $w['name'], 'icon' => '../' . $w['icon_path'], 'rarity' => $w['rarity'] ?? 'commun'];
+            if (!in_array((int)$w['id'], array_map('intval', $ownedW), true)
+                && $bruteLevel >= (int)($w['min_level'] ?? 1)) {
+                $isShield = (int)($w['damage_max'] ?? 0) <= 3 && (int)($w['defense_bonus'] ?? 0) > 0;
+                $label = $isShield
+                    ? 'Bouclier : ' . $w['name'] . ' (+' . (int)$w['defense_bonus'] . ' Déf.)'
+                    : 'Arme : ' . $w['name'];
+                $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => $label, 'icon' => '../' . $w['icon_path'], 'rarity' => $w['rarity'] ?? 'commun'];
             }
         }
         // Compétences non possédées (les ultimes sont préfixés par ⚡)
@@ -133,6 +140,16 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
         <div class="profile-header">
             <div class="hero-identity">
                 <h1><?= h($brute['name']) ?></h1>
+                <?php
+                    $activeTitleCode = $brute['active_title_code'] ?? null;
+                    $activeTitle = ($activeTitleCode !== null && $activeTitleCode !== '') ? title_get((string)$activeTitleCode) : null;
+                ?>
+                <?php if ($activeTitle): ?>
+                    <span class="hero-title" title="<?= h(title_bonus_summary($activeTitle['bonus'])) ?>">
+                        <img src="../<?= h($activeTitle['icon_path']) ?>" alt="">
+                        <?= h($activeTitle['label']) ?>
+                    </span>
+                <?php endif; ?>
                 <span class="hero-level">Niveau <?= (int)$brute['level'] ?></span>
                 <span class="hero-mmr">MMR <?= (int)($brute['mmr'] ?? 1000) ?></span>
             </div>
@@ -176,19 +193,42 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
                     </div>
                 </div>
 
+                <?php
+                    // Bonus de titre actif — pour l'affichage visuel (+N)
+                    $activeTitleBonus = [];
+                    $activeTitleRarity = 'rare';
+                    if (!empty($fighter['active_title'])) {
+                        $atDef = title_get((string)$fighter['active_title']);
+                        if ($atDef) {
+                            $activeTitleBonus  = $atDef['bonus'];
+                            $activeTitleRarity = $atDef['rarity'];
+                        }
+                    }
+                    $titleColor = match($activeTitleRarity) {
+                        'legendaire' => '#f1c97a',
+                        'epique'     => '#b47cd8',
+                        default      => '#5fa8e8',
+                    };
+                ?>
                 <div class="hero-stats">
+                    <?php foreach ([
+                        'strength'  => ['Force',     'strength'],
+                        'agility'   => ['Agilité',   'agility'],
+                        'endurance' => ['Endurance', 'endurance'],
+                    ] as $key => [$label, $fKey]):
+                        $baseVal = (int)$brute[$fKey];
+                        $bonus   = (int)($activeTitleBonus[$key] ?? 0);
+                    ?>
                     <div class="stat-box">
-                        <span class="stat-label">Force</span>
-                        <span class="stat-value"><?= (int)$brute['strength'] ?></span>
+                        <span class="stat-label"><?= $label ?></span>
+                        <span class="stat-value">
+                            <?= $baseVal ?>
+                            <?php if ($bonus > 0): ?>
+                                <sup class="stat-title-bonus" style="color:<?= $titleColor ?>" title="Bonus du titre actif">+<?= $bonus ?></sup>
+                            <?php endif; ?>
+                        </span>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-label">Agilité</span>
-                        <span class="stat-value"><?= (int)$brute['agility'] ?></span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">Endurance</span>
-                        <span class="stat-value"><?= (int)$brute['endurance'] ?></span>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
 
                 <div class="hero-weapon <?= weapon_rarity_class($currentWeapon['rarity'] ?? 'commun') ?>">

@@ -1,13 +1,15 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/title_engine.php';
 require_login();
 
 $id = (int)($_GET['id'] ?? 0);
 $stmt = db()->prepare('
     SELECT f.*, b1.name AS n1, b2.name AS n2,
            b1.appearance_seed AS a1, b2.appearance_seed AS a2,
-           b1.hp_max AS hp1, b2.hp_max AS hp2
+           b1.hp_max AS hp1, b2.hp_max AS hp2,
+           b1.active_title_code AS t1, b2.active_title_code AS t2
     FROM fights f
     JOIN brutes b1 ON b1.id = f.brute1_id
     JOIN brutes b2 ON b2.id = f.brute2_id
@@ -79,12 +81,18 @@ if ($isBossFight) {
             <div class="arena-bg"></div>
             <div class="fighter fighter-left" id="fighter1" data-slot="L0">
                 <div class="name-tag"><?= h($f['n1']) ?></div>
+                <?php if (!$isBossFight && ($f['t1'] ?? '')): ?>
+                    <div class="fight-title"><?= title_chip_html($f['t1']) ?></div>
+                <?php endif; ?>
                 <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
                 <?php $appearance = json_decode((string)$f['a1'], true) ?: []; ?>
                 <div class="sprite"><?php include __DIR__ . '/_gladiator.php'; ?></div>
             </div>
             <div class="fighter fighter-right" id="fighter2" data-slot="R0">
                 <div class="name-tag"><?= h($f['n2']) ?></div>
+                <?php if (!$isBossFight && ($f['t2'] ?? '')): ?>
+                    <div class="fight-title"><?= title_chip_html($f['t2']) ?></div>
+                <?php endif; ?>
                 <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
                 <?php $appearance = json_decode((string)$f['a2'], true) ?: []; ?>
                 <div class="sprite flip"><?php include __DIR__ . '/_gladiator.php'; ?></div>

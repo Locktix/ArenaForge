@@ -102,7 +102,7 @@ function ensure_this_week_tournament(): array
 function tournament_entries(int $tournamentId): array
 {
     $stmt = db()->prepare('
-        SELECT te.*, b.name AS brute_name, b.level AS brute_level, b.appearance_seed
+        SELECT te.*, b.name AS brute_name, b.level AS brute_level, b.appearance_seed, b.active_title_code
         FROM tournament_entries te
         JOIN brutes b ON b.id = te.brute_id
         WHERE te.tournament_id = ?
@@ -420,6 +420,13 @@ function assign_tournament_placement(
         'tournament.php',
         'assets/svg/ui/trophy.svg'
     );
+
+    // Titres : tournoi gagné → Gladiateur (cumul), Intouchable (combats nets)
+    require_once __DIR__ . '/title_engine.php';
+    if ($placement === 1) {
+        check_intouchable_title($bruteId, $tournamentId);
+    }
+    check_and_award_titles($bruteId);
 }
 
 // ============================================================

@@ -2,10 +2,12 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/elo_engine.php';
+require_once __DIR__ . '/../includes/title_engine.php';
 require_login();
 
 $rows = db()->query('
     SELECT b.id, b.name, b.level, b.xp, b.mmr, b.peak_mmr,
+           b.active_title_code,
            (SELECT COUNT(*) FROM fights f WHERE f.winner_id = b.id) AS wins,
            (SELECT COUNT(*) FROM fights f WHERE (f.brute1_id = b.id OR f.brute2_id = b.id) AND f.winner_id != b.id) AS losses
     FROM brutes b
@@ -87,6 +89,7 @@ $pastRewards = $me ? brute_season_rewards((int)$me['id']) : [];
                     <div class="rank-num"><?= $i + 1 ?></div>
                     <div class="rank-identity">
                         <a href="brute.php?id=<?= (int)$r['id'] ?>" class="rank-name"><?= h($r['name']) ?></a>
+                        <?= title_chip_html($r['active_title_code'] ?? null) ?>
                         <div class="rank-meta">
                             <span class="tier-badge" style="--tier-color: <?= h($div['tier']['color']) ?>"><?= h($div['division_label']) ?></span>
                             <span class="muted small">Niveau <?= (int)$r['level'] ?></span>

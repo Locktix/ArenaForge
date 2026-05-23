@@ -8,6 +8,19 @@ declare(strict_types=1);
 
 const CHANGELOG_ENTRIES = [
     [
+        'version' => '1.4.0',
+        'date'    => '2026-05-23',
+        'title'   => 'La Gloire Éternelle',
+        'items'   => [
+            ['icon' => '🏆', 'text' => '<strong>Titres de Gloire</strong> : 9 titres prestigieux à débloquer par exploits (série de victoires, tournois, saisons, sacrifices…). Un seul porté à la fois — avec un <strong>bonus de stats actif</strong> pendant tous tes combats.'],
+            ['icon' => '⚔', 'text' => '<strong>Raretés des armes</strong> : chaque arme arbore désormais une rareté — Commun (gris), Rare (bleu), Épique (violet). Les armes rares et épiques ont un rendu visuel spécial dans l\'arsenal, le Codex et la Forge.'],
+            ['icon' => '🛡', 'text' => '<strong>Bouclier en acier</strong> : nouvelle arme épique de niveau 10 — aucun dégât infligé, mais +4 de défense passive cumulable avec n\'importe quelle arme.'],
+            ['icon' => '🗡', 'text' => '<strong>Niveau minimum par arme</strong> : les armes sont désormais débloquées progressivement au level-up selon ton niveau (Dague/Arc dès le niveau 1, Lance 3, Épée/Bouclier 5, Masse 7, Hache/Bouclier en acier 10).'],
+            ['icon' => '💥', 'text' => '<strong>Hache rééquilibrée</strong> : dégâts portés à 8–15 (contre 7–14). Plus puissante, plus dangereuse.'],
+            ['icon' => '🔔', 'text' => '<strong>Centre de notifications</strong> : la cloche en haut à droite consigne désormais tous tes événements importants — titres débloqués, quêtes terminées, résultats de tournoi, sacrifices.'],
+        ],
+    ],
+    [
         'version' => '1.3.0',
         'date'    => '2026-05-23',
         'title'   => 'Le Pacte du Sang',

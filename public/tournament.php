@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/tournament_engine.php';
+require_once __DIR__ . '/../includes/title_engine.php';
 require_login();
 
 $myBrute = current_brute();
@@ -105,6 +106,7 @@ function render_tournament_section(array $t, array $entries, array $bracket, boo
                     <a href="brute.php?id=<?= (int)$e['brute_id'] ?>">
                         <span class="entry-slot"><?= (int)$e['slot'] + 1 ?></span>
                         <span class="entry-name"><?= h($e['brute_name']) ?></span>
+                        <?= title_chip_html($e['active_title_code'] ?? null) ?>
                         <span class="entry-level">Niv. <?= (int)$e['brute_level'] ?></span>
                         <?php if ((int)$e['is_ai'] === 1): ?><span class="entry-ai">IA</span><?php endif; ?>
                         <?php

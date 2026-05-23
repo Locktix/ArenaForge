@@ -8,6 +8,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/brute_generator.php';
 require_once __DIR__ . '/notif_helper.php';
+require_once __DIR__ . '/title_engine.php';
 
 // ============================================================
 // Utilitaires bas niveau
@@ -232,6 +233,8 @@ function check_achievements_after_fight(
     $try('level_25', $newLevel >= 25);
     $try('level_50', $newLevel >= 50);
 
+    if (!empty($unlocked)) check_completion_titles($bruteId);
+
     return $unlocked;
 }
 
@@ -265,6 +268,8 @@ function check_achievements_collection(int $bruteId): array
     $try('skills_6',  $counts['skills']  >= 6);
     $try('first_pet', $counts['pets']    >= 1);
 
+    if (!empty($unlocked)) check_completion_titles($bruteId);
+
     return $unlocked;
 }
 
@@ -291,6 +296,8 @@ function check_achievements_pupils(int $bruteId): array
 
     $try('pupils_1', $pupilsCount >= 1);
     $try('pupils_5', $pupilsCount >= 5);
+
+    if (!empty($unlocked)) check_completion_titles($bruteId);
 
     return $unlocked;
 }
@@ -332,6 +339,8 @@ function check_achievements_tournament(int $bruteId, int $placement): array
     $try('tournament_win',    $totalTournamentWins >= 1);
     $try('tournament_wins_5', $totalTournamentWins >= 5);
 
+    if (!empty($unlocked)) check_completion_titles($bruteId);
+
     return $unlocked;
 }
 
@@ -364,6 +373,8 @@ function check_achievements_forge(int $bruteId): array
     $try('forge_master', $maxUpgrade >= 5);
     $try('armor_first',  $armorCount >= 1);
 
+    if (!empty($unlocked)) check_completion_titles($bruteId);
+
     return $unlocked;
 }
 
@@ -379,6 +390,8 @@ function check_achievements_clan(int $bruteId, bool $isFounder): array
         $res = award_achievement($bruteId, 'clan_founder');
         if ($res) $unlocked[] = $res;
     }
+
+    if (!empty($unlocked)) check_completion_titles($bruteId);
 
     return $unlocked;
 }
@@ -408,6 +421,8 @@ function check_achievements_minigame(int $bruteId): array
     $try('snake_score_10', $bestScore >= 10);
     $try('snake_score_20', $bestScore >= 20);
     $try('snake_score_50', $bestScore >= 50);
+
+    if (!empty($unlocked)) check_completion_titles($bruteId);
 
     return $unlocked;
 }

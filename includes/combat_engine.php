@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/title_engine.php';
 
 // ============================================================
 // Effets de statut — saignement / poison / étourdissement
@@ -295,7 +296,7 @@ function load_fighter(int $bruteId): array
     // Équilibrage : Les PV max dépendent de la base + (Endurance * 2) + bonus armure
     $hpMax = (int)$brute['hp_max'] + ((int)$brute['endurance'] * 2) + $armorBonusHp;
 
-    return [
+    $fighter = [
         'id'               => (int)$brute['id'],
         'role'             => 'master',
         'name'             => $brute['name'],
@@ -312,6 +313,12 @@ function load_fighter(int $bruteId): array
         'statuses'         => [],
         'ult_used'         => [],
     ];
+
+    // Bonus du titre actif (si présent)
+    $activeTitle = isset($brute['active_title_code']) && $brute['active_title_code'] !== ''
+        ? (string)$brute['active_title_code']
+        : null;
+    return apply_title_bonus($fighter, $activeTitle);
 }
 
 function load_pets_for_brute(int $bruteId): array

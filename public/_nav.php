@@ -111,6 +111,9 @@ function nav_active(string $page, string $current): string {
             <li><a href="achievements.php" class="<?= nav_active('achievements', $cp) ?>">
                 <img src="../assets/svg/ui/trophy.svg" alt=""> Salle des Trophées
             </a></li>
+            <li><a href="titles.php" class="<?= nav_active('titles', $cp) ?>">
+                <img src="../assets/svg/quests/crown.svg" alt=""> Titres de Gloire
+            </a></li>
             <li><a href="codex.php" class="<?= nav_active('codex', $cp) ?>">
                 <img src="../assets/svg/ui/scroll.svg" alt=""> Codex Ancien
             </a></li>

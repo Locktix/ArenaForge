@@ -143,6 +143,8 @@ function award_season_rewards(int $seasonId): int
     ");
     $bumpGold = $pdo->prepare('UPDATE brutes SET gold = gold + ? WHERE id = ?');
 
+    require_once __DIR__ . '/title_engine.php';
+
     foreach ($rows as $r) {
         $mmr  = (int)$r['mmr'];
         $div  = elo_division_for($mmr);
@@ -156,6 +158,8 @@ function award_season_rewards(int $seasonId): int
             if ($rew['gold'] > 0) {
                 $bumpGold->execute([(int)$rew['gold'], (int)$r['id']]);
             }
+            // Titres de saison : Seigneur de Rome, Éternel Champion, Fils de Mars
+            check_and_award_titles((int)$r['id']);
             $count++;
         }
     }

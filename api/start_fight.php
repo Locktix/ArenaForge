@@ -9,6 +9,7 @@ require_once __DIR__ . '/../includes/achievement_engine.php';
 require_once __DIR__ . '/../includes/elo_engine.php';
 require_once __DIR__ . '/../includes/pet_evolution.php';
 require_once __DIR__ . '/../includes/codex_engine.php';
+require_once __DIR__ . '/../includes/title_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -187,6 +188,13 @@ try {
     // Codex : tracking d'usage (joueur uniquement, pas les bots)
     track_codex_usage($bruteId, $result['log']);
 
+    // Titres : maj du streak puis vérification des conditions
+    update_win_streak($bruteId, $isWinner);
+    $newTitles = check_and_award_titles($bruteId);
+    if (check_perfect_title($bruteId, $isWinner, $result['log'])) {
+        $newTitles[] = 'parfait';
+    }
+
     echo json_encode([
         'ok'                      => true,
         'fight_id'                => $fightId,
@@ -203,6 +211,7 @@ try {
         'fragments_gained'        => $fragmentsGained,
         'gold_gained'             => $goldGained,
         'pet_evolutions'          => $petEvolutions,
+        'new_titles'              => $newTitles,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);

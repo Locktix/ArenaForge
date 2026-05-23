@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/notif_helper.php';
+require_once __DIR__ . '/title_engine.php';
 
 // ============================================================
 // Définitions des sacrifices
@@ -327,6 +328,10 @@ function perform_sacrifice(int $bruteId, int $userId, string $type): array
         return ['ok' => false, 'error' => 'Gladiateur invalide'];
     }
 
+    if ((int)$brute['level'] < 10) {
+        return ['ok' => false, 'error' => 'Ton gladiateur doit atteindre le niveau 10 pour accéder aux rituels de l\'autel.'];
+    }
+
     if (!sacrifice_is_available($bruteId, $type)) {
         $cd = SACRIFICE_DEFS[$type]['cooldown'] === 'weekly' ? 'cette semaine' : 'aujourd\'hui';
         return ['ok' => false, 'error' => "Tu as déjà accompli ce sacrifice $cd."];
@@ -372,6 +377,9 @@ function perform_sacrifice(int $bruteId, int $userId, string $type): array
         'sacrifice.php',
         $sacIcon
     );
+
+    // Vérification des titres (en particulier Maudit des Dieux)
+    check_and_award_titles($bruteId);
 
     return [
         'ok'           => true,

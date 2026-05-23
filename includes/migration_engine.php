@@ -137,7 +137,24 @@ function check_migrations(PDO $pdo): void
 
             ensure_column($pdo, 'weapons', 'rarity', "ENUM('commun','rare','epique') NOT NULL DEFAULT 'commun'");
             $pdo->exec("UPDATE weapons SET rarity = 'rare'   WHERE name IN ('Epee','Masse','Lance') AND rarity = 'commun'");
-            $pdo->exec("UPDATE weapons SET rarity = 'epique' WHERE name IN ('Hache','Bouclier')    AND rarity = 'commun'");
+            $pdo->exec("UPDATE weapons SET rarity = 'epique' WHERE name = 'Hache' AND rarity = 'commun'");
+            // Bouclier de base → rare (correction de l'assignation précédente)
+            $pdo->exec("UPDATE weapons SET rarity = 'rare' WHERE name = 'Bouclier'");
+
+            // Dégâts Hache revus (8-15)
+            $pdo->exec("UPDATE weapons SET damage_min = 8, damage_max = 15 WHERE name = 'Hache'");
+
+            // Niveau minimum de déblocage par arme
+            ensure_column($pdo, 'weapons', 'min_level', 'TINYINT UNSIGNED NOT NULL DEFAULT 1');
+            $pdo->exec("UPDATE weapons SET min_level = 0  WHERE name = 'Poings nus' AND min_level = 1");
+            $pdo->exec("UPDATE weapons SET min_level = 3  WHERE name = 'Lance'      AND min_level = 1");
+            $pdo->exec("UPDATE weapons SET min_level = 5  WHERE name IN ('Epee','Bouclier') AND min_level = 1");
+            $pdo->exec("UPDATE weapons SET min_level = 7  WHERE name = 'Masse'      AND min_level = 1");
+            $pdo->exec("UPDATE weapons SET min_level = 10 WHERE name = 'Hache'      AND min_level = 1");
+
+            // Bouclier en acier (épique, défense pure, niveau 10)
+            $pdo->exec("INSERT IGNORE INTO weapons (name, damage_min, damage_max, defense_bonus, rarity, min_level, icon_path)
+                VALUES ('Bouclier en acier', 0, 0, 4, 'epique', 10, 'assets/svg/weapons/shield.svg')");
         }
 
         // --- Sacrifices ---
@@ -164,9 +181,79 @@ function check_migrations(PDO $pdo): void
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             KEY idx_brute_notif (brute_id, created_at DESC)
         ");
+        // Garantit que les colonnes texte supportent les emoji 4 octets (utf8mb4)
+        $pdo->exec("ALTER TABLE notifications
+            CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        // Purge les notifs de titre corrompues (??) stockées avant la migration utf8mb4
+        $pdo->exec("DELETE FROM notifications WHERE kind = 'title' AND title LIKE '?? %'");
         if (table_exists($pdo, 'brutes')) {
             ensure_column($pdo, 'brutes', 'notifs_unread_count', 'INT UNSIGNED NOT NULL DEFAULT 0');
         }
+
+        // --- Titres de gloire ---
+        ensure_table($pdo, 'titles', "
+            code           VARCHAR(40)  NOT NULL PRIMARY KEY,
+            label          VARCHAR(80)  NOT NULL,
+            description    VARCHAR(200) NOT NULL DEFAULT '',
+            flavor         VARCHAR(240) NOT NULL DEFAULT '',
+            bonus_json     VARCHAR(120) NOT NULL DEFAULT '{}',
+            rarity         ENUM('rare','epique','legendaire') NOT NULL DEFAULT 'rare',
+            icon_path      VARCHAR(120) NOT NULL DEFAULT 'assets/svg/ui/trophy.svg',
+            sort_order     INT UNSIGNED NOT NULL DEFAULT 100
+        ");
+        ensure_table($pdo, 'brute_titles', "
+            brute_id    INT UNSIGNED NOT NULL,
+            title_code  VARCHAR(40)  NOT NULL,
+            unlocked_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (brute_id, title_code),
+            KEY idx_bt_brute (brute_id)
+        ");
+        if (table_exists($pdo, 'brutes')) {
+            ensure_column($pdo, 'brutes', 'active_title_code', 'VARCHAR(40) NULL');
+            ensure_column($pdo, 'brutes', 'win_streak',        'INT UNSIGNED NOT NULL DEFAULT 0');
+
+            // Détection rétroactive : si la colonne win_streak_best n'existait pas,
+            // on scanne l'historique de tous les combats pour recalculer la meilleure
+            // série de victoires de chaque brute. Idempotent par construction
+            // (n'arrive qu'une fois, à la création de la colonne).
+            $chk = $pdo->prepare("SHOW COLUMNS FROM `brutes` LIKE 'win_streak_best'");
+            $chk->execute();
+            $needsBackfill = !$chk->fetch();
+            ensure_column($pdo, 'brutes', 'win_streak_best', 'INT UNSIGNED NOT NULL DEFAULT 0');
+            if ($needsBackfill && table_exists($pdo, 'fights')) {
+                backfill_win_streak_best($pdo);
+            }
+        }
+
+        // Définitions des titres (idempotent)
+        $pdo->exec("INSERT INTO titles (code, label, description, flavor, bonus_json, rarity, icon_path, sort_order) VALUES
+            ('invaincu',    'L''Invaincu',                  '20 victoires consécutives',                                   'La défaite est un mot dans une langue qu''il n''a jamais apprise.',                       '{\"agility\":2}',                  'rare',       'assets/svg/ui/trophy.svg', 10),
+            ('parfait',     'Le Parfait',                   'Remporter un combat sans subir un seul point de dégât',       'Ses adversaires affirment l''avoir frappé. Pourtant aucune marque ne le confirme.',       '{\"endurance\":2}',                'rare',       'assets/svg/ui/trophy.svg', 20),
+            ('fleau',       'Fléau de l''Arène',            '500 victoires au total',                                      'Le sable de l''arène reconnaît son pas avant même qu''il n''entre.',                      '{\"strength\":3}',                 'epique',     'assets/svg/ui/trophy.svg', 30),
+            ('seigneur',    'Seigneur de Rome',             'Finir une saison au palier Légende',                          'Il ne brigue pas les couronnes : elles tombent à ses pieds.',                              '{\"strength\":2}',                 'epique',     'assets/svg/quests/crown.svg', 40),
+            ('gladiateur',  'Gladiateur des Gladiateurs',   'Remporter 5 tournois',                                        'Cinq couronnes, cinq foules muettes. La sixième n''ose pas encore le regarder.',          '{\"strength\":2,\"endurance\":1}', 'epique',     'assets/svg/quests/crown.svg', 50),
+            ('intouchable', 'L''Intouchable',               'Remporter un tournoi sans perdre un seul round',              'Trois combats, trois victoires nettes. Le sable est resté immaculé.',                     '{\"agility\":3}',                  'epique',     'assets/svg/ui/trophy.svg', 60),
+            ('maudit',      'Maudit des Dieux',             'Effectuer 10 sacrifices à l''autel',                          'Il a tout donné aux dieux. Les dieux, eux, lui ont rendu sa rage intacte.',               '{\"hp_max\":5}',                   'epique',     'assets/svg/ui/scroll.svg', 70),
+            ('eternel',     'Éternel Champion',             '3 saisons consécutives au palier Légende',                    'Les saisons changent. Le maître, jamais.',                                                '{\"strength\":2,\"agility\":2}',   'legendaire', 'assets/svg/quests/crown.svg', 80),
+            ('mars',        'Fils de Mars',                 '500 victoires, 1 saison Légende et 5 tournois remportés',     'Quand Mars descendit dans l''arène, il prit ses traits. Et n''en repartit jamais.',       '{\"strength\":3,\"agility\":3}',   'legendaire', 'assets/svg/quests/crown.svg', 90),
+            -- Titres de complétion (100 % d''une catégorie de trophées)
+            ('compl_combat',      'Maître du Sang',            'Décroche tous les trophées Combat',                           'Douze exploits de sang et d''acier. Le combat n''a plus de secret pour lui.',               '{\"strength\":4,\"agility\":2}',                    'epique',     'assets/svg/quests/sword.svg',   110),
+            ('compl_minigame',    'Roi des Mini-Jeux',         'Décroche tous les trophées Mini-Jeux',                        'Cinquante pommes, zéro pitié. Maintenant il s''ennuie.',                                    '{\"agility\":3,\"strength\":2}',                    'epique',     'assets/svg/ui/scroll.svg',      120),
+            ('compl_social',      'Père de l''Arène',          'Décroche tous les trophées Social',                           'Il a fondé, formé, fédéré. L''arène porte sa marque sur chaque nouvelle génération.',       '{\"agility\":3,\"hp_max\":8}',                      'epique',     'assets/svg/ui/nav_pupils.svg',  130),
+            ('compl_forge',       'Le Forgeron Légendaire',    'Décroche tous les trophées Forge',                            'Son enclume ne refroidit jamais. Ses armes non plus.',                                      '{\"strength\":2,\"endurance\":2}',                  'rare',       'assets/svg/weapons/axe.svg',    140),
+            ('compl_tournament',  'Roi des Colisées',          'Décroche tous les trophées Tournoi',                          'Champion, finaliste, participant. Il a tout vécu du colisée.',                              '{\"strength\":2,\"agility\":2}',                    'rare',       'assets/svg/quests/crown.svg',   150),
+            ('compl_collection',  'Le Collectionneur',         'Décroche tous les trophées Collection',                       'Armes, compétences, compagnon — son arsenal est un musée de la victoire.',                  '{\"agility\":2,\"endurance\":2}',                   'rare',       'assets/svg/weapons/sword.svg',  160),
+            ('compl_progression', 'L''Ascendant',              'Décroche tous les trophées Progression',                      'Chaque niveau était un obstacle. Il les a tous laissés derrière.',                         '{\"strength\":2,\"endurance\":2}',                  'rare',       'assets/svg/ui/nav_ranking.svg', 170),
+            ('omniscient',        'L''Omniscient',             'Complète les 7 catégories de trophées à 100 %',               'Les dieux l''observaient. Puis ils ont pris des notes.',                                    '{\"strength\":5,\"agility\":5,\"endurance\":5}',    'legendaire', 'assets/svg/quests/crown.svg',   200)
+            ON DUPLICATE KEY UPDATE
+              label = VALUES(label),
+              description = VALUES(description),
+              flavor = VALUES(flavor),
+              bonus_json = VALUES(bonus_json),
+              rarity = VALUES(rarity),
+              icon_path = VALUES(icon_path),
+              sort_order = VALUES(sort_order)
+        ");
 
         // --- Achievements mini-jeux ---
         if (table_exists($pdo, 'achievements')) {
@@ -210,6 +297,42 @@ function table_exists(PDO $pdo, string $table): bool
 /**
  * Assure qu'une colonne existe avec la définition donnée.
  */
+/**
+ * Reconstruit `brutes.win_streak_best` (et `win_streak` courant) en scannant
+ * l'historique des combats en arène. Appelé une fois lors de la création
+ * de la colonne pour ne pas pénaliser les anciens joueurs.
+ */
+function backfill_win_streak_best(PDO $pdo): void
+{
+    $rows = $pdo->query("
+        SELECT brute1_id AS bid, winner_id, created_at
+        FROM fights WHERE context = 'arena'
+        UNION ALL
+        SELECT brute2_id AS bid, winner_id, created_at
+        FROM fights WHERE context = 'arena'
+        ORDER BY created_at ASC
+    ")->fetchAll();
+
+    $cur = [];   // streak en cours par brute
+    $best = [];  // meilleur streak par brute
+    foreach ($rows as $r) {
+        $bid = (int)$r['bid'];
+        $won = ((int)$r['winner_id'] === $bid);
+        if ($won) {
+            $cur[$bid] = ($cur[$bid] ?? 0) + 1;
+            $best[$bid] = max($best[$bid] ?? 0, $cur[$bid]);
+        } else {
+            $cur[$bid] = 0;
+        }
+    }
+
+    if (empty($best)) return;
+    $upd = $pdo->prepare('UPDATE brutes SET win_streak = ?, win_streak_best = ? WHERE id = ?');
+    foreach ($best as $bid => $bestVal) {
+        $upd->execute([(int)($cur[$bid] ?? 0), (int)$bestVal, (int)$bid]);
+    }
+}
+
 function ensure_column(PDO $pdo, string $table, string $column, string $definition): void
 {
     $stmt = $pdo->prepare("SHOW COLUMNS FROM `$table` LIKE ?");

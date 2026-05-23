@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/clan_engine.php';
+require_once __DIR__ . '/../includes/title_engine.php';
 require_login();
 
 $clanId = (int)($_GET['id'] ?? 0);
@@ -98,6 +99,7 @@ $totalMmr = array_sum(array_map(fn($m) => (int)$m['mmr'], $members));
                     <a href="brute.php?id=<?= (int)$m['id'] ?>" class="member-name">
                         <?= h($m['name']) ?>
                     </a>
+                    <?= title_chip_html($m['active_title_code'] ?? null) ?>
                     <?php if ($m['role'] === 'leader'): ?>
                         <span class="role-badge leader">Chef</span>
                     <?php elseif ($m['role'] === 'officer'): ?>

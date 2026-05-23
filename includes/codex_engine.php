@@ -61,6 +61,11 @@ const CODEX_LORE = [
             'Le bouclier rond favorise l\'agilité, le rectangulaire la formation.',
             'Le Scutum d\'Achille reflétait les armes ennemies qui s\'y brisaient en silence.',
         ],
+        'Bouclier en acier' => [
+            'L\'acier trempé ne plie pas : il transforme chaque assaut en erreur de l\'attaquant.',
+            'Forgé en sept couches par les maîtres de Tolède, son bord tranche autant qu\'il protège.',
+            'Le Rempart d\'Orion, dit-on, avait arrêté une catapulte entière sans perdre son éclat.',
+        ],
     ],
 
     // ----- Compétences -----

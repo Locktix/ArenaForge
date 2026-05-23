@@ -44,7 +44,7 @@ function get_clan(int $clanId): ?array
 function get_clan_members(int $clanId): array
 {
     $stmt = db()->prepare('
-        SELECT b.id, b.name, b.level, b.mmr, b.appearance_seed,
+        SELECT b.id, b.name, b.level, b.mmr, b.appearance_seed, b.active_title_code,
                cm.role, cm.joined_at
         FROM clan_members cm
         JOIN brutes b ON b.id = cm.brute_id
