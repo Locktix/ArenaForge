@@ -5,12 +5,14 @@ if (!function_exists('current_user_id')) {
 require_once __DIR__ . '/../includes/streak_engine.php';
 require_once __DIR__ . '/../includes/challenge_engine.php';
 require_once __DIR__ . '/../includes/bot_engine.php';
+require_once __DIR__ . '/../includes/changelog.php';
 
 $navBrute        = current_brute();
 $navUid          = current_user_id();
 $navStreakInfo    = null;
 $navStreakReward  = null;
 $navInboxCount   = 0;
+$navChangelog    = [];
 
 if ($navUid !== null) {
     $tick = tick_login_streak($navUid);
@@ -18,6 +20,13 @@ if ($navUid !== null) {
     $navStreakReward = $tick['reward'];
     // Tick "bots auto-fight" — peut résoudre 0..3 combats par chargement
     try { maybe_tick_bot_fights(); } catch (Throwable $e) { /* silent */ }
+
+    // Changelog non vu
+    try {
+        $stmt = db()->prepare('SELECT last_seen_changelog_version FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$navUid]);
+        $navChangelog = changelog_unseen_for((string)($stmt->fetchColumn() ?: ''));
+    } catch (Throwable $e) { $navChangelog = []; }
 }
 if ($navBrute) {
     try { $navInboxCount = pending_inbox_count((int)$navBrute['id']); } catch (Throwable $e) { $navInboxCount = 0; }
@@ -64,6 +73,15 @@ function nav_active(string $page, string $current): string {
             <li><a href="challenges.php" class="<?= nav_active('challenges', $cp) ?>">
                 <img src="../assets/svg/weapons/sword.svg" alt=""> Salle des Défis
                 <?php if ($navInboxCount > 0): ?><span class="nav-badge"><?= $navInboxCount ?></span><?php endif; ?>
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="nav-section">
+        <span class="nav-section-label">☠ Rituels</span>
+        <ul>
+            <li><a href="sacrifice.php" class="<?= nav_active('sacrifice', $cp) ?>">
+                <img src="../assets/svg/skills/rage.svg" alt=""> L'Autel
             </a></li>
         </ul>
     </div>
@@ -199,3 +217,65 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 <?php endif; ?>
 <?php include __DIR__ . '/_tutorial.php'; ?>
+
+<?php if (!empty($navChangelog)): ?>
+<div id="changelog-modal" class="changelog-modal">
+    <div class="changelog-modal-inner">
+        <div class="changelog-header">
+            <span class="changelog-badge">📜 Nouveautés</span>
+            <h2>Bienvenue, gladiateur</h2>
+            <p class="muted">Voici ce qui a changé depuis ta dernière visite.</p>
+        </div>
+        <div class="changelog-body">
+            <?php foreach ($navChangelog as $entry): ?>
+            <article class="changelog-entry">
+                <header class="changelog-entry-head">
+                    <span class="changelog-version">v<?= h($entry['version']) ?></span>
+                    <h3><?= h($entry['title']) ?></h3>
+                    <span class="changelog-date muted small"><?= h($entry['date']) ?></span>
+                </header>
+                <ul class="changelog-items">
+                    <?php foreach ($entry['items'] as $item): ?>
+                    <li>
+                        <span class="changelog-item-icon"><?= $item['icon'] ?></span>
+                        <span class="changelog-item-text"><?= $item['text'] ?></span>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </article>
+            <?php endforeach; ?>
+        </div>
+        <div class="changelog-footer">
+            <button class="btn btn-primary" id="changelog-dismiss"
+                    data-csrf="<?= h(csrf_token()) ?>"
+                    data-version="<?= h(changelog_latest_version()) ?>">
+                Compris, retour à l'arène
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    const modal    = document.getElementById('changelog-modal');
+    const btn      = document.getElementById('changelog-dismiss');
+    if (!modal || !btn) return;
+
+    document.body.style.overflow = 'hidden';
+
+    btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.textContent = '⏳ Sauvegarde...';
+        const fd = new FormData();
+        fd.append('csrf', btn.dataset.csrf);
+        try {
+            await fetch('../api/changelog_seen.php', { method: 'POST', body: fd });
+        } catch {}
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.remove();
+            document.body.style.overflow = '';
+        }, 300);
+    });
+})();
+</script>
+<?php endif; ?>

@@ -24,6 +24,7 @@ function check_migrations(PDO $pdo): void
             ensure_column($pdo, 'users', 'last_login_date', 'DATE NULL');
             ensure_column($pdo, 'users', 'streak_claim_date', 'DATE NULL');
             ensure_column($pdo, 'users', 'tutorial_skipped', 'TINYINT(1) NOT NULL DEFAULT 0');
+            ensure_column($pdo, 'users', 'last_seen_changelog_version', 'VARCHAR(20) NULL');
         }
 
         // --- Table BRUTES ---
@@ -135,6 +136,17 @@ function check_migrations(PDO $pdo): void
             // Mettre à jour le Bouclier existant si defense_bonus est encore à 0
             $pdo->exec("UPDATE weapons SET defense_bonus = 2 WHERE name = 'Bouclier' AND defense_bonus = 0");
         }
+
+        // --- Sacrifices ---
+        ensure_table($pdo, 'sacrifices', "
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            brute_id INT UNSIGNED NOT NULL,
+            type VARCHAR(20) NOT NULL,
+            outcome_code VARCHAR(40) NOT NULL,
+            outcome_label TEXT NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_brute_type_date (brute_id, type, created_at)
+        ");
 
         // --- Achievements mini-jeux ---
         if (table_exists($pdo, 'achievements')) {

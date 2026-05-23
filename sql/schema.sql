@@ -602,3 +602,17 @@ CREATE TABLE brute_market_purchases (
   CONSTRAINT fk_bmp_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE,
   CONSTRAINT fk_bmp_offer FOREIGN KEY (offer_id) REFERENCES black_market_offers(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- ============================================================
+-- Sacrifices (Autel — historique des rituels accomplis)
+-- ============================================================
+CREATE TABLE sacrifices (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  brute_id INT UNSIGNED NOT NULL,
+  type VARCHAR(20) NOT NULL,
+  outcome_code VARCHAR(40) NOT NULL,
+  outcome_label TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_brute_type_date (brute_id, type, created_at),
+  CONSTRAINT fk_sacrifices_brute FOREIGN KEY (brute_id) REFERENCES brutes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
