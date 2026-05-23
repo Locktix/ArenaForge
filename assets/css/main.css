@@ -4792,6 +4792,57 @@ code {
 .sac-hist-label { color: var(--text-2); flex: 1; font-size: 0.9em; }
 .sac-hist-date { margin-left: auto; }
 
+/* Modal de confirmation */
+.sacrifice-confirm-inner {
+    background: linear-gradient(160deg, #1f0e08, #0a0302);
+    border: 1px solid #6c1810;
+    border-radius: 10px;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(108,24,16,0.3), 0 12px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(212,163,85,0.08);
+    animation: sac-reveal-in 0.25s ease-out;
+}
+.sac-confirm-icon {
+    font-size: 3.5em;
+    line-height: 1;
+    margin-bottom: 12px;
+    text-shadow: 0 0 20px rgba(200,64,48,0.4);
+}
+.sac-confirm-title {
+    margin: 0 0 8px;
+    color: #c84030;
+    font-size: 1.4em;
+}
+.sac-confirm-title::after { display: none; }
+.sac-confirm-name {
+    margin: 0 0 20px;
+    color: var(--accent-2);
+    font-family: var(--font-title);
+    font-size: 1.1em;
+    letter-spacing: 0.04em;
+}
+.sac-confirm-cost {
+    padding: 12px 18px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #4a1a10;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+.sac-confirm-cost .muted { display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+.sac-confirm-cost strong { color: #c84030; font-family: var(--font-title); font-size: 1.1em; }
+.sac-confirm-warning {
+    margin: 0 0 22px;
+    line-height: 1.5;
+    font-style: italic;
+}
+.sac-confirm-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.sac-confirm-actions .btn { min-width: 140px; }
+
 /* Modal de révélation */
 .sacrifice-modal {
     position: fixed;

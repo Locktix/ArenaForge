@@ -175,6 +175,26 @@ function sacrifice_outcome_class(string $code): string {
     <?php endif; ?>
 </main>
 
+<!-- Modal de confirmation -->
+<div id="sacrifice-confirm" class="sacrifice-modal" hidden>
+    <div class="sacrifice-modal-inner sacrifice-confirm-inner">
+        <div class="sac-confirm-icon"></div>
+        <h2 class="sac-confirm-title">Confirmer le rituel ?</h2>
+        <p class="sac-confirm-name"></p>
+        <div class="sac-confirm-cost">
+            <span class="muted small">Coût irréversible</span>
+            <strong class="sac-confirm-cost-text"></strong>
+        </div>
+        <p class="sac-confirm-warning muted small">
+            Une fois invoqué, ce sacrifice ne peut être annulé. Les dieux ne reviennent jamais sur leur jugement.
+        </p>
+        <div class="sac-confirm-actions">
+            <button class="btn btn-secondary" id="sac-confirm-cancel">Renoncer</button>
+            <button class="btn btn-primary" id="sac-confirm-validate">Accomplir le rituel</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal de révélation -->
 <div id="sacrifice-modal" class="sacrifice-modal" hidden>
     <div class="sacrifice-modal-inner">
