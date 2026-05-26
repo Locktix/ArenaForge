@@ -1,0 +1,26 @@
+# ── Audio assets (trop lourds pour git) ──────────────────────────────────────
+assets/music/
+assets/fx/
+assets/Background.mp3
+*.mp3
+*.wav
+*.ogg
+*.flac
+
+# ── Scripts de seed temporaires ───────────────────────────────────────────────
+public/run_seed.php
+seed_log.txt
+
+# ── Environnement local ───────────────────────────────────────────────────────
+.env
+includes/db_local.php
+
+# ── IDE & OS ──────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db
+
+# ── Logs & cache ─────────────────────────────────────────────────────────────
+*.log
+/tmp/
