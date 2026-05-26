@@ -206,7 +206,7 @@ if ($boss) {
                 const res  = await fetch(endpoint, { method: 'POST', body: new FormData(form) });
                 const data = await res.json();
                 if (data.ok && data.redirect) {
-                    window.location.href = data.redirect;
+                    (window.arenaNavigate || (u => { window.location.href = u; }))(data.redirect);
                 } else if (msg) {
                     msg.className = 'form-msg error';
                     msg.textContent = data.error || 'Erreur';

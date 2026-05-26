@@ -5,7 +5,6 @@ require_once __DIR__ . '/../includes/brute_generator.php';
 require_once __DIR__ . '/../includes/quest_engine.php';
 require_once __DIR__ . '/../includes/combat_engine.php';
 require_once __DIR__ . '/../includes/title_engine.php';
-require_login();
 
 $id = (int)($_GET['id'] ?? 0);
 $fighter = load_fighter($id);
@@ -19,11 +18,15 @@ if (!$brute) {
     exit;
 }
 
-$isOwner = ((int)$brute['user_id'] === current_user_id());
+$currentUid = current_user_id();
+$isOwner    = ($currentUid !== null && (int)$brute['user_id'] === $currentUid);
 
-// Armes / compétences
+// Armes
 $weapons = $fighter['weapons'];
-$skills = $fighter['skills'];
+
+// Compétences — nœuds de l'arbre débloqués
+$unlockedNodes = skill_tree_nodes_for_brute($id);
+$skillPoints   = $isOwner ? (int)($brute['skill_points'] ?? 0) : 0;
 
 // Compagnon animal
 $pets = db()->prepare('SELECT p.* FROM pets p JOIN brute_pets bp ON bp.pet_id = p.id WHERE bp.brute_id = ? ORDER BY bp.acquired_at');
@@ -81,16 +84,6 @@ if ($isOwner && (int)$brute['pending_levelup'] === 1) {
                     ? 'Bouclier : ' . $w['name'] . ' (+' . (int)$w['defense_bonus'] . ' Déf.)'
                     : 'Arme : ' . $w['name'];
                 $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => $label, 'icon' => '../' . $w['icon_path'], 'rarity' => $w['rarity'] ?? 'commun'];
-            }
-        }
-        // Compétences non possédées (les ultimes sont préfixés par ⚡)
-        $ownedS = array_column($skills, 'id');
-        $allS = db()->query('SELECT * FROM skills')->fetchAll();
-        foreach ($allS as $s) {
-            if (!in_array((int)$s['id'], array_map('intval', $ownedS), true)) {
-                $isUlt = (int)($s['is_ultimate'] ?? 0) === 1;
-                $label = ($isUlt ? '⚡ ULTIME — ' : '') . $s['name'] . ' — ' . $s['description'];
-                $pool[] = ['key' => 'skill:' . $s['id'], 'label' => $label, 'icon' => '../' . $s['icon_path']];
             }
         }
         // Animaux : uniquement si le joueur n'en a pas encore (1 pet max)
@@ -267,6 +260,12 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
                             <span class="blink">🔥</span> UN NOUVEAU POUVOIR VOUS ATTEND <span class="blink">🔥</span>
                         </div>
                     <?php else: ?>
+                        <?php if ($skillPoints > 0): ?>
+                            <div class="skill-points-reminder">
+                                ✨ <?= $skillPoints ?> point<?= $skillPoints !== 1 ? 's' : '' ?> de compétence non dépensé<?= $skillPoints !== 1 ? 's' : '' ?> —
+                                <a href="skills.php">ouvrir l'arbre →</a>
+                            </div>
+                        <?php endif; ?>
                         <form id="fight-form">
                             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
                             <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
@@ -385,15 +384,26 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
 
     <section class="card">
         <h2>✦ Compétences</h2>
-        <?php if (empty($skills)): ?>
-            <p class="muted">Aucune compétence apprise.</p>
+        <?php if ($isOwner): ?>
+            <div class="skill-profile-actions">
+                <?php if ($skillPoints > 0): ?>
+                    <a href="skills.php" class="btn btn-sm btn-secondary">✨ <?= $skillPoints ?> point<?= $skillPoints !== 1 ? 's' : '' ?> à dépenser</a>
+                <?php else: ?>
+                    <a href="skills.php" class="btn btn-sm btn-ghost">Gérer l'arbre →</a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+        <?php if (empty($unlockedNodes)): ?>
+            <p class="muted">Aucun nœud débloqué<?php if ($isOwner): ?> — <a href="skills.php">ouvrir l'arbre →</a><?php endif; ?>.</p>
         <?php else: ?>
             <div class="icon-grid">
-                <?php foreach ($skills as $s): $isUlt = (int)($s['is_ultimate'] ?? 0) === 1; ?>
-                    <div class="icon-item <?= $isUlt ? 'is-ultimate' : '' ?>" title="<?= h($s['description']) ?>">
-                        <img src="../<?= h($s['icon_path']) ?>" alt="<?= h($s['name']) ?>">
-                        <span><?= h($s['name']) ?></span>
-                        <?php if ($isUlt): ?><em class="ult-badge">⚡ Ultime</em><?php endif; ?>
+                <?php foreach ($unlockedNodes as $nid):
+                    $node = skill_tree_get_node($nid);
+                    if (!$node) continue;
+                ?>
+                    <div class="icon-item" title="<?= h($node['desc']) ?>">
+                        <span class="skill-emoji"><?= $node['icon'] ?></span>
+                        <span><?= h($node['name']) ?></span>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -440,10 +450,48 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
             <?php endif; ?>
         <?php endif; ?>
     </section>
+
+    <?php if ($isOwner): ?>
+    <div class="share-profile">
+        <span class="share-label">🔗 Partager ce profil :</span>
+        <button class="btn btn-ghost btn-sm" id="copy-profile-link" type="button"
+                data-url="<?= h((isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']) ?>">
+            Copier le lien
+        </button>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!$currentUid): ?>
+    <section class="card visitor-cta">
+        <div class="visitor-cta-inner">
+            <p>Impressionné par <strong><?= h($brute['name']) ?></strong> ? Forge ton propre gladiateur et affronte-le dans l'arène !</p>
+            <div class="visitor-cta-actions">
+                <a href="register.php" class="btn btn-primary">⚔ Créer mon gladiateur</a>
+                <a href="index.php" class="btn btn-ghost">Se connecter</a>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
 </main>
 
 
 <script>window.APPEARANCE = <?= json_encode($appearance) ?>;</script>
 <script src="../assets/js/brute.js"></script>
+<?php if ($isOwner): ?>
+<script>
+(function () {
+    const btn = document.getElementById('copy-profile-link');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.url).then(() => {
+            btn.textContent = '✓ Lien copié !';
+            setTimeout(() => { btn.textContent = 'Copier le lien'; }, 2500);
+        }).catch(() => {
+            prompt('Copie ce lien :', btn.dataset.url);
+        });
+    });
+})();
+</script>
+<?php endif; ?>
 </body>
 </html>

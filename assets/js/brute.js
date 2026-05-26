@@ -18,7 +18,7 @@ async function postForm(form, endpoint) {
                     icon_path: e.icon_path,
                 })));
             }
-            window.location.href = data.redirect;
+            (window.arenaNavigate || (u => { window.location.href = u; }))(data.redirect);
         } else if (msg) {
             msg.className = 'form-msg error';
             msg.textContent = data.error || 'Erreur';

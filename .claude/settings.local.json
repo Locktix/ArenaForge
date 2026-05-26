@@ -27,7 +27,12 @@
       "Bash(php -l public/fight.php)",
       "Bash(/c/xampp/php/php.exe -l api/start_fight.php)",
       "Bash(/usr/bin/php -l api/start_fight.php)",
-      "Read(//usr/**)"
+      "Read(//usr/**)",
+      "Bash(php -l /home/alanbilla/Documents/GitHub/ArenaForge/includes/dungeon_engine.php)",
+      "Bash(php -l /home/alanbilla/Documents/GitHub/ArenaForge/public/fight.php)",
+      "Bash(php -l /home/alanbilla/Documents/GitHub/ArenaForge/public/dungeon.php)",
+      "Bash(php -r ' *)",
+      "Bash(php -l /home/alanbilla/Documents/GitHub/ArenaForge/scripts/seed_bots.php)"
     ]
   }
 }

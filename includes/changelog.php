@@ -8,6 +8,19 @@ declare(strict_types=1);
 
 const CHANGELOG_ENTRIES = [
     [
+        'version' => '1.5.0',
+        'date'    => '2026-05-26',
+        'title'   => 'Les Donjons',
+        'items'   => [
+            ['icon' => '🏰', 'text' => '<strong>Système de Donjons</strong> : trois donjons déblocables selon ton niveau — la <em>Crypte des Damnés</em> (gratuit, niv. 1), la <em>Forteresse Maudite</em> (1 combat bonus, niv. 5) et l\'<em>Abîsse Éternel</em> (2 combats bonus, niv. 10).'],
+            ['icon' => '💀', 'text' => '<strong>HP persistants entre les salles</strong> : tes points de vie survivent d\'une salle à l\'autre. Chaque gardien abattu t\'affaiblit — mais te récompense en XP et en or.'],
+            ['icon' => '🦴', 'text' => '<strong>Sprites monstres uniques</strong> : chaque donjon a son gardien visuel — Squelette à lueur bleue (Crypte), Chevalier Noir armé de fer et d\'or (Forteresse), Démon aux yeux violets et halo pulsant (Abîsse).'],
+            ['icon' => '⚔', 'text' => '<strong>Bosses progressifs</strong> : force, agilité et compétences des gardiens escaladent salle après salle. Les dernières salles ont des compétences rares (rage, lifesteal, revive…).'],
+            ['icon' => '📅', 'text' => '<strong>Une tentative par donjon par jour</strong> : victoire, défaite ou abandon — le créneau est consommé. Reviens demain pour retenter.'],
+            ['icon' => '🏆', 'text' => '<strong>Leaderboard des explorateurs</strong> : classement global des runs les plus profondes, toutes brutes confondues — visible en bas de la page Donjons.'],
+        ],
+    ],
+    [
         'version' => '1.4.0',
         'date'    => '2026-05-23',
         'title'   => 'La Gloire Éternelle',

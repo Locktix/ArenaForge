@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 100" aria-label="Squelette">
+  <!-- Crâne -->
+  <ellipse cx="32" cy="19" rx="15" ry="17" fill="#c8d8e8" stroke="#7090a8" stroke-width="1.2"/>
+  <!-- Mâchoire -->
+  <rect x="22" y="32" width="20" height="7" rx="2" fill="#b0c8d8" stroke="#7090a8" stroke-width="1"/>
+  <!-- Orbites -->
+  <ellipse cx="25" cy="17" rx="5" ry="6" fill="#08111a"/>
+  <ellipse cx="39" cy="17" rx="5" ry="6" fill="#08111a"/>
+  <!-- Lueur bleue dans les yeux -->
+  <ellipse cx="25" cy="17" rx="3" ry="3.5" fill="#4090d0" opacity="0.7"/>
+  <ellipse cx="39" cy="17" rx="3" ry="3.5" fill="#4090d0" opacity="0.7"/>
+  <!-- Nez (triangle) -->
+  <path d="M29 27 L32 31 L35 27 Z" fill="#08111a"/>
+  <!-- Dents -->
+  <rect x="23" y="33" width="3" height="4" rx="1" fill="#08111a"/>
+  <rect x="28" y="33" width="3" height="4" rx="1" fill="#08111a"/>
+  <rect x="33" y="33" width="3" height="4" rx="1" fill="#08111a"/>
+  <rect x="38" y="33" width="3" height="4" rx="1" fill="#08111a"/>
+  <!-- Cou -->
+  <rect x="28" y="39" width="8" height="5" rx="2" fill="#a8c0d0"/>
+  <!-- Cage thoracique -->
+  <rect x="18" y="44" width="28" height="28" rx="5" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+  <!-- Colonne -->
+  <line x1="32" y1="44" x2="32" y2="72" stroke="#7090a8" stroke-width="2"/>
+  <!-- Côtes -->
+  <path d="M32 50 Q24 48 22 54 Q24 58 32 56" fill="none" stroke="#7090a8" stroke-width="1.2"/>
+  <path d="M32 50 Q40 48 42 54 Q40 58 32 56" fill="none" stroke="#7090a8" stroke-width="1.2"/>
+  <path d="M32 58 Q23 56 21 62 Q23 66 32 64" fill="none" stroke="#7090a8" stroke-width="1.2"/>
+  <path d="M32 58 Q41 56 43 62 Q41 66 32 64" fill="none" stroke="#7090a8" stroke-width="1.2"/>
+  <!-- Épaules / humérus -->
+  <rect x="8"  y="44" width="10" height="6" rx="2.5" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+  <rect x="46" y="44" width="10" height="6" rx="2.5" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+  <!-- Avant-bras -->
+  <rect x="7"  y="49" width="8" height="14" rx="3" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+  <rect x="49" y="49" width="8" height="14" rx="3" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+  <!-- Mains (griffes) -->
+  <path d="M8 63 L6 70 M11 63 L10 71 M14 63 L15 70" stroke="#a8c0d0" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M50 63 L48 70 M53 63 L53 71 M56 63 L57 70" stroke="#a8c0d0" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Hanches -->
+  <rect x="20" y="72" width="24" height="6" rx="3" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+  <!-- Fémurs -->
+  <rect x="20" y="78" width="9" height="18" rx="4" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+  <rect x="35" y="78" width="9" height="18" rx="4" fill="#a8c0d0" stroke="#7090a8" stroke-width="1"/>
+</svg>

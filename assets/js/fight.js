@@ -264,6 +264,8 @@
             if (myToken !== playToken) return;
             switch (ev.event) {
                 case 'start':
+                    sfx('start');
+                    if (window.MUSIC) window.MUSIC.stinger(1); // bass impact au lancement
                     appendLine('start', `Début du combat : ${F.n1} contre ${F.n2} !`);
                     if (ev.weather) {
                         appendLine('weather', `${ev.weather.icon} ${ev.weather.label} — ${ev.weather.desc}`);
@@ -443,12 +445,14 @@
                 }
 
                 case 'timeout':
+                    if (window.SFX) window.SFX.stopAmbient();
                     sfx('timeout');
                     appendLine('end', 'Combat interrompu (trop de tours).');
                     await wait(250);
                     break;
 
                 case 'end':
+                    if (window.SFX) window.SFX.stopAmbient();
                     sfx('victory');
                     appendLine('end', `🏆 Vainqueur : ${ev.winner} !`);
                     break;

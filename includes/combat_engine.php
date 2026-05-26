@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/title_engine.php';
+require_once __DIR__ . '/skill_tree.php';
 
 // ============================================================
 // Effets de statut — saignement / poison / étourdissement
@@ -270,13 +271,7 @@ function load_fighter(int $bruteId): array
     $stmt->execute([$bruteId]);
     $weapons = $stmt->fetchAll();
 
-    $stmt = $pdo->prepare('
-        SELECT s.* FROM skills s
-        JOIN brute_skills bs ON bs.skill_id = s.id
-        WHERE bs.brute_id = ?
-    ');
-    $stmt->execute([$bruteId]);
-    $skills = $stmt->fetchAll();
+    $skills = skill_tree_skills_array($bruteId);
 
     // Armures équipées : somme des bonus PV et réduction de dégâts
     $stmt = $pdo->prepare('
@@ -457,6 +452,20 @@ function team_public(array $combatants, string $side): array
         } else {
             $team['pets'][] = fighter_public($c);
         }
+    }
+    return $team;
+}
+
+/**
+ * Variante de build_team qui restaure les PV du maître à une valeur persistée
+ * (entre deux salles de donjon). Les PV sont plafonnés à hp_max.
+ */
+function build_team_with_hp(int $bruteId, string $sidePrefix, int $overrideHp): array
+{
+    $team = build_team($bruteId, $sidePrefix);
+    $masterSlot = $sidePrefix . '0';
+    if (isset($team[$masterSlot])) {
+        $team[$masterSlot]['hp'] = max(1, min($overrideHp, $team[$masterSlot]['hp_max']));
     }
     return $team;
 }
@@ -664,6 +673,7 @@ function run_combat_loop(array $combatants): array
         'event'     => 'end',
         'winner_id' => $winner['id'],
         'winner'    => $winner['name'],
+        'winner_hp' => $winner['hp'],
     ];
 
     return [

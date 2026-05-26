@@ -46,7 +46,7 @@ function nav_active(string $page, string $current): string {
 ?>
 <div class="nav-overlay"></div>
 
-<aside class="nav-drawer" aria-label="Menu principal">
+<aside class="nav-drawer" aria-label="Menu principal" hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML">
     <div class="nav-drawer-header">
         <a href="dashboard.php" class="brand">
             <img src="../assets/svg/logo/logo.svg" alt="ArenaForge" class="brand-logo" style="height:34px">
@@ -76,6 +76,9 @@ function nav_active(string $page, string $current): string {
             </a></li>
             <li><a href="boss.php" class="<?= nav_active('boss', $cp) ?>">
                 <img src="../assets/svg/skills/rage.svg" alt=""> Antre du Boss
+            </a></li>
+            <li><a href="dungeon.php" class="<?= nav_active('dungeon', $cp) ?>">
+                <img src="../assets/svg/ui/scroll.svg" alt=""> Les Donjons
             </a></li>
             <li><a href="challenges.php" class="<?= nav_active('challenges', $cp) ?>">
                 <img src="../assets/svg/weapons/sword.svg" alt=""> Salle des Défis
@@ -114,11 +117,17 @@ function nav_active(string $page, string $current): string {
             <li><a href="titles.php" class="<?= nav_active('titles', $cp) ?>">
                 <img src="../assets/svg/quests/crown.svg" alt=""> Titres de Gloire
             </a></li>
+            <li><a href="skills.php" class="<?= nav_active('skills', $cp) ?>">
+                <img src="../assets/svg/skills/strength.svg" alt=""> Compétences
+            </a></li>
             <li><a href="codex.php" class="<?= nav_active('codex', $cp) ?>">
                 <img src="../assets/svg/ui/scroll.svg" alt=""> Codex Ancien
             </a></li>
             <li><a href="ranking.php" class="<?= nav_active('ranking', $cp) ?>">
                 <img src="../assets/svg/ui/nav_ranking.svg" alt=""> Panthéon
+            </a></li>
+            <li><a href="hof.php" class="<?= nav_active('hof', $cp) ?>">
+                <img src="../assets/svg/ui/trophy.svg" alt=""> Hall of Fame
             </a></li>
         </ul>
     </div>
@@ -160,7 +169,7 @@ function nav_active(string $page, string $current): string {
         <button class="nav-help-btn" onclick="if(window.arenaforgeTutorial) window.arenaforgeTutorial.restart();">
             <img src="../assets/svg/ui/nav_settings.svg" alt=""> Aide / Tutoriel
         </button>
-        <a href="logout.php" class="logout">
+        <a href="logout.php" class="logout" hx-boost="false">
             <img src="../assets/svg/ui/nav_settings.svg" alt=""> Déconnexion
         </a>
     </div>
@@ -186,6 +195,12 @@ function nav_active(string $page, string $current): string {
                 <?php if ($navInboxCount > 0): ?><span class="nav-badge"><?= $navInboxCount ?></span><?php endif; ?>
             </a>
         <?php endif; ?>
+        <button id="chat-btn" class="chat-btn" aria-label="Chat global" aria-expanded="false" title="Chat de l'arène">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+            </svg>
+            <span class="chat-new-badge" id="chat-new-badge" hidden>•</span>
+        </button>
         <?php if ($navBrute): ?>
         <button id="notif-btn" class="notif-btn" aria-label="Notifications" aria-expanded="false" title="Centre de notifications">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -198,7 +213,77 @@ function nav_active(string $page, string $current): string {
 </nav>
 
 <script src="../assets/js/sfx.js" defer></script>
+<script src="../assets/js/music.js" defer></script>
 <script src="../assets/js/toast.js" defer></script>
+<script src="../assets/js/chat.js" defer></script>
+<script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+<script>
+// PWA — injection manifest + theme-color + enregistrement service worker
+(function () {
+    var head = document.head;
+    if (!head.querySelector('link[rel="manifest"]')) {
+        var lnk = document.createElement('link');
+        lnk.rel  = 'manifest';
+        lnk.href = 'manifest.json';
+        head.appendChild(lnk);
+    }
+    if (!head.querySelector('meta[name="theme-color"]')) {
+        var mc = document.createElement('meta');
+        mc.name    = 'theme-color';
+        mc.content = '#0f0a07';
+        head.appendChild(mc);
+    }
+    if (!head.querySelector('meta[name="mobile-web-app-capable"]')) {
+        var mw = document.createElement('meta');
+        mw.name    = 'mobile-web-app-capable';
+        mw.content = 'yes';
+        head.appendChild(mw);
+        var mwa = document.createElement('meta');
+        mwa.name    = 'apple-mobile-web-app-capable';
+        mwa.content = 'yes';
+        head.appendChild(mwa);
+    }
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+})();
+</script>
+<div id="htmx-bar" class="htmx-loading-bar" aria-hidden="true"></div>
+<script>
+// Navigation HTMX programmatique — remplace window.location.href pour garder l'AudioContext vivant
+window.arenaNavigate = function (url) {
+    if (window.htmx) {
+        history.pushState(null, '', url);
+        htmx.ajax('GET', url, { target: 'main', swap: 'outerHTML', select: 'main' });
+    } else {
+        window.location.href = url;
+    }
+};
+
+document.addEventListener('htmx:beforeRequest', function () {
+    var bar = document.getElementById('htmx-bar');
+    if (bar) bar.classList.add('htmx-loading--active');
+});
+document.addEventListener('htmx:afterSwap', function () {
+    var bar = document.getElementById('htmx-bar');
+    if (bar) bar.classList.remove('htmx-loading--active');
+    // Met à jour la classe body depuis data-body-class du nouveau <main>
+    var main = document.querySelector('main');
+    var pageClass = main ? (main.dataset.bodyClass || '') : '';
+    document.body.classList.remove('fight-page', 'boss-page');
+    if (pageClass) document.body.classList.add(pageClass);
+    // Met à jour le lien actif dans le drawer
+    var page = window.location.pathname.split('/').pop().replace(/\.php$/, '') || 'index';
+    document.querySelectorAll('.nav-drawer a[href]').forEach(function (a) {
+        var ap = a.getAttribute('href').split('/').pop().replace(/\?.*$/, '').replace(/\.php$/, '');
+        a.classList.toggle('nav-active', ap === page);
+    });
+    // Informe le système de musique du changement de page
+    if (window.MUSIC && typeof window.MUSIC.pageChanged === 'function') {
+        window.MUSIC.pageChanged();
+    }
+});
+</script>
 <script>
 (function() {
     const toggle  = document.getElementById('nav-toggle');
@@ -320,3 +405,34 @@ window.addEventListener('DOMContentLoaded', () => {
 </aside>
 <script src="../assets/js/notifications.js" defer></script>
 <?php endif; ?>
+
+<!-- ============ CHAT GLOBAL ============ -->
+<div id="chat-overlay" class="chat-overlay" aria-hidden="true"></div>
+<aside id="chat-panel" class="chat-panel" aria-label="Chat de l'arène" aria-hidden="true">
+    <div class="chat-panel-head">
+        <span class="chat-panel-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+            </svg>
+            Chat de l'arène
+        </span>
+        <button class="chat-panel-close" id="chat-close" aria-label="Fermer le chat">✕</button>
+    </div>
+    <div class="chat-body" id="chat-body"></div>
+    <?php if ($navBrute): ?>
+    <form id="chat-form" class="chat-form" autocomplete="off">
+        <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+        <input id="chat-input" class="chat-input" type="text"
+               placeholder="Ton message…" maxlength="200" autocomplete="off">
+        <button type="submit" class="chat-send" aria-label="Envoyer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+        </button>
+    </form>
+    <?php else: ?>
+    <p class="chat-guest">
+        <a href="index.php">Connecte-toi</a> pour participer au chat.
+    </p>
+    <?php endif; ?>
+</aside>

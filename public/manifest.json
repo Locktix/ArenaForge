@@ -1,0 +1,27 @@
+{
+  "name": "ArenaForge",
+  "short_name": "ArenaForge",
+  "description": "Le jeu de gladiateurs navigateur — forge ton champion, domine l'arène.",
+  "start_url": "./dashboard.php",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f0a07",
+  "theme_color": "#0f0a07",
+  "icons": [
+    {
+      "src": "../assets/svg/logo/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/svg/logo/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "fr"
+}

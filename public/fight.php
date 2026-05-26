@@ -33,7 +33,7 @@ $myBruteId = $me ? (int)$me['id'] : 0;
 $amInFight  = $myBruteId !== 0 && ((int)$f['brute1_id'] === $myBruteId || (int)$f['brute2_id'] === $myBruteId);
 $iLost      = $amInFight && (int)$f['winner_id'] !== $myBruteId && $f['winner_id'] !== null;
 $canRematch = $iLost
-    && ((string)($f['context'] ?? '')) !== 'boss'
+    && !in_array((string)($f['context'] ?? ''), ['boss', 'dungeon'], true)
     && (int)$f['brute1_id'] !== (int)$f['brute2_id'];
 $opponentName = '';
 if ($canRematch) {
@@ -43,8 +43,9 @@ if ($canRematch) {
 // Cas particulier du combat de boss : `brutes` n'a pas de ligne pour le boss,
 // donc brute2_id == brute1_id. On extrait le nom et l'apparence côté droit
 // depuis l'event `start` du log.
-$isBossFight = ((string)($f['context'] ?? '')) === 'boss';
-if ($isBossFight) {
+$isBossFight    = ((string)($f['context'] ?? '')) === 'boss';
+$isDungeonFight = ((string)($f['context'] ?? '')) === 'dungeon';
+if ($isBossFight || $isDungeonFight) {
     foreach ($log as $ev) {
         if (($ev['event'] ?? '') === 'start' && isset($ev['teams']['R']['master'])) {
             $rm = $ev['teams']['R']['master'];
@@ -72,7 +73,7 @@ if ($isBossFight) {
 <body class="fight-page">
 <?php include __DIR__ . '/_nav.php'; ?>
 
-<main class="wrap">
+<main class="wrap" data-body-class="fight-page">
     <section class="card arena-card">
         <div class="weather-banner-row">
             <span id="weather-banner" class="weather-banner" style="display:none"></span>
@@ -90,12 +91,30 @@ if ($isBossFight) {
             </div>
             <div class="fighter fighter-right" id="fighter2" data-slot="R0">
                 <div class="name-tag"><?= h($f['n2']) ?></div>
-                <?php if (!$isBossFight && ($f['t2'] ?? '')): ?>
+                <?php if (!$isBossFight && !$isDungeonFight && ($f['t2'] ?? '')): ?>
                     <div class="fight-title"><?= title_chip_html($f['t2']) ?></div>
                 <?php endif; ?>
                 <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
-                <?php $appearance = json_decode((string)$f['a2'], true) ?: []; ?>
+                <?php
+                $appearance2 = json_decode((string)$f['a2'], true) ?: [];
+                $isMonstersprite = $isDungeonFight && !empty($appearance2['monster']);
+                ?>
+                <?php if ($isMonstersprite):
+                    $dungeonCode = (string)($appearance2['dungeon_code'] ?? 'crypte');
+                    $monsterFile = match($dungeonCode) {
+                        'forteresse' => 'blackknight',
+                        'abisse'     => 'demon',
+                        default      => 'skeleton',
+                    };
+                ?>
+                <div class="sprite flip monster-sprite monster-sprite--<?= h($dungeonCode) ?>">
+                    <img src="../assets/svg/monsters/<?= h($monsterFile) ?>.svg"
+                         alt="<?= h($f['n2']) ?>" class="monster-img">
+                </div>
+                <?php else: ?>
+                <?php $appearance = $appearance2; ?>
                 <div class="sprite flip"><?php include __DIR__ . '/_gladiator.php'; ?></div>
+                <?php endif; ?>
             </div>
             <div class="pet-container pet-left" id="pet-left"></div>
             <div class="pet-container pet-right" id="pet-right"></div>
@@ -112,69 +131,94 @@ if ($isBossFight) {
                 <button class="speed-btn" data-speed="2" type="button">2×</button>
                 <button class="speed-btn" data-speed="4" type="button">4×</button>
             </div>
-            <button class="btn btn-ghost" id="log-toggle-btn" type="button">📋 Logs</button>
-            <button class="btn btn-ghost" id="skip-btn" type="button">Aller au résultat</button>
-            <button class="btn btn-secondary" id="replay-btn">Rejouer</button>
-            <?php if ($canRematch): ?>
-                <form id="rematch-form" class="rematch-inline">
-                    <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
-                    <input type="hidden" name="brute_id" value="<?= $myBruteId ?>">
-                    <input type="hidden" name="target_name" value="<?= h($opponentName) ?>">
-                    <input type="hidden" name="message" value="Revanche !">
-                    <button type="submit" class="btn btn-primary">⚔ Revanche contre <?= h($opponentName) ?></button>
-                </form>
+            <?php if ($isDungeonFight && $amInFight): ?>
+                <?php /* skip-btn reste dans le DOM (caché) — fight.js le cible par ID */?>
+                <button class="btn btn-ghost" id="skip-btn" type="button" style="display:none" aria-hidden="true">skip</button>
+                <button class="btn btn-primary" id="dungeon-suivant" type="button">Suivant →</button>
+            <?php else: ?>
+                <button class="btn btn-ghost" id="log-toggle-btn" type="button">📋 Logs</button>
+                <button class="btn btn-ghost" id="skip-btn" type="button">Aller au résultat</button>
+                <button class="btn btn-secondary" id="replay-btn">Rejouer</button>
+                <?php if ($canRematch): ?>
+                    <form id="rematch-form" class="rematch-inline">
+                        <input type="hidden" name="csrf" value="<?= h(csrf_token()) ?>">
+                        <input type="hidden" name="brute_id" value="<?= $myBruteId ?>">
+                        <input type="hidden" name="target_name" value="<?= h($opponentName) ?>">
+                        <input type="hidden" name="message" value="Revanche !">
+                        <button type="submit" class="btn btn-primary">⚔ Revanche contre <?= h($opponentName) ?></button>
+                    </form>
+                <?php endif; ?>
+                <a class="btn btn-ghost" href="brute.php?id=<?= (int)($amInFight ? $myBruteId : $f['brute1_id']) ?>">Retour au gladiateur</a>
             <?php endif; ?>
-            <a class="btn btn-ghost" href="brute.php?id=<?= (int)($amInFight ? $myBruteId : $f['brute1_id']) ?>">Retour au gladiateur</a>
         </div>
     </section>
-</main>
 
-<script>
-window.FIGHT = {
-    id: <?= (int)$f['id'] ?>,
-    hp1Max: <?= (int)$f['hp1'] ?>,
-    hp2Max: <?= (int)$f['hp2'] ?>,
-    n1: <?= json_encode($f['n1']) ?>,
-    n2: <?= json_encode($f['n2']) ?>,
-    winnerId: <?= (int)$f['winner_id'] ?>,
-    brute1Id: <?= (int)$f['brute1_id'] ?>,
-    brute2Id: <?= (int)$f['brute2_id'] ?>,
-    log: <?= json_encode($log, JSON_UNESCAPED_UNICODE) ?>
-};
-</script>
-<script src="../assets/js/fight.js"></script>
-<script>
-(function () {
-    const form = document.getElementById('rematch-form');
-    if (!form) return;
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = form.querySelector('button[type=submit]');
-        const original = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Envoi…';
-        try {
-            const res = await fetch('../api/challenge_send.php', { method: 'POST', body: new FormData(form) });
-            const data = await res.json();
-            if (data.ok) {
-                btn.textContent = '✓ Défi envoyé';
-                if (window.Toast) {
-                    window.Toast.queue([{ title: 'Revanche envoyée', description: 'En attente d\'acceptation', icon_path: 'assets/svg/weapons/sword.svg' }]);
-                }
-                setTimeout(() => { window.location.href = 'challenges.php?tab=sent'; }, 800);
+    <script>
+    window.FIGHT = {
+        id: <?= (int)$f['id'] ?>,
+        hp1Max: <?= (int)$f['hp1'] ?>,
+        hp2Max: <?= (int)$f['hp2'] ?>,
+        n1: <?= json_encode($f['n1']) ?>,
+        n2: <?= json_encode($f['n2']) ?>,
+        winnerId: <?= (int)$f['winner_id'] ?>,
+        brute1Id: <?= (int)$f['brute1_id'] ?>,
+        brute2Id: <?= (int)$f['brute2_id'] ?>,
+        log: <?= json_encode($log, JSON_UNESCAPED_UNICODE) ?>
+    };
+    </script>
+    <script src="../assets/js/fight.js"></script>
+    <?php if ($isDungeonFight && $amInFight): ?>
+    <script>
+    (function () {
+        const btn     = document.getElementById('dungeon-suivant');
+        const skipBtn = document.getElementById('skip-btn');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            const fightDone = skipBtn && skipBtn.disabled;
+            if (!fightDone) {
+                if (skipBtn) skipBtn.click();   // fast-forward l'animation
+                btn.textContent = 'Continuer →';
             } else {
+                (window.arenaNavigate || function (u) { window.location.href = u; })('dungeon.php');
+            }
+        });
+    })();
+    </script>
+    <?php endif; ?>
+    <script>
+    (function () {
+        const form = document.getElementById('rematch-form');
+        if (!form) return;
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button[type=submit]');
+            const original = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Envoi…';
+            try {
+                const res = await fetch('../api/challenge_send.php', { method: 'POST', body: new FormData(form) });
+                const data = await res.json();
+                if (data.ok) {
+                    btn.textContent = '✓ Défi envoyé';
+                    if (window.Toast) {
+                        window.Toast.queue([{ title: 'Revanche envoyée', description: 'En attente d\'acceptation', icon_path: 'assets/svg/weapons/sword.svg' }]);
+                    }
+                    setTimeout(() => { window.location.href = 'challenges.php?tab=sent'; }, 800);
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                    if (window.Toast) {
+                        window.Toast.queue([{ title: 'Refusée', description: data.error || 'Erreur', icon_path: 'assets/svg/ui/nav_settings.svg' }]);
+                    }
+                }
+            } catch (err) {
                 btn.disabled = false;
                 btn.textContent = original;
-                if (window.Toast) {
-                    window.Toast.queue([{ title: 'Refusée', description: data.error || 'Erreur', icon_path: 'assets/svg/ui/nav_settings.svg' }]);
-                }
             }
-        } catch (err) {
-            btn.disabled = false;
-            btn.textContent = original;
-        }
-    });
-})();
-</script>
+        });
+    })();
+    </script>
+</main>
+
 </body>
 </html>

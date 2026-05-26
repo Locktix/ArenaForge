@@ -56,15 +56,6 @@ try {
         }
         $pdo->prepare('INSERT IGNORE INTO brute_weapons (brute_id, weapon_id) VALUES (?, ?)')
             ->execute([$bruteId, $wid]);
-    } elseif ($type === 'skill') {
-        $sid = (int)$key;
-        $chk = $pdo->prepare('SELECT 1 FROM skills WHERE id = ? LIMIT 1');
-        $chk->execute([$sid]);
-        if (!$chk->fetchColumn()) {
-            throw new RuntimeException('Compétence invalide');
-        }
-        $pdo->prepare('INSERT IGNORE INTO brute_skills (brute_id, skill_id) VALUES (?, ?)')
-            ->execute([$bruteId, $sid]);
     } elseif ($type === 'pet') {
         $pid = (int)$key;
         $chk = $pdo->prepare('SELECT 1 FROM pets WHERE id = ? LIMIT 1');
@@ -84,7 +75,7 @@ try {
         throw new RuntimeException('Type de bonus inconnu');
     }
 
-    $pdo->prepare('UPDATE brutes SET pending_levelup = 0, levelup_choices = NULL WHERE id = ?')->execute([$bruteId]);
+    $pdo->prepare('UPDATE brutes SET pending_levelup = 0, levelup_choices = NULL, skill_points = skill_points + 1 WHERE id = ?')->execute([$bruteId]);
     $pdo->commit();
 
     $newAchievements = check_achievements_collection($bruteId);

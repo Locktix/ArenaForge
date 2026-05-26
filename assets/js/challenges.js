@@ -8,7 +8,7 @@ async function postFormData(form, endpoint) {
         const data = await res.json();
         if (data.ok) {
             if (data.redirect) {
-                window.location.href = data.redirect;
+                (window.arenaNavigate || (u => { window.location.href = u; }))(data.redirect);
             } else {
                 window.location.reload();
             }
