@@ -6861,10 +6861,14 @@ a.notif-item:hover,
     margin: 0 auto 4px;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
-.skill-profile-actions {
+.section-header-row {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 12px;
+}
+.section-header-row h2 {
+    margin: 0;
 }
 
 /* ---- Skill points reminder (battle section) ---- */

@@ -111,4 +111,5 @@ function auto_apply_levelup(PDO $pdo, int $bruteId, int $count = 1): void
         $val = $pool[$key];
         $pdo->prepare("UPDATE brutes SET `{$key}` = `{$key}` + ? WHERE id = ?")->execute([$val, $bruteId]);
     }
+    $pdo->prepare("UPDATE brutes SET skill_points = skill_points + ? WHERE id = ?")->execute([$count, $bruteId]);
 }

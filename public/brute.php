@@ -338,7 +338,12 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     <?php endif; ?>
 
     <section class="card">
-        <h2>⚔ Arsenal</h2>
+        <div class="section-header-row">
+            <h2>⚔ Arsenal</h2>
+            <?php if ($isOwner): ?>
+                <a href="shop.php" class="btn btn-sm btn-ghost">Vers la shop →</a>
+            <?php endif; ?>
+        </div>
         <div class="icon-grid">
             <?php foreach ($weapons as $w):
                 $wRarity = $w['rarity'] ?? 'commun';
@@ -353,16 +358,16 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
     </section>
 
     <section class="card">
-        <h2>✦ Compétences</h2>
-        <?php if ($isOwner): ?>
-            <div class="skill-profile-actions">
+        <div class="section-header-row">
+            <h2>✦ Compétences</h2>
+            <?php if ($isOwner): ?>
                 <?php if ($skillPoints > 0): ?>
                     <a href="skills.php" class="btn btn-sm btn-secondary">✨ <?= $skillPoints ?> point<?= $skillPoints !== 1 ? 's' : '' ?> à dépenser</a>
                 <?php else: ?>
                     <a href="skills.php" class="btn btn-sm btn-ghost">Gérer l'arbre →</a>
                 <?php endif; ?>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
         <?php if (empty($unlockedNodes)): ?>
             <p class="muted">Aucun nœud débloqué<?php if ($isOwner): ?> — <a href="skills.php">ouvrir l'arbre →</a><?php endif; ?>.</p>
         <?php else: ?>
