@@ -250,9 +250,9 @@ function get_codex_for_brute(int $bruteId): array
         $usage[$row['item_type']][(int)$row['item_id']] = (int)$row['use_count'];
     }
 
-    $weapons = $pdo->query('SELECT id, name, icon_path, rarity FROM weapons ORDER BY id')->fetchAll();
-    $skills  = $pdo->query('SELECT id, name, description, icon_path FROM skills ORDER BY id')->fetchAll();
-    $pets    = $pdo->query('SELECT id, name, description, icon_path FROM pets ORDER BY id')->fetchAll();
+    $weapons = $pdo->query("SELECT id, name, icon_path, rarity FROM weapons ORDER BY FIELD(rarity,'commun','rare','epique'), id")->fetchAll();
+    $skills  = $pdo->query("SELECT id, name, description, icon_path, rarity FROM skills ORDER BY FIELD(rarity,'commun','rare','epique'), id")->fetchAll();
+    $pets    = $pdo->query("SELECT id, name, description, icon_path, rarity FROM pets ORDER BY FIELD(rarity,'commun','rare','epique'), id")->fetchAll();
 
     return [
         'weapons' => array_map(fn($w) => array_merge($w, [

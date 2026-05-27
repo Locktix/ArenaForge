@@ -135,7 +135,8 @@ CREATE TABLE skills (
   description VARCHAR(255) NOT NULL,
   effect_type VARCHAR(32) NOT NULL,
   effect_value INT NOT NULL DEFAULT 0,
-  icon_path VARCHAR(128) NOT NULL
+  icon_path VARCHAR(128) NOT NULL,
+  rarity ENUM('commun','rare','epique') NOT NULL DEFAULT 'commun'
 ) ENGINE=InnoDB;
 
 CREATE TABLE brute_skills (
@@ -189,7 +190,9 @@ CREATE TABLE pets (
   damage_max INT UNSIGNED NOT NULL,
   agility INT UNSIGNED NOT NULL,
   description VARCHAR(255) NOT NULL,
-  icon_path VARCHAR(128) NOT NULL
+  icon_path VARCHAR(128) NOT NULL,
+  rarity ENUM('commun','rare','epique') NOT NULL DEFAULT 'commun',
+  evolves_from INT UNSIGNED NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE brute_pets (
@@ -397,24 +400,28 @@ INSERT INTO weapons (name, damage_min, damage_max, speed, crit_chance, defense_b
 -- ============================================================
 -- Données de base : compétences
 -- ============================================================
-INSERT INTO skills (name, description, effect_type, effect_value, icon_path) VALUES
-  ('Force brute',    '+15% aux degats infliges',                 'dmg_bonus_pct',  15, 'assets/svg/skills/strength.svg'),
-  ('Esquive',        '+10% de chance d''esquiver une attaque',   'dodge_pct',      10, 'assets/svg/skills/dodge.svg'),
-  ('Contre-attaque', '20% de chance de riposter apres esquive',  'counter_pct',    20, 'assets/svg/skills/counter.svg'),
-  ('Regeneration',   'Regagne 2 PV par tour',                    'regen_flat',      2, 'assets/svg/skills/regen.svg'),
-  ('Coup critique',  '+10% de chance de coup critique',          'crit_bonus_pct', 10, 'assets/svg/skills/crit.svg'),
-  ('Armure',         'Reduit les degats subis de 2',             'armor_flat',      2, 'assets/svg/skills/armor.svg'),
-  ('Rage',           '+20% de degats sous 30% PV',               'rage_pct',       20, 'assets/svg/skills/rage.svg'),
-  ('Vol de vie',     'Recupere 25% des degats infliges',         'lifesteal_pct',  25, 'assets/svg/skills/lifesteal.svg');
+INSERT INTO skills (name, description, effect_type, effect_value, icon_path, rarity) VALUES
+  ('Force brute',    '+15% aux degats infliges',                 'dmg_bonus_pct',  15, 'assets/svg/skills/strength.svg', 'commun'),
+  ('Esquive',        '+10% de chance d''esquiver une attaque',   'dodge_pct',      10, 'assets/svg/skills/dodge.svg',    'commun'),
+  ('Contre-attaque', '20% de chance de riposter apres esquive',  'counter_pct',    20, 'assets/svg/skills/counter.svg',  'commun'),
+  ('Regeneration',   'Regagne 2 PV par tour',                    'regen_flat',      2, 'assets/svg/skills/regen.svg',    'commun'),
+  ('Coup critique',  '+10% de chance de coup critique',          'crit_bonus_pct', 10, 'assets/svg/skills/crit.svg',     'rare'),
+  ('Armure',         'Reduit les degats subis de 2',             'armor_flat',      2, 'assets/svg/skills/armor.svg',    'commun'),
+  ('Rage',           '+20% de degats sous 30% PV',               'rage_pct',       20, 'assets/svg/skills/rage.svg',     'rare'),
+  ('Vol de vie',     'Recupere 25% des degats infliges',         'lifesteal_pct',  25, 'assets/svg/skills/lifesteal.svg','epique');
 
 -- ============================================================
 -- Données de base : animaux
 -- ============================================================
-INSERT INTO pets (name, species, hp_max, damage_min, damage_max, agility, description, icon_path) VALUES
-  ('Chien',    'dog',     20,  2,  4, 6, 'Compagnon fidele, rapide mais fragile.',          'assets/svg/pets/dog.svg'),
-  ('Loup',     'wolf',    32,  4,  7, 7, 'Predateur agile, parfait equilibre.',             'assets/svg/pets/wolf.svg'),
-  ('Panthere', 'panther', 26,  5,  9, 9, 'Tres rapide, attaques surprises frequentes.',     'assets/svg/pets/panther.svg'),
-  ('Ours',     'bear',    55,  7, 12, 3, 'Lent mais terriblement resistant et puissant.',   'assets/svg/pets/bear.svg');
+INSERT INTO pets (name, species, hp_max, damage_min, damage_max, agility, description, icon_path, rarity, evolves_from) VALUES
+  ('Chien',      'dog',     20,  2,  4,  6, 'Compagnon fidele, rapide mais fragile.',              'assets/svg/pets/dog.svg',        'commun', NULL),
+  ('Loup',       'wolf',    32,  4,  7,  7, 'Predateur agile, parfait equilibre.',                 'assets/svg/pets/wolf.svg',       'commun', NULL),
+  ('Panthere',   'panther', 26,  5,  9,  9, 'Tres rapide, attaques surprises frequentes.',         'assets/svg/pets/panther.svg',    'commun', NULL),
+  ('Ours',       'bear',    55,  7, 12,  3, 'Lent mais terriblement resistant et puissant.',       'assets/svg/pets/bear.svg',       'commun', NULL),
+  ('Molosse',    'dog',     42,  6, 10,  6, 'Chien de guerre imposant, morsure devastatrice.',     'assets/svg/pets/molosse.svg',    'rare',   1),
+  ('Loup Alpha', 'wolf',    55,  8, 13,  8, 'Chef de meute, instinct aiguise et force brutale.',   'assets/svg/pets/wolf_alpha.svg', 'rare',   2),
+  ('Sphinx',     'panther', 46, 11, 17, 10, 'Creature mythique, vitesse et puissance legendaires.','assets/svg/pets/sphinx.svg',     'rare',   3),
+  ('Ours-Roi',   'bear',    90, 14, 21,  4, 'Titan des forets, aucune armure ne lui resiste.',     'assets/svg/pets/bear_king.svg',  'rare',   4);
 
 -- ============================================================
 -- Données de base : quêtes

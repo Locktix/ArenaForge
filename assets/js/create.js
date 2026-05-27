@@ -1,5 +1,14 @@
 // Création de gladiateur
 
+document.querySelectorAll('.create-pet-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+        document.querySelectorAll('.create-pet-card').forEach(function (c) {
+            c.classList.remove('create-pet-card--selected');
+        });
+        card.classList.add('create-pet-card--selected');
+    });
+});
+
 const form = document.getElementById('create-form');
 if (form) {
     const msg = form.querySelector('[data-msg]');

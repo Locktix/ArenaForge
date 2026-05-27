@@ -342,24 +342,23 @@ function claim_quest(int $bruteId, string $code): array
         ')->execute([$bruteId, $code]);
 
         // Gain XP + level-up éventuel + combats bonus
-        $stmt = $pdo->prepare('SELECT xp, level, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
         $stmt->execute([$bruteId]);
         $b = $stmt->fetch();
 
         $newXp    = (int)$b['xp'] + $reward;
         $newLevel = (int)$b['level'];
-        $levelUp  = (int)$b['pending_levelup'] === 1;
-        while ($newXp >= xp_for_level($newLevel + 1)) {
-            $newLevel++;
-            $levelUp = true;
-        }
+        $levelUps = 0;
+        while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+        $levelUp = $levelUps > 0;
 
         $pdo->prepare('
             UPDATE brutes
-            SET xp = ?, level = ?, pending_levelup = ?,
+            SET xp = ?, level = ?,
                 bonus_fights_available = bonus_fights_available + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bonusFights, $bruteId]);
+        ')->execute([$newXp, $newLevel, $bonusFights, $bruteId]);
+        if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
 
         $pdo->commit();
         return [
@@ -412,24 +411,23 @@ function claim_weekly_quest(int $bruteId, string $code): array
         $pdo->prepare('UPDATE brute_weekly_quests SET claimed = 1 WHERE brute_id = ? AND quest_code = ? AND quest_week = ?')
             ->execute([$bruteId, $code, $monday]);
 
-        $stmt = $pdo->prepare('SELECT xp, level, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
         $stmt->execute([$bruteId]);
         $b = $stmt->fetch();
 
         $newXp    = (int)$b['xp'] + $reward;
         $newLevel = (int)$b['level'];
-        $levelUp  = (int)$b['pending_levelup'] === 1;
-        while ($newXp >= xp_for_level($newLevel + 1)) {
-            $newLevel++;
-            $levelUp = true;
-        }
+        $levelUps = 0;
+        while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+        $levelUp = $levelUps > 0;
 
         $pdo->prepare('
             UPDATE brutes
-            SET xp = ?, level = ?, pending_levelup = ?,
+            SET xp = ?, level = ?,
                 bonus_fights_available = bonus_fights_available + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bonusFights, $bruteId]);
+        ')->execute([$newXp, $newLevel, $bonusFights, $bruteId]);
+        if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
 
         $pdo->commit();
         return [

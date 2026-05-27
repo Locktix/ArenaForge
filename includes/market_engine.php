@@ -146,14 +146,12 @@ function buy_market_offer(int $bruteId, int $offerId): array
             case 'xp': {
                 $newXp    = (int)$brute['xp'] + $value;
                 $newLevel = (int)$brute['level'];
-                $levelUp  = (int)$brute['pending_levelup'] === 1;
-                while ($newXp >= xp_for_level($newLevel + 1)) {
-                    $newLevel++;
-                    $levelUp = true;
-                }
-                $pdo->prepare('UPDATE brutes SET xp = ?, level = ?, pending_levelup = ? WHERE id = ?')
-                    ->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bruteId]);
-                $reward['level_up'] = $levelUp;
+                $levelUps = 0;
+                while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+                $pdo->prepare('UPDATE brutes SET xp = ?, level = ? WHERE id = ?')
+                    ->execute([$newXp, $newLevel, $bruteId]);
+                if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
+                $reward['level_up'] = $levelUps > 0;
                 break;
             }
 

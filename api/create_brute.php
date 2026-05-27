@@ -39,14 +39,28 @@ if (!empty($_POST['master_name'])) {
     }
 }
 
+$petId = (int)($_POST['pet_id'] ?? 0);
+if ($petId > 0) {
+    $stmt = db()->prepare("SELECT id FROM pets WHERE id = ? AND evolves_from IS NULL AND rarity = 'commun' LIMIT 1");
+    $stmt->execute([$petId]);
+    if (!$stmt->fetch()) {
+        echo json_encode(['ok' => false, 'error' => 'Compagnon invalide.']);
+        exit;
+    }
+}
+
 try {
-    $stmt = db()->prepare('SELECT id FROM brutes WHERE name = ? LIMIT 1');
+    $pdo = db();
+    $stmt = $pdo->prepare('SELECT id FROM brutes WHERE name = ? LIMIT 1');
     $stmt->execute([$name]);
     if ($stmt->fetch()) {
         echo json_encode(['ok' => false, 'error' => 'Ce nom est déjà pris']);
         exit;
     }
     $bruteId = create_brute($uid, $name, $masterId);
+    if ($petId > 0) {
+        $pdo->prepare('INSERT INTO brute_pets (brute_id, pet_id) VALUES (?, ?)')->execute([$bruteId, $petId]);
+    }
     echo json_encode(['ok' => true, 'brute_id' => $bruteId, 'redirect' => 'brute.php?id=' . $bruteId]);
 } catch (Throwable $e) {
     http_response_code(500);

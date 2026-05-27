@@ -136,8 +136,7 @@ $tab          = ($_GET['tab'] ?? 'daily') === 'weekly' ? 'weekly' : 'daily';
         </div>
     </section>
     <?php endif; ?>
-</main>
-
 <script src="../assets/js/quests.js"></script>
+</main>
 </body>
 </html>

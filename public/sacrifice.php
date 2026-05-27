@@ -190,8 +190,6 @@ function sacrifice_outcome_class(string $code): string {
         </div>
     </section>
     <?php endif; ?>
-</main>
-
 <!-- Modal de confirmation -->
 <div id="sacrifice-confirm" class="sacrifice-modal" hidden>
     <div class="sacrifice-modal-inner sacrifice-confirm-inner">
@@ -229,5 +227,6 @@ function sacrifice_outcome_class(string $code): string {
 </div>
 
 <script src="../assets/js/sacrifice.js"></script>
+</main>
 </body>
 </html>

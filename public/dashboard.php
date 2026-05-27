@@ -12,6 +12,9 @@ if ($brute) {
 }
 
 $prefilledMaster = (string)($_GET['master'] ?? '');
+
+// Pets de base uniquement (sans évolutions)
+$basePets = db()->query("SELECT id, name, description, icon_path FROM pets WHERE evolves_from IS NULL AND rarity = 'commun' ORDER BY id")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -34,12 +37,29 @@ $prefilledMaster = (string)($_GET['master'] ?? '');
             <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
             <label>Identité du Guerrier <input type="text" name="name" minlength="3" maxlength="20" pattern="[A-Za-z0-9_\-]+" placeholder="Ex: Maximus" required></label>
             <label>Lignage (Maître optionnel) <input type="text" name="master_name" maxlength="20" placeholder="Nom de votre mentor" value="<?= h($prefilledMaster) ?>"></label>
-            <button type="submit" class="btn btn-primary btn-large btn-hero" style="width: 100%;">FORGER MON DESTIN</button>
+
+            <?php if (!empty($basePets)): ?>
+            <div class="create-pet-section">
+                <p class="create-pet-label">Choisis ton compagnon</p>
+                <p class="muted small create-pet-hint">Il t'accompagnera dans l'arène. Fais confiance à ton instinct.</p>
+                <div class="create-pet-grid">
+                    <?php foreach ($basePets as $i => $p): ?>
+                    <label class="create-pet-card <?= $i === 0 ? 'create-pet-card--selected' : '' ?>">
+                        <input type="radio" name="pet_id" value="<?= (int)$p['id'] ?>" <?= $i === 0 ? 'checked' : '' ?> required>
+                        <img src="../<?= h($p['icon_path']) ?>" alt="<?= h($p['name']) ?>" class="create-pet-img">
+                        <strong class="create-pet-name"><?= h($p['name']) ?></strong>
+                        <p class="create-pet-desc muted small"><?= h($p['description']) ?></p>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <button type="submit" class="btn btn-primary btn-large btn-hero" style="width: 100%; margin-top: 8px;">FORGER MON DESTIN</button>
             <p class="form-msg" data-msg></p>
         </form>
     </section>
-</main>
-
 <script src="../assets/js/create.js"></script>
+</main>
 </body>
 </html>

@@ -87,18 +87,19 @@ if ($score >= 20) {
 // Calcul XP / level-up
 $newXp    = (int)$brute['xp'] + $xpGain;
 $newLevel = (int)$brute['level'];
-$levelUp  = false;
-while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUp = true; }
+$levelUps = 0;
+while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+$levelUp = $levelUps > 0;
 
 $pdo->prepare('
     UPDATE brutes
     SET xp = ?, level = ?,
-        pending_levelup = CASE WHEN ? = 1 THEN 1 ELSE pending_levelup END,
         bonus_fights_available = bonus_fights_available + ?,
         fragments = fragments + ?,
         minigame_claimed_at = NOW()
     WHERE id = ?
-')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bonusFight, $fragments, $bruteId]);
+')->execute([$newXp, $newLevel, $bonusFight, $fragments, $bruteId]);
+if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
 
 // Enregistrer le score dans le leaderboard global (toujours, même si hors cooldown)
 $pdo->prepare('INSERT INTO minigame_scores (brute_id, game, score) VALUES (?, "snake", ?)')

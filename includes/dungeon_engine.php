@@ -34,7 +34,7 @@ const DUNGEON_DEFS = [
         'icon'        => '🏰',
         'desc'        => 'Quatre salles gardées par des guerriers corrompus. Seuls les vétérans en sortent entiers.',
         'min_level'   => 5,
-        'entry_cost'  => 1,
+        'entry_cost'  => 25,  // coût en or
         'rooms'       => [
             ['name' => 'Portail de l\'Oubli',    'hp_pct' => 105, 'str_bonus' => 2, 'agi_bonus' => 1, 'armor' => 1, 'skill' => null,            'xp' => 4,  'gold' => 8,  'frags' => 4 ],
             ['name' => 'Forge du Damné',          'hp_pct' => 125, 'str_bonus' => 3, 'agi_bonus' => 2, 'armor' => 2, 'skill' => 'dmg_bonus_pct', 'xp' => 5,  'gold' => 12, 'frags' => 6 ],
@@ -48,7 +48,7 @@ const DUNGEON_DEFS = [
         'icon'        => '🌑',
         'desc'        => 'Cinq salles aux portes de l\'Enfer. Personne ne les a toutes traversées deux fois.',
         'min_level'   => 10,
-        'entry_cost'  => 2,
+        'entry_cost'  => 50,  // coût en or
         'rooms'       => [
             ['name' => 'Vestibule du Néant',     'hp_pct' => 115, 'str_bonus' => 3, 'agi_bonus' => 2, 'armor' => 2, 'skill' => null,            'xp' => 5,  'gold' => 10, 'frags' => 5 ],
             ['name' => 'Crypte des Anciens',     'hp_pct' => 140, 'str_bonus' => 4, 'agi_bonus' => 2, 'armor' => 2, 'skill' => 'dmg_bonus_pct', 'xp' => 7,  'gold' => 14, 'frags' => 7 ],
@@ -216,9 +216,6 @@ function dungeon_start(int $bruteId, string $code): array
     $brute = $stmt->fetch();
     if (!$brute) return ['ok' => false, 'error' => 'Gladiateur introuvable.'];
 
-    if ((int)$brute['pending_levelup'] === 1) {
-        return ['ok' => false, 'error' => 'Choisis ton bonus de niveau avant d\'entrer dans un donjon.'];
-    }
     if ((int)$brute['level'] < (int)$def['min_level']) {
         return ['ok' => false, 'error' => sprintf('Niveau %d requis pour ce donjon.', $def['min_level'])];
     }
@@ -239,13 +236,13 @@ function dungeon_start(int $bruteId, string $code): array
         return ['ok' => false, 'error' => 'Tu as déjà tenté ce donjon aujourd\'hui. Reviens demain.'];
     }
 
-    // Coût d'entrée
+    // Coût d'entrée (en or)
     $cost = (int)$def['entry_cost'];
     if ($cost > 0) {
-        if ((int)$brute['bonus_fights_available'] < $cost) {
-            return ['ok' => false, 'error' => sprintf('Il te faut %d combat(s) bonus pour entrer ici.', $cost)];
+        if ((int)$brute['gold'] < $cost) {
+            return ['ok' => false, 'error' => sprintf('Il te faut %d or pour entrer ici (tu en as %d).', $cost, (int)$brute['gold'])];
         }
-        $pdo->prepare('UPDATE brutes SET bonus_fights_available = bonus_fights_available - ? WHERE id = ?')
+        $pdo->prepare('UPDATE brutes SET gold = gold - ? WHERE id = ?')
             ->execute([$cost, $bruteId]);
     }
 
@@ -276,7 +273,7 @@ function dungeon_start(int $bruteId, string $code): array
         // Rollback de la run si le combat échoue
         $pdo->prepare('DELETE FROM dungeon_runs WHERE id = ?')->execute([$runId]);
         if ($cost > 0) {
-            $pdo->prepare('UPDATE brutes SET bonus_fights_available = bonus_fights_available + ? WHERE id = ?')
+            $pdo->prepare('UPDATE brutes SET gold = gold + ? WHERE id = ?')
                 ->execute([$cost, $bruteId]);
         }
         return ['ok' => false, 'error' => $fightResult['error']];
@@ -478,22 +475,22 @@ function dungeon_run_room_fight(int $bruteId, array $brute, int $currentHp, stri
 function dungeon_apply_loot(int $bruteId, int $xp, int $gold, int $frags): void
 {
     $pdo = db();
-    $stmt = $pdo->prepare('SELECT xp, level, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
     $stmt->execute([$bruteId]);
     $b = $stmt->fetch();
     if (!$b) return;
 
     $newXp    = (int)$b['xp'] + $xp;
     $newLevel = (int)$b['level'];
-    $levelUp  = (int)$b['pending_levelup'] === 1;
-    while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUp = true; }
+    $levelUps = 0;
+    while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
 
     $pdo->prepare('
         UPDATE brutes
         SET xp = ?, level = ?,
-            pending_levelup = CASE WHEN ? = 1 THEN 1 ELSE pending_levelup END,
             gold      = gold + ?,
             fragments = fragments + ?
         WHERE id = ?
-    ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $gold, $frags, $bruteId]);
+    ')->execute([$newXp, $newLevel, $gold, $frags, $bruteId]);
+    if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
 }

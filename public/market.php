@@ -85,8 +85,7 @@ function offer_label_type(string $t): string {
             la saison à un palier élevé.
         </p>
     </section>
-</main>
-
 <script src="../assets/js/market.js"></script>
+</main>
 </body>
 </html>

@@ -51,7 +51,7 @@
             const cost = parseInt(btn.dataset.cost || '0', 10);
 
             if (cost > 0) {
-                if (!confirm('Cette expédition coûte ' + cost + ' combat(s) bonus. Confirmer ?')) return;
+                if (!confirm('Cette expédition coûte ' + cost + ' or. Confirmer ?')) return;
             }
 
             const fd = new FormData();

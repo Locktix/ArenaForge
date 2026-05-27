@@ -107,8 +107,7 @@ $clans = list_clans(50);
             </div>
         <?php endif; ?>
     </section>
-</main>
-
 <script src="../assets/js/clan.js"></script>
+</main>
 </body>
 </html>

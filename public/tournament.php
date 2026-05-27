@@ -167,8 +167,7 @@ function render_tournament_section(array $t, array $entries, array $bracket, boo
     <?php else: ?>
         <?php render_tournament_section($daily, $dEntries, $dBracket, $dJoined, $dHuman, $myBrute, $csrf, 'daily'); ?>
     <?php endif; ?>
-</main>
-
 <script src="../assets/js/tournament.js"></script>
+</main>
 </body>
 </html>

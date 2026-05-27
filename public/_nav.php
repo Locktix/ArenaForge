@@ -147,6 +147,9 @@ function nav_active(string $page, string $current): string {
     <div class="nav-section">
         <span class="nav-section-label">⚖ Commerce</span>
         <ul>
+            <li><a href="shop.php" class="<?= nav_active('shop', $cp) ?>">
+                <img src="../assets/svg/weapons/sword.svg" alt=""> Armurerie Royale
+            </a></li>
             <li><a href="forge.php" class="<?= nav_active('forge', $cp) ?>">
                 <img src="../assets/svg/weapons/axe.svg" alt=""> La Forge Royale
             </a></li>

@@ -65,3 +65,68 @@ document.querySelectorAll('.levelup-form').forEach((f) => {
         postForm(f, '../api/level_up.php');
     });
 });
+
+const evolveBtn = document.querySelector('.pet-evolve-btn');
+if (evolveBtn) {
+    evolveBtn.addEventListener('click', () => {
+        if (!confirm('Évoluer ton compagnon pour 150 or ? L\'ancien sera remplacé définitivement.')) return;
+        evolveBtn.disabled = true;
+        evolveBtn.textContent = '⏳ Évolution…';
+        const fd = new FormData();
+        fd.append('csrf',   evolveBtn.dataset.csrf);
+        fd.append('pet_id', evolveBtn.dataset.petId);
+        fetch('../api/pet_evolve.php', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    if (window.Toast && data.toast) window.Toast.queue([data.toast]);
+                    (window.arenaNavigate || (u => { window.location.href = u; }))(data.redirect);
+                } else {
+                    evolveBtn.disabled = false;
+                    evolveBtn.textContent = '✨ Évoluer';
+                    alert(data.error || 'Erreur lors de l\'évolution.');
+                }
+            })
+            .catch(() => {
+                evolveBtn.disabled = false;
+                evolveBtn.textContent = '✨ Évoluer';
+                alert('Erreur réseau.');
+            });
+    });
+}
+
+const assignPetForm = document.getElementById('assign-pet-form');
+if (assignPetForm) {
+    assignPetForm.querySelectorAll('.create-pet-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+            assignPetForm.querySelectorAll('.create-pet-card').forEach(function (c) {
+                c.classList.remove('create-pet-card--selected');
+            });
+            card.classList.add('create-pet-card--selected');
+        });
+    });
+
+    const assignMsg = assignPetForm.querySelector('[data-assign-pet-msg]');
+    const assignBtn = assignPetForm.querySelector('button[type="submit"]');
+    assignPetForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        assignBtn.disabled = true;
+        assignBtn.textContent = '⏳';
+        fetch('../api/assign_pet.php', { method: 'POST', body: new FormData(assignPetForm) })
+            .then(r => r.json())
+            .then(function (data) {
+                if (data.ok) {
+                    (window.arenaNavigate || (u => { window.location.href = u; }))(data.redirect);
+                } else {
+                    assignBtn.disabled = false;
+                    assignBtn.textContent = 'Adopter ce compagnon';
+                    if (assignMsg) { assignMsg.className = 'form-msg error'; assignMsg.textContent = data.error || 'Erreur'; }
+                }
+            })
+            .catch(function () {
+                assignBtn.disabled = false;
+                assignBtn.textContent = 'Adopter ce compagnon';
+                if (assignMsg) { assignMsg.className = 'form-msg error'; assignMsg.textContent = 'Erreur réseau'; }
+            });
+    });
+}

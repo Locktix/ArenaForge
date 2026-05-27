@@ -23,7 +23,7 @@ function render_codex_section(string $type, array $items): void {
         $progress = $nextThreshold !== null
             ? min(100, (int)round(($count - ($thresholds[$tierCur - 1] ?? 0)) * 100 / max(1, $nextThreshold - ($thresholds[$tierCur - 1] ?? 0))))
             : 100;
-        $rarityClass = ($type === 'weapon' && isset($item['rarity'])) ? weapon_rarity_class($item['rarity']) : '';
+        $rarityClass = isset($item['rarity']) ? weapon_rarity_class($item['rarity']) : '';
 ?>
         <article class="codex-tile <?= $rarityClass ?>">
             <div class="codex-head">
@@ -31,7 +31,7 @@ function render_codex_section(string $type, array $items): void {
                 <div>
                     <h3>
                         <?= h($item['name']) ?>
-                        <?php if ($type === 'weapon' && isset($item['rarity'])): ?>
+                        <?php if (isset($item['rarity'])): ?>
                             <em class="rarity-badge"><?= weapon_rarity_label($item['rarity']) ?></em>
                         <?php endif; ?>
                     </h3>

@@ -6884,3 +6884,293 @@ a.notif-item:hover,
     text-decoration: underline;
     font-weight: 700;
 }
+
+/* ============================================================
+   Boutique — L'Armurerie Royale
+   ============================================================ */
+
+/* Hero */
+.shop-hero {
+    position: relative;
+    text-align: center;
+    padding: 56px 24px 40px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border-radius: 12px;
+}
+.shop-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(180,124,80,.22) 0%, transparent 70%),
+                linear-gradient(180deg, rgba(42,28,16,.9) 0%, var(--bg-2) 100%);
+    z-index: 0;
+}
+.shop-hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        repeating-linear-gradient(0deg,   transparent, transparent 39px, rgba(255,255,255,.015) 39px, rgba(255,255,255,.015) 40px),
+        repeating-linear-gradient(90deg,  transparent, transparent 39px, rgba(255,255,255,.015) 39px, rgba(255,255,255,.015) 40px);
+}
+.shop-hero-content { position: relative; z-index: 1; }
+.shop-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: var(--accent-3);
+    text-shadow: 0 0 40px rgba(240,193,112,.5), 0 2px 4px rgba(0,0,0,.8);
+    margin: 0 0 10px;
+    letter-spacing: .04em;
+}
+.shop-subtitle {
+    font-size: .95rem;
+    max-width: 480px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+}
+.shop-gold-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(42,28,12,.9), rgba(58,38,18,.9));
+    border: 1px solid var(--border-bright);
+    border-radius: 40px;
+    padding: 10px 22px;
+    box-shadow: 0 0 20px rgba(212,163,85,.25), var(--shadow);
+}
+.shop-gold-icon { width: 22px; height: 22px; }
+.shop-gold-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent-3);
+}
+.shop-gold-label { color: var(--muted); font-size: .85rem; }
+
+/* Section par rareté */
+.shop-section { margin-bottom: 40px; }
+.shop-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 0 4px;
+}
+.shop-section-icon {
+    font-size: 1.3rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    color: var(--rc, #8a93a0);
+    background: var(--rc-a, rgba(138,147,160,.14));
+    border: 1px solid var(--rc-b, rgba(138,147,160,.28));
+}
+.shop-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--rc, #8a93a0);
+    white-space: nowrap;
+    margin: 0;
+}
+.shop-section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--rc-b, rgba(138,147,160,.28)), transparent);
+}
+
+/* Grille de cartes */
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+/* Carte arme */
+.shop-card {
+    position: relative;
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+    cursor: default;
+}
+.shop-card:hover:not(.shop-card--owned):not(.shop-card--locked) {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,.55), 0 0 20px var(--rc-a, rgba(138,147,160,.14));
+    border-color: var(--rc, var(--border));
+}
+.shop-card-glow {
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 80%;
+    background: radial-gradient(ellipse, var(--rc-a, transparent) 0%, transparent 70%);
+    pointer-events: none;
+    transition: opacity .3s;
+}
+.shop-card:hover .shop-card-glow { opacity: 1.5; }
+
+/* Rareté : rare & épique ont une bordure lumineuse */
+.shop-card.rarity-rare   { border-color: rgba(95,168,232,.3); }
+.shop-card.rarity-epique { border-color: rgba(180,124,216,.35); }
+.shop-card.rarity-epique .shop-card-glow { opacity: .7; }
+.shop-card.rarity-epique .shop-card-icon {
+    filter: drop-shadow(0 0 8px rgba(180,124,216,.6));
+    animation: rarity-epic-pulse 3.5s ease-in-out infinite;
+}
+.shop-card.rarity-rare .shop-card-icon {
+    filter: drop-shadow(0 0 6px rgba(95,168,232,.5));
+}
+
+/* Carte possédée */
+.shop-card--owned {
+    opacity: .6;
+    border-color: rgba(63,125,59,.4);
+}
+.shop-card--owned .shop-card-icon { filter: brightness(.7) grayscale(.3); }
+
+/* Carte verrouillée */
+.shop-card--locked { opacity: .45; }
+.shop-card--locked .shop-card-icon { filter: grayscale(.8) brightness(.55); }
+
+/* Corps de la carte */
+.shop-card-body {
+    padding: 20px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+}
+.shop-card-icon-wrap { position: relative; display: inline-block; }
+.shop-card-icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    transition: transform .2s;
+}
+.shop-card:hover:not(.shop-card--owned):not(.shop-card--locked) .shop-card-icon {
+    transform: scale(1.08);
+}
+.shop-owned-badge {
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 22px; height: 22px;
+    background: var(--success-2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700; color: #fff;
+    border: 2px solid var(--panel);
+}
+.shop-locked-badge {
+    position: absolute;
+    top: -6px; right: -6px;
+    font-size: 1rem;
+    line-height: 1;
+}
+.shop-card-info { width: 100%; }
+.shop-card-name {
+    font-family: 'Cinzel', serif;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 4px;
+}
+.rarity-rare   .shop-card-name { color: #5fa8e8; }
+.rarity-epique .shop-card-name { color: #b47cd8; }
+.shop-card-stat { font-size: .8rem; margin: 0 0 2px; }
+.shop-card-req  { font-size: .75rem; margin: 0; }
+.shop-req--ok   { color: var(--success-2); }
+.shop-req--locked { color: var(--danger-2); }
+
+/* Footer de la carte */
+.shop-card-footer {
+    padding: 12px 14px 16px;
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.shop-price {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .95rem;
+    font-weight: 600;
+}
+.shop-price-coin { color: var(--accent-2); font-size: 1.1rem; }
+.shop-price-val  { color: var(--accent-3); font-family: 'Cinzel', serif; }
+.shop-price-unit { color: var(--muted); font-size: .8rem; }
+.shop-price--broke .shop-price-val { color: var(--danger-2); }
+
+.shop-buy-btn {
+    width: 100%;
+    font-size: .85rem;
+    padding: 8px 0;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    transition: background .15s, opacity .15s;
+}
+.shop-buy-btn--broke {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger-2);
+    cursor: not-allowed;
+}
+.shop-card-owned-msg {
+    font-size: .8rem;
+    color: var(--success-2);
+    font-weight: 600;
+}
+.shop-card-locked-msg {
+    font-size: .8rem;
+    color: var(--muted);
+}
+
+/* ── Pet creation cards ─────────────────────────────────────────── */
+.create-pet-section { margin-top: 20px; }
+.create-pet-label   { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+.create-pet-hint    { margin-bottom: 12px; }
+.create-pet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+}
+.create-pet-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 10px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+    text-align: center;
+}
+.create-pet-card input[type="radio"] { display: none; }
+.create-pet-card:hover {
+    border-color: var(--accent);
+    background: var(--card-hover, var(--card-bg));
+    transform: translateY(-2px);
+}
+.create-pet-card--selected {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--card-bg));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.create-pet-img  { width: 56px; height: 56px; object-fit: contain; }
+.create-pet-name { font-size: .9rem; font-weight: 700; }
+.create-pet-desc { font-size: .75rem; line-height: 1.3; }

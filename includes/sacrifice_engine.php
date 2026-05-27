@@ -150,9 +150,6 @@ function sacrifice_can_afford(array $brute, string $type): array
             if ((int)$brute['fragments'] < 100) {
                 return [false, 'Il te faut au moins 100 fragments.'];
             }
-            if ((int)$brute['pending_levelup'] === 1) {
-                return [false, 'Choisis d\'abord ton bonus de niveau.'];
-            }
             return [true, ''];
     }
     return [false, 'Sacrifice inconnu'];

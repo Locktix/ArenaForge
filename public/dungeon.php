@@ -144,7 +144,7 @@ foreach ($stmt->fetchAll() as $row) {
 <?php foreach (DUNGEON_DEFS as $code => $d):
     $locked      = (int)$me['level'] < (int)$d['min_level'];
     $hasCost     = (int)$d['entry_cost'] > 0;
-    $canAfford   = (int)$me['bonus_fights_available'] >= (int)$d['entry_cost'];
+    $canAfford   = (int)$me['gold'] >= (int)$d['entry_cost'];
     $doneToday   = ($todayAttempts[$code] ?? 0) > 0;
     $totalXp     = array_sum(array_column($d['rooms'], 'xp'))  + (int)$d['final_bonus']['xp'];
     $totalGold   = array_sum(array_column($d['rooms'], 'gold')) + (int)$d['final_bonus']['gold'];
@@ -170,7 +170,7 @@ foreach ($stmt->fetchAll() as $row) {
         <span class="dungeon-meta-item">
             <span class="dungeon-meta-label">Coût</span>
             <span class="dungeon-meta-val <?= ($hasCost && !$canAfford && !$locked) ? 'dungeon-locked-val' : '' ?>">
-                <?= $hasCost ? $d['entry_cost'] . ' combat(s) bonus' : 'Gratuit' ?>
+                <?= $hasCost ? $d['entry_cost'] . ' or' : 'Gratuit' ?>
             </span>
         </span>
         <span class="dungeon-meta-item">
@@ -199,13 +199,13 @@ foreach ($stmt->fetchAll() as $row) {
     <?php elseif ($locked): ?>
         <p class="dungeon-locked-msg">🔒 Niveau <?= (int)$d['min_level'] ?> requis</p>
     <?php elseif ($hasCost && !$canAfford): ?>
-        <p class="dungeon-locked-msg">⚔ <?= (int)$d['entry_cost'] ?> combat(s) bonus requis — tu en as <?= (int)$me['bonus_fights_available'] ?></p>
+        <p class="dungeon-locked-msg">💰 <?= (int)$d['entry_cost'] ?> or requis — tu en as <?= (int)$me['gold'] ?></p>
     <?php else: ?>
         <button class="btn btn-primary dungeon-enter-btn"
                 data-code="<?= h($code) ?>"
                 data-csrf="<?= h($csrf) ?>"
                 data-cost="<?= (int)$d['entry_cost'] ?>">
-            <?= $hasCost ? '⚔ Entrer (' . $d['entry_cost'] . ' combat bonus)' : '⚔ Entrer dans le donjon' ?>
+            <?= $hasCost ? '⚔ Entrer (' . $d['entry_cost'] . ' or)' : '⚔ Entrer dans le donjon' ?>
         </button>
     <?php endif; ?>
 </div>
@@ -464,7 +464,7 @@ foreach ($stmt->fetchAll() as $row) {
 
 <?php endif; ?>
 
+<script src="../assets/js/dungeon.js"></script>
 </main>
-<script src="../assets/js/dungeon.js" defer></script>
 </body>
 </html>

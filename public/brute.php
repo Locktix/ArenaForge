@@ -33,6 +33,20 @@ $pets = db()->prepare('SELECT p.* FROM pets p JOIN brute_pets bp ON bp.pet_id = 
 $pets->execute([$id]);
 $pets = $pets->fetchAll();
 
+// Évolution disponible pour le pet actuel
+$petEvolution = null;
+if (!empty($pets)) {
+    $stmt = db()->prepare('SELECT * FROM pets WHERE evolves_from = ? LIMIT 1');
+    $stmt->execute([(int)$pets[0]['id']]);
+    $petEvolution = $stmt->fetch() ?: null;
+}
+
+// Pets de base proposés si la brute n'en a pas encore
+$basePetsChoice = [];
+if ($isOwner && empty($pets)) {
+    $basePetsChoice = db()->query("SELECT id, name, description, icon_path FROM pets WHERE evolves_from IS NULL AND rarity = 'commun' ORDER BY id")->fetchAll();
+}
+
 // Historique des 10 derniers combats
 $history = db()->prepare('
     SELECT f.*, b1.name AS n1, b2.name AS n2
@@ -62,45 +76,6 @@ if ($isOwner) {
     $dailyQuests = get_daily_quests($id);
 }
 
-// Proposition de bonus level-up
-$bonusChoices = [];
-if ($isOwner && (int)$brute['pending_levelup'] === 1) {
-    if (!empty($brute['levelup_choices'])) {
-        $bonusChoices = json_decode($brute['levelup_choices'], true);
-    } else {
-        $pool = [];
-        foreach (['hp_max' => '+5 PV max', 'strength' => '+1 Force', 'agility' => '+1 Agilité', 'endurance' => '+1 Endurance'] as $k => $lbl) {
-            $pool[] = ['key' => "stat:$k", 'label' => $lbl, 'icon' => '../assets/svg/ui/nav_fight.svg'];
-        }
-        // Armes non possédées et débloquées au niveau actuel
-        $ownedW  = array_column($weapons, 'id');
-        $bruteLevel = (int)$brute['level'];
-        $allW = db()->query('SELECT * FROM weapons')->fetchAll();
-        foreach ($allW as $w) {
-            if (!in_array((int)$w['id'], array_map('intval', $ownedW), true)
-                && $bruteLevel >= (int)($w['min_level'] ?? 1)) {
-                $isShield = (int)($w['damage_max'] ?? 0) <= 3 && (int)($w['defense_bonus'] ?? 0) > 0;
-                $label = $isShield
-                    ? 'Bouclier : ' . $w['name'] . ' (+' . (int)$w['defense_bonus'] . ' Déf.)'
-                    : 'Arme : ' . $w['name'];
-                $pool[] = ['key' => 'weapon:' . $w['id'], 'label' => $label, 'icon' => '../' . $w['icon_path'], 'rarity' => $w['rarity'] ?? 'commun'];
-            }
-        }
-        // Animaux : uniquement si le joueur n'en a pas encore (1 pet max)
-        if (empty($pets)) {
-            $allPets = db()->query('SELECT * FROM pets')->fetchAll();
-            foreach ($allPets as $p) {
-                $pool[] = ['key' => 'pet:' . $p['id'], 'label' => 'Compagnon : ' . $p['name'] . ' — ' . $p['description'], 'icon' => '../' . $p['icon_path']];
-            }
-        }
-        shuffle($pool);
-        $bonusChoices = array_slice($pool, 0, 3);
-        
-        // Sauvegarder les choix pour éviter l'exploit F5
-        db()->prepare('UPDATE brutes SET levelup_choices = ? WHERE id = ?')
-          ->execute([json_encode($bonusChoices, JSON_UNESCAPED_UNICODE), $id]);
-    }
-}
 
 $csrf = csrf_token();
 $xpCur  = (int)$brute['xp'];
@@ -255,74 +230,31 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
                 </div>
 
                 <div class="battle-actions">
-                    <?php if ((int)$brute['pending_levelup'] === 1): ?>
-                        <div class="levelup-cta">
-                            <span class="blink">🔥</span> UN NOUVEAU POUVOIR VOUS ATTEND <span class="blink">🔥</span>
-                        </div>
-                    <?php else: ?>
-                        <?php if ($skillPoints > 0): ?>
-                            <div class="skill-points-reminder">
-                                ✨ <?= $skillPoints ?> point<?= $skillPoints !== 1 ? 's' : '' ?> de compétence non dépensé<?= $skillPoints !== 1 ? 's' : '' ?> —
-                                <a href="skills.php">ouvrir l'arbre →</a>
-                            </div>
-                        <?php endif; ?>
-                        <form id="fight-form">
-                            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                            <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                            <button class="btn btn-primary btn-hero" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
-                                ⚔ ENTRER DANS L'ARÈNE
-                            </button>
-                        </form>
-
-                        <div class="secondary-actions">
-                            <form id="training-form">
-                                <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                                <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                                <button type="submit" class="btn btn-outline" title="Entraînement gratuit">🎯 Test</button>
-                            </form>
-
-                            <?php if (!empty($pupils)): ?>
-                                <form id="duo-fight-form" class="duo-compact">
-                                    <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                                    <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                                    <select name="partner_id" class="partner-select">
-                                        <?php foreach ($pupils as $p): ?>
-                                            <option value="<?= (int)$p['id'] ?>"><?= h($p['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <button class="btn btn-outline" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>👥 Duo</button>
-                                </form>
-                            <?php endif; ?>
+                    <?php if ($skillPoints > 0): ?>
+                        <div class="skill-points-reminder">
+                            ✨ <?= $skillPoints ?> point<?= $skillPoints !== 1 ? 's' : '' ?> de compétence non dépensé<?= $skillPoints !== 1 ? 's' : '' ?> —
+                            <a href="skills.php">ouvrir l'arbre →</a>
                         </div>
                     <?php endif; ?>
+                    <form id="fight-form">
+                        <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                        <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
+                        <button class="btn btn-primary btn-hero" <?= $totalLeft <= 0 ? 'disabled' : '' ?>>
+                            ⚔ ENTRER DANS L'ARÈNE
+                        </button>
+                    </form>
+                    <div class="secondary-actions">
+                        <form id="training-form">
+                            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                            <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
+                            <button type="submit" class="btn btn-outline" title="Entraînement gratuit">🎯 Test</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
     </section>
 
-    <?php if ($isOwner && !empty($bonusChoices)): ?>
-        <section class="card levelup-card">
-            <h2>Choisis ton bonus de niveau</h2>
-            <div class="bonus-grid">
-                <?php foreach ($bonusChoices as $b):
-                    $bRarity = $b['rarity'] ?? 'commun';
-                    $isWeapon = str_starts_with($b['key'], 'weapon:');
-                ?>
-                    <form class="bonus-choice levelup-form <?= $isWeapon ? weapon_rarity_class($bRarity) : '' ?>">
-                        <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                        <input type="hidden" name="brute_id" value="<?= (int)$brute['id'] ?>">
-                        <input type="hidden" name="choice" value="<?= h($b['key']) ?>">
-                        <img src="<?= h($b['icon']) ?>" alt="">
-                        <span><?= h($b['label']) ?></span>
-                        <?php if ($isWeapon && $bRarity !== 'commun'): ?>
-                            <em class="rarity-badge"><?= weapon_rarity_label($bRarity) ?></em>
-                        <?php endif; ?>
-                        <button class="btn btn-secondary">Choisir</button>
-                    </form>
-                <?php endforeach; ?>
-            </div>
-        </section>
-    <?php endif; ?>
 
     <?php if ($isOwner && !empty($dailyQuests)): ?>
         <section class="card quests-preview">
@@ -349,21 +281,59 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
         </section>
     <?php endif; ?>
 
+    <?php if (!empty($basePetsChoice)): ?>
+        <section class="card">
+            <h2>🐾 Choisir un compagnon</h2>
+            <p class="muted small">Tu n'as pas encore de compagnon. Choisis-en un — il t'accompagnera au combat.</p>
+            <form id="assign-pet-form" style="margin-top:16px;">
+                <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
+                <div class="create-pet-grid">
+                    <?php foreach ($basePetsChoice as $i => $p): ?>
+                    <label class="create-pet-card <?= $i === 0 ? 'create-pet-card--selected' : '' ?>">
+                        <input type="radio" name="pet_id" value="<?= (int)$p['id'] ?>" <?= $i === 0 ? 'checked' : '' ?> required>
+                        <img src="../<?= h($p['icon_path']) ?>" alt="<?= h($p['name']) ?>" class="create-pet-img">
+                        <strong class="create-pet-name"><?= h($p['name']) ?></strong>
+                        <p class="create-pet-desc muted small"><?= h($p['description']) ?></p>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top:14px;">Adopter ce compagnon</button>
+                <p class="form-msg" data-assign-pet-msg></p>
+            </form>
+        </section>
+    <?php endif; ?>
+
     <?php if (!empty($pets)): ?>
         <section class="card">
             <h2>🐾 Compagnon</h2>
             <div class="pet-grid">
-                <?php foreach ($pets as $p): ?>
-                    <div class="pet-item" title="<?= h($p['description']) ?>">
+                <?php foreach ($pets as $p):
+                    $pRarity = $p['rarity'] ?? 'commun';
+                ?>
+                    <div class="pet-item <?= weapon_rarity_class($pRarity) ?>" title="<?= h($p['description']) ?>">
                         <img src="../<?= h($p['icon_path']) ?>" alt="<?= h($p['name']) ?>">
                         <div>
                             <strong><?= h($p['name']) ?></strong>
+                            <em class="rarity-badge"><?= weapon_rarity_label($pRarity) ?></em>
                             <p class="muted small"><?= h($p['description']) ?></p>
                             <small><?= (int)$p['hp_max'] ?> PV · <?= (int)$p['damage_min'] ?>-<?= (int)$p['damage_max'] ?> dég. · <?= (int)$p['agility'] ?> agi.</small>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
+            <?php if ($isOwner && $petEvolution): ?>
+            <div class="pet-evolve-wrap">
+                <button class="btn btn-outline pet-evolve-btn"
+                        data-pet-id="<?= (int)$petEvolution['id'] ?>"
+                        data-csrf="<?= h($csrf) ?>">
+                    ✨ Évoluer → <?= h($petEvolution['name']) ?> <span class="muted small">(150 or)</span>
+                </button>
+                <p class="muted small pet-evolve-hint">
+                    <?= (int)$petEvolution['hp_max'] ?> PV · <?= (int)$petEvolution['damage_min'] ?>-<?= (int)$petEvolution['damage_max'] ?> dég. · <?= (int)$petEvolution['agility'] ?> agi.
+                    — <?= h($petEvolution['description']) ?>
+                </p>
+            </div>
+            <?php endif; ?>
         </section>
     <?php endif; ?>
 
@@ -472,9 +442,6 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
         </div>
     </section>
     <?php endif; ?>
-</main>
-
-
 <script>window.APPEARANCE = <?= json_encode($appearance) ?>;</script>
 <script src="../assets/js/brute.js"></script>
 <?php if ($isOwner): ?>
@@ -493,5 +460,6 @@ $dmgMax = $currentWeapon['damage_max'] + (int)floor($fighter['strength'] / 2);
 })();
 </script>
 <?php endif; ?>
+</main>
 </body>
 </html>

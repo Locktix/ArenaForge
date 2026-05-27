@@ -195,10 +195,6 @@ function accept_challenge(int $bruteId, int $challengeId): array
     if (!$challenger || !$target) {
         return ['ok' => false, 'error' => 'Un gladiateur n\'existe plus'];
     }
-    if ((int)$challenger['pending_levelup'] === 1 || (int)$target['pending_levelup'] === 1) {
-        return ['ok' => false, 'error' => 'Un combattant doit choisir son bonus de niveau avant le combat'];
-    }
-
     // Lancer le combat
     $result = run_fight((int)$challenger['id'], (int)$target['id']);
 
@@ -224,16 +220,11 @@ function accept_challenge(int $bruteId, int $challengeId): array
     ] as $b) {
         $newXp = $b['xp'] + $b['gain'];
         $newLevel = $b['level'];
-        $levelUp = false;
-        while ($newXp >= xp_for_level($newLevel + 1)) {
-            $newLevel++;
-            $levelUp = true;
-        }
-        $pdo->prepare('
-            UPDATE brutes
-            SET xp = ?, level = ?, pending_levelup = ?
-            WHERE id = ?
-        ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $b['id']]);
+        $levelUps = 0;
+        while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+        $pdo->prepare('UPDATE brutes SET xp = ?, level = ? WHERE id = ?')
+            ->execute([$newXp, $newLevel, $b['id']]);
+        if ($levelUps > 0) auto_apply_levelup($pdo, $b['id'], $levelUps);
     }
 
     // Récompense fragments + or (plus généreuse que l'arène pour un défi)

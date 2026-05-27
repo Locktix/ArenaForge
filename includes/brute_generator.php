@@ -102,15 +102,13 @@ function xp_for_level(int $level): int
     return (int)(10 * $level * ($level + 1) / 2);
 }
 
-function level_up_bonuses_pool(): array
+function auto_apply_levelup(PDO $pdo, int $bruteId, int $count = 1): void
 {
-    // Pool de bonus possibles au level up
-    return [
-        ['type' => 'stat',   'key' => 'hp_max',    'value' => 5, 'label' => '+5 PV max'],
-        ['type' => 'stat',   'key' => 'strength',  'value' => 1, 'label' => '+1 Force'],
-        ['type' => 'stat',   'key' => 'agility',   'value' => 1, 'label' => '+1 Agilité'],
-        ['type' => 'stat',   'key' => 'endurance', 'value' => 1, 'label' => '+1 Endurance'],
-        ['type' => 'weapon'],
-        ['type' => 'pet'],
-    ];
+    $pool = ['hp_max' => 5, 'strength' => 1, 'agility' => 1, 'endurance' => 1];
+    $keys = array_keys($pool);
+    for ($i = 0; $i < $count; $i++) {
+        $key = $keys[array_rand($keys)];
+        $val = $pool[$key];
+        $pdo->prepare("UPDATE brutes SET `{$key}` = `{$key}` + ? WHERE id = ?")->execute([$val, $bruteId]);
+    }
 }

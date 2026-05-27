@@ -25,16 +25,12 @@ if ($bruteId <= 0) {
 }
 
 // Ownership
-$stmt = db()->prepare('SELECT id, pending_levelup FROM brutes WHERE id = ? AND user_id = ? LIMIT 1');
+$stmt = db()->prepare('SELECT id FROM brutes WHERE id = ? AND user_id = ? LIMIT 1');
 $stmt->execute([$bruteId, $uid]);
 $brute = $stmt->fetch();
 if (!$brute) {
     http_response_code(403);
     echo json_encode(['ok' => false, 'error' => 'Ce gladiateur ne vous appartient pas']);
-    exit;
-}
-if ((int)$brute['pending_levelup'] === 1) {
-    echo json_encode(['ok' => false, 'error' => 'Vous devez choisir votre bonus de niveau avant de vous inscrire']);
     exit;
 }
 

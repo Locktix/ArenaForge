@@ -120,9 +120,8 @@ $totalMmr = array_sum(array_map(fn($m) => (int)$m['mmr'], $members));
             <?php endforeach; ?>
         </ul>
     </section>
-</main>
-
 <script src="../assets/js/clan.js"></script>
 <script src="../assets/js/clan_chat.js"></script>
+</main>
 </body>
 </html>

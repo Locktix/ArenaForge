@@ -159,8 +159,7 @@ $armors   = get_armors_for_brute($bruteId);
             <?php endforeach; ?>
         </div>
     </section>
-</main>
-
 <script src="../assets/js/forge.js"></script>
+</main>
 </body>
 </html>

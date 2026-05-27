@@ -62,11 +62,6 @@ try {
         exit;
     }
 
-    if ((int)$brute['pending_levelup'] === 1) {
-        echo json_encode(['ok' => false, 'error' => 'Vous devez choisir votre bonus de niveau']);
-        exit;
-    }
-
     // Si un opponent_id est fourni (via le modal de choix), on le valide
     $forcedOppId = (int)($_POST['opponent_id'] ?? 0);
     if ($forcedOppId > 0) {
@@ -126,11 +121,9 @@ try {
     // Mise à jour XP / compteur combats
     $newXp      = (int)$brute['xp'] + $xpGained;
     $newLevel   = (int)$brute['level'];
-    $levelUp    = false;
-    while ($newXp >= xp_for_level($newLevel + 1)) {
-        $newLevel++;
-        $levelUp = true;
-    }
+    $levelUps   = 0;
+    while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+    $levelUp = $levelUps > 0;
 
     $useBonus       = ($baseLeft === 0);
     $newFightsToday = $useBonus ? (int)$brute['fights_today'] : (int)$brute['fights_today'] + 1;
@@ -138,21 +131,22 @@ try {
     if ($useBonus) {
         $pdo->prepare('
             UPDATE brutes
-            SET xp = ?, level = ?, pending_levelup = ?,
+            SET xp = ?, level = ?,
                 bonus_fights_available = bonus_fights_available - 1,
                 fragments = fragments + ?,
                 gold = gold + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $goldGained, $bruteId]);
+        ')->execute([$newXp, $newLevel, $fragmentsGained, $goldGained, $bruteId]);
     } else {
         $pdo->prepare('
             UPDATE brutes
-            SET xp = ?, level = ?, fights_today = ?, pending_levelup = ?,
+            SET xp = ?, level = ?, fights_today = ?,
                 fragments = fragments + ?,
                 gold = gold + ?
             WHERE id = ?
-        ')->execute([$newXp, $newLevel, $newFightsToday, $levelUp ? 1 : (int)$brute['pending_levelup'], $fragmentsGained, $goldGained, $bruteId]);
+        ')->execute([$newXp, $newLevel, $newFightsToday, $fragmentsGained, $goldGained, $bruteId]);
     }
+    if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
 
     // Mise à jour des quêtes journalières et hebdomadaires
     $questChanges = update_quests_after_fight(

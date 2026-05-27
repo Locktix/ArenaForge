@@ -135,8 +135,7 @@ function rarity_label(string $r): string {
             <?php endforeach; ?>
         </div>
     </section>
+<script src="../assets/js/titles.js"></script>
 </main>
-
-<script src="../assets/js/titles.js" defer></script>
 </body>
 </html>

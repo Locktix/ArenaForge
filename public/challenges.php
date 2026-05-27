@@ -151,8 +151,7 @@ function chal_status_label(string $status): string {
             <?php endif; ?>
         </section>
     <?php endif; ?>
-</main>
-
 <script src="../assets/js/challenges.js"></script>
+</main>
 </body>
 </html>

@@ -62,21 +62,15 @@ function start_duo_fight(int $masterId, int $partnerId): array
         return ['ok' => false, 'error' => 'Ce gladiateur n\'est pas un de tes pupilles'];
     }
 
-    $stmt = $pdo->prepare('SELECT id, level, fights_today, last_fight_date, bonus_fights_available, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, level, fights_today, last_fight_date, bonus_fights_available FROM brutes WHERE id = ? LIMIT 1');
     $stmt->execute([$masterId]);
     $master = $stmt->fetch();
     if (!$master) return ['ok' => false, 'error' => 'Maître introuvable'];
-    if ((int)$master['pending_levelup'] === 1) {
-        return ['ok' => false, 'error' => 'Choisis ton bonus de niveau avant le duo'];
-    }
 
-    $stmt = $pdo->prepare('SELECT id, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id FROM brutes WHERE id = ? LIMIT 1');
     $stmt->execute([$partnerId]);
     $partner = $stmt->fetch();
     if (!$partner) return ['ok' => false, 'error' => 'Pupille introuvable'];
-    if ((int)$partner['pending_levelup'] === 1) {
-        return ['ok' => false, 'error' => 'Le pupille doit choisir son bonus de niveau avant'];
-    }
 
     // Reset compteur si jour différent
     $today = date('Y-m-d');
@@ -134,19 +128,17 @@ function start_duo_fight(int $masterId, int $partnerId): array
         $opp['partner_id']=> $isWinner ? 1 : 2,
     ];
     foreach ($awards as $bid => $gain) {
-        $stmt = $pdo->prepare('SELECT xp, level, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
         $stmt->execute([$bid]);
         $b = $stmt->fetch();
         if (!$b) continue;
         $newXp    = (int)$b['xp'] + $gain;
         $newLevel = (int)$b['level'];
-        $levelUp  = (int)$b['pending_levelup'] === 1;
-        while ($newXp >= xp_for_level($newLevel + 1)) {
-            $newLevel++;
-            $levelUp = true;
-        }
-        $pdo->prepare('UPDATE brutes SET xp = ?, level = ?, pending_levelup = ? WHERE id = ?')
-            ->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bid]);
+        $levelUps = 0;
+        while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+        $pdo->prepare('UPDATE brutes SET xp = ?, level = ? WHERE id = ?')
+            ->execute([$newXp, $newLevel, $bid]);
+        if ($levelUps > 0) auto_apply_levelup($pdo, $bid, $levelUps);
     }
 
     // Fragments + or pour les deux camps

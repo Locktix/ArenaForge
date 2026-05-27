@@ -54,22 +54,17 @@ function award_achievement(int $bruteId, string $code): ?array
 
     $rewardXp = (int)$def['reward_xp'];
     if ($rewardXp > 0) {
-        $stmt = $pdo->prepare('SELECT xp, level, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
         $stmt->execute([$bruteId]);
         $b = $stmt->fetch();
         if ($b) {
             $newXp    = (int)$b['xp'] + $rewardXp;
             $newLevel = (int)$b['level'];
-            $levelUp  = (int)$b['pending_levelup'] === 1;
-            while ($newXp >= xp_for_level($newLevel + 1)) {
-                $newLevel++;
-                $levelUp = true;
-            }
-            $pdo->prepare('
-                UPDATE brutes
-                SET xp = ?, level = ?, pending_levelup = ?
-                WHERE id = ?
-            ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bruteId]);
+            $levelUps = 0;
+            while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
+            $pdo->prepare('UPDATE brutes SET xp = ?, level = ? WHERE id = ?')
+                ->execute([$newXp, $newLevel, $bruteId]);
+            if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
         }
     }
 

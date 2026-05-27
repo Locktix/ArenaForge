@@ -157,6 +157,41 @@ function check_migrations(PDO $pdo): void
                 VALUES ('Bouclier en acier', 0, 0, 4, 'epique', 10, 'assets/svg/weapons/shield.svg')");
         }
 
+        // --- Rarités skills & pets + évolutions ---
+        if (table_exists($pdo, 'skills')) {
+            ensure_column($pdo, 'skills', 'rarity', "ENUM('commun','rare','epique') NOT NULL DEFAULT 'commun'");
+            $pdo->exec("UPDATE skills SET rarity = 'rare'   WHERE name IN ('Coup critique','Rage') AND rarity = 'commun'");
+            $pdo->exec("UPDATE skills SET rarity = 'epique' WHERE name = 'Vol de vie'              AND rarity = 'commun'");
+        }
+        if (table_exists($pdo, 'pets')) {
+            ensure_column($pdo, 'pets', 'rarity',       "ENUM('commun','rare','epique') NOT NULL DEFAULT 'commun'");
+            ensure_column($pdo, 'pets', 'evolves_from', 'INT UNSIGNED NULL');
+            // Tous les pets de base → commun, évolutions → rare
+            $pdo->exec("UPDATE pets SET rarity = 'commun' WHERE name IN ('Chien','Loup','Panthere','Ours')");
+            $pdo->exec("UPDATE pets SET rarity = 'rare' WHERE name IN ('Molosse','Loup Alpha','Sphinx','Ours-Roi')");
+            // Insérer les évolutions (idempotent via INSERT IGNORE)
+            $pdo->exec("
+                INSERT IGNORE INTO pets (name, species, hp_max, damage_min, damage_max, agility, description, icon_path, rarity, evolves_from)
+                SELECT 'Molosse','dog',42,6,10,6,'Chien de guerre imposant, morsure devastatrice.','assets/svg/pets/molosse.svg','rare', id
+                FROM pets WHERE name = 'Chien' LIMIT 1
+            ");
+            $pdo->exec("
+                INSERT IGNORE INTO pets (name, species, hp_max, damage_min, damage_max, agility, description, icon_path, rarity, evolves_from)
+                SELECT 'Loup Alpha','wolf',55,8,13,8,'Chef de meute, instinct aiguise et force brutale.','assets/svg/pets/wolf_alpha.svg','rare', id
+                FROM pets WHERE name = 'Loup' LIMIT 1
+            ");
+            $pdo->exec("
+                INSERT IGNORE INTO pets (name, species, hp_max, damage_min, damage_max, agility, description, icon_path, rarity, evolves_from)
+                SELECT 'Sphinx','panther',46,11,17,10,'Creature mythique, vitesse et puissance legendaires.','assets/svg/pets/sphinx.svg','rare', id
+                FROM pets WHERE name = 'Panthere' LIMIT 1
+            ");
+            $pdo->exec("
+                INSERT IGNORE INTO pets (name, species, hp_max, damage_min, damage_max, agility, description, icon_path, rarity, evolves_from)
+                SELECT 'Ours-Roi','bear',90,14,21,4,'Titan des forets, aucune armure ne lui resiste.','assets/svg/pets/bear_king.svg','rare', id
+                FROM pets WHERE name = 'Ours' LIMIT 1
+            ");
+        }
+
         // --- Sacrifices ---
         ensure_table($pdo, 'sacrifices', "
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

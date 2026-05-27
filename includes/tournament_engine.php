@@ -380,7 +380,7 @@ function assign_tournament_placement(
 
     require_once __DIR__ . '/brute_generator.php';
 
-    $stmt = $pdo->prepare('SELECT xp, level, pending_levelup FROM brutes WHERE id = ? LIMIT 1');
+    $stmt = $pdo->prepare('SELECT xp, level FROM brutes WHERE id = ? LIMIT 1');
     $stmt->execute([$bruteId]);
     $b = $stmt->fetch();
     if (!$b) {
@@ -389,18 +389,16 @@ function assign_tournament_placement(
 
     $newXp    = (int)$b['xp'] + $xp;
     $newLevel = (int)$b['level'];
-    $levelUp  = (int)$b['pending_levelup'] === 1;
-    while ($newXp >= xp_for_level($newLevel + 1)) {
-        $newLevel++;
-        $levelUp = true;
-    }
+    $levelUps = 0;
+    while ($newXp >= xp_for_level($newLevel + 1)) { $newLevel++; $levelUps++; }
 
     $pdo->prepare('
         UPDATE brutes
-        SET xp = ?, level = ?, pending_levelup = ?,
+        SET xp = ?, level = ?,
             bonus_fights_available = bonus_fights_available + ?
         WHERE id = ?
-    ')->execute([$newXp, $newLevel, $levelUp ? 1 : 0, $bonusFights, $bruteId]);
+    ')->execute([$newXp, $newLevel, $bonusFights, $bruteId]);
+    if ($levelUps > 0) auto_apply_levelup($pdo, $bruteId, $levelUps);
 
     require_once __DIR__ . '/achievement_engine.php';
     check_achievements_tournament($bruteId, $placement);
