@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/dungeon_engine.php';
+require_once __DIR__ . '/../includes/achievement_engine.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -31,4 +32,19 @@ if ($runId <= 0) {
 }
 
 $result = dungeon_advance($bruteId, $runId);
+
+if ($result['ok'] && in_array($result['outcome'] ?? '', ['continue', 'victory'], true)) {
+    $run = db()->prepare('SELECT dungeon_code FROM dungeon_runs WHERE id = ? LIMIT 1');
+    $run->execute([$runId]);
+    $dungeonCode = (string)($run->fetchColumn() ?: '');
+    if ($dungeonCode) {
+        $result['achievements'] = check_achievements_dungeon(
+            $bruteId,
+            $dungeonCode,
+            (string)$result['outcome'],
+            $runId
+        );
+    }
+}
+
 echo json_encode($result);

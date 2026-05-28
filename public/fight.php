@@ -104,6 +104,7 @@ if ($isBossFight || $isDungeonFight) {
                     $monsterFile = match($dungeonCode) {
                         'forteresse' => 'blackknight',
                         'abisse'     => 'demon',
+                        'nexus'      => 'titan',
                         default      => 'skeleton',
                     };
                 ?>

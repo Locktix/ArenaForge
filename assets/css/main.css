@@ -4470,6 +4470,44 @@ code {
     margin-top: 14px;
     flex-wrap: wrap;
 }
+
+/* D-pad mobile — caché sur desktop (souris dispo) */
+.snake-dpad {
+    display: none;
+    justify-content: center;
+    margin-top: 16px;
+}
+.dpad-grid {
+    display: grid;
+    grid-template-columns: 52px 52px 52px;
+    grid-template-rows: 52px 52px;
+    gap: 6px;
+}
+.dpad-btn {
+    background: var(--bg-2);
+    border: 2px solid var(--border);
+    border-radius: var(--r);
+    color: var(--text);
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: background 0.1s;
+}
+.dpad-btn:active { background: var(--bg-3); }
+#dpad-up    { grid-column: 2; grid-row: 1; }
+#dpad-left  { grid-column: 1; grid-row: 2; }
+#dpad-right { grid-column: 3; grid-row: 2; }
+#dpad-down  { grid-column: 2; grid-row: 2; }
+
+@media (hover: none) and (pointer: coarse) {
+    .snake-dpad { display: flex; }
+    .snake-kb-hint { display: none; }
+}
 .form-msg.success { color: var(--success-2); }
 
 /* Leaderboard mini-jeux */
@@ -6315,11 +6353,19 @@ a.notif-item:hover,
     margin-bottom: 28px;
 }
 
+/* Difficulté tokens */
+.dungeon-diff-facile       { --dd: #8a93a0; --dd-a: rgba(138,147,160,.13); }
+.dungeon-diff-intermediaire{ --dd: #5fa8e8; --dd-a: rgba(95,168,232,.13);  }
+.dungeon-diff-difficile    { --dd: #b47cd8; --dd-a: rgba(180,124,216,.13); }
+.dungeon-diff-legendaire   { --dd: #f0c030; --dd-a: rgba(240,192,48,.13);  }
+
 .dungeon-card {
     display: flex;
     flex-direction: column;
     gap: 14px;
     transition: transform 0.15s;
+    border-color: var(--dd, var(--border));
+    box-shadow: 0 0 0 1px var(--dd, transparent), inset 0 0 20px var(--dd-a, transparent);
 }
 .dungeon-card:hover { transform: translateY(-2px); }
 .dungeon-card--locked { opacity: 0.55; filter: grayscale(30%); }
@@ -6328,6 +6374,34 @@ a.notif-item:hover,
     display: flex;
     gap: 14px;
     align-items: flex-start;
+}
+.dungeon-card-info {
+    flex: 1;
+    min-width: 0;
+}
+.dungeon-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.dungeon-diff-badge {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dd, var(--text-2));
+    background: var(--dd-a, rgba(255,255,255,.06));
+    border: 1px solid color-mix(in srgb, var(--dd, #888) 40%, transparent);
+    border-radius: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+.dungeon-diff-legendaire .dungeon-diff-badge {
+    animation: rarity-epic-pulse-text 3.5s ease-in-out infinite;
 }
 .dungeon-icon {
     font-size: 2rem;

@@ -423,6 +423,68 @@ function check_achievements_minigame(int $bruteId): array
 }
 
 // ============================================================
+// Trophées liés aux donjons
+// ============================================================
+
+/**
+ * @param string $outcome  'continue' | 'victory' | 'defeat'
+ */
+function check_achievements_dungeon(int $bruteId, string $dungeonCode, string $outcome, int $runId): array
+{
+    if ($outcome === 'defeat') return [];
+
+    $pdo     = db();
+    $already = array_flip(get_unlocked_codes($bruteId));
+    $unlocked = [];
+    $try = function (string $code, bool $cond) use (&$already, &$unlocked, $bruteId) {
+        if ($cond && !isset($already[$code])) {
+            $res = award_achievement($bruteId, $code);
+            if ($res) $unlocked[] = $res;
+            $already[$code] = true;
+        }
+    };
+
+    // Toute salle remportée = première ombre
+    $try('dungeon_first_room', true);
+
+    if ($outcome === 'victory') {
+        // Victoires globales
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM dungeon_runs WHERE brute_id = ? AND status = 'victory'");
+        $stmt->execute([$bruteId]);
+        $totalVic = (int)$stmt->fetchColumn();
+
+        $try('dungeon_victory_1',  $totalVic >= 1);
+        $try('dungeon_victory_10', $totalVic >= 10);
+        $try('dungeon_victory_50', $totalVic >= 50);
+
+        // Victoires par donjon
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM dungeon_runs WHERE brute_id = ? AND dungeon_code = ? AND status = 'victory'");
+        $stmt->execute([$bruteId, $dungeonCode]);
+        $codeVic = (int)$stmt->fetchColumn();
+
+        $try($dungeonCode . '_clear',   $codeVic >= 1);
+        $try($dungeonCode . '_clear_5', $codeVic >= 5);
+
+        // PV restants (flawless / low hp / nexus_flawless)
+        $stmt = $pdo->prepare('SELECT current_hp, hp_max FROM dungeon_runs WHERE id = ? LIMIT 1');
+        $stmt->execute([$runId]);
+        $run = $stmt->fetch();
+        if ($run) {
+            $hp    = (int)$run['current_hp'];
+            $hpMax = (int)$run['hp_max'];
+            $try('dungeon_low_hp',  $hp > 0 && $hp < 10);
+            $try('dungeon_flawless', $hp === $hpMax);
+            if ($dungeonCode === 'nexus') {
+                $try('nexus_flawless', $hpMax > 0 && $hp > (int)($hpMax / 2));
+            }
+        }
+    }
+
+    if (!empty($unlocked)) check_completion_titles($bruteId);
+    return $unlocked;
+}
+
+// ============================================================
 // Lecture pour la page
 // ============================================================
 

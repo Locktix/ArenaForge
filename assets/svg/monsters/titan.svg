@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 100" aria-label="Titan Primordial">
+  <!-- Couronne de pierre -->
+  <path d="M18 20 L14 6  L22 17 Z" fill="#b8820a" stroke="#f0c030" stroke-width="0.8"/>
+  <path d="M32 18 L32 4  L37 16 Z" fill="#b8820a" stroke="#f0c030" stroke-width="0.8"/>
+  <path d="M46 20 L50 6  L42 17 Z" fill="#b8820a" stroke="#f0c030" stroke-width="0.8"/>
+
+  <!-- Tête -->
+  <rect x="13" y="14" width="38" height="30" rx="5" fill="#4a4a5a" stroke="#70708a" stroke-width="1.5"/>
+
+  <!-- Yeux lumineux (cyan) -->
+  <ellipse cx="24" cy="27" rx="5"   ry="4.5" fill="#001820" stroke="#00b8cc" stroke-width="1.2"/>
+  <ellipse cx="24" cy="27" rx="3.2" ry="2.8" fill="#00d0e8"/>
+  <ellipse cx="24" cy="27" rx="1.4" ry="1.2" fill="#ffffff" opacity="0.9"/>
+
+  <ellipse cx="40" cy="27" rx="5"   ry="4.5" fill="#001820" stroke="#00b8cc" stroke-width="1.2"/>
+  <ellipse cx="40" cy="27" rx="3.2" ry="2.8" fill="#00d0e8"/>
+  <ellipse cx="40" cy="27" rx="1.4" ry="1.2" fill="#ffffff" opacity="0.9"/>
+
+  <!-- Halo yeux -->
+  <ellipse cx="24" cy="27" rx="7" ry="6" fill="none" stroke="#00b8cc" stroke-width="0.6" opacity="0.35"/>
+  <ellipse cx="40" cy="27" rx="7" ry="6" fill="none" stroke="#00b8cc" stroke-width="0.6" opacity="0.35"/>
+
+  <!-- Mâchoire / dents -->
+  <path d="M18 38 L46 38" stroke="#606070" stroke-width="1"/>
+  <path d="M20 38 L19 43 M24 38 L24 44 M28 38 L28 44 M32 38 L32 44 M36 38 L36 44 M40 38 L40 43 M44 38 L45 42"
+        stroke="#80809a" stroke-width="0.9" stroke-linecap="round"/>
+
+  <!-- Cou -->
+  <rect x="24" y="44" width="16" height="8" rx="2" fill="#3a3a4a" stroke="#606070" stroke-width="1"/>
+
+  <!-- Épaulières — gauche -->
+  <path d="M0 56 Q2 48 13 51 L13 72 Q3 70 1 62 Z" fill="#505060" stroke="#70708a" stroke-width="1"/>
+  <path d="M3 50 L0 40 L9 48 Z" fill="#b8820a" stroke="#f0c030" stroke-width="0.7"/>
+
+  <!-- Épaulières — droite -->
+  <path d="M64 56 Q62 48 51 51 L51 72 Q61 70 63 62 Z" fill="#505060" stroke="#70708a" stroke-width="1"/>
+  <path d="M61 50 L64 40 L55 48 Z" fill="#b8820a" stroke="#f0c030" stroke-width="0.7"/>
+
+  <!-- Torse -->
+  <path d="M13 52 L51 52 L55 84 L9 84 Z" fill="#3e3e4e" stroke="#606070" stroke-width="1.2"/>
+
+  <!-- Plaque de gorge -->
+  <path d="M18 52 L46 52 L44 63 L20 63 Z" fill="#505062" stroke="#80809a" stroke-width="0.8"/>
+
+  <!-- Rune centrale (losange doré) -->
+  <path d="M32 66 L27 72 L32 78 L37 72 Z" fill="none" stroke="#f0c030" stroke-width="1.6"/>
+  <circle cx="32" cy="72" r="2.8" fill="#c8960a" opacity="0.7"/>
+  <!-- Rayons de la rune -->
+  <path d="M32 64 L32 60 M44 72 L48 72 M32 80 L32 84 M20 72 L16 72"
+        stroke="#f0c030" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Bras gauche -->
+  <path d="M5 53 Q1 64 3 82 L13 79 L13 72 Q7 66 7 58 Z" fill="#3e3e4e" stroke="#606070" stroke-width="1"/>
+  <!-- Bras droit -->
+  <path d="M59 53 Q63 64 61 82 L51 79 L51 72 Q57 66 57 58 Z" fill="#3e3e4e" stroke="#606070" stroke-width="1"/>
+
+  <!-- Poings / gantelets -->
+  <rect x="1"  y="80" width="14" height="13" rx="3" fill="#505060" stroke="#f0c030" stroke-width="1.2"/>
+  <rect x="49" y="80" width="14" height="13" rx="3" fill="#505060" stroke="#f0c030" stroke-width="1.2"/>
+  <path d="M3 85 L13 85 M3 89 L13 89" stroke="#70708a" stroke-width="0.6"/>
+  <path d="M51 85 L61 85 M51 89 L61 89" stroke="#70708a" stroke-width="0.6"/>
+
+  <!-- Jambes -->
+  <rect x="13" y="82" width="16" height="16" rx="2" fill="#3e3e4e" stroke="#606070" stroke-width="1"/>
+  <rect x="35" y="82" width="16" height="16" rx="2" fill="#3e3e4e" stroke="#606070" stroke-width="1"/>
+  <!-- Genouillères dorées -->
+  <rect x="15" y="88" width="12" height="5" rx="1" fill="#606070" stroke="#b8820a" stroke-width="0.8"/>
+  <rect x="37" y="88" width="12" height="5" rx="1" fill="#606070" stroke="#b8820a" stroke-width="0.8"/>
+
+  <!-- Aura globale -->
+  <ellipse cx="32" cy="62" rx="30" ry="40" fill="none" stroke="#f0c030" stroke-width="0.5" opacity="0.2"/>
+  <ellipse cx="32" cy="62" rx="26" ry="36" fill="none" stroke="#00b8cc" stroke-width="0.4" opacity="0.15"/>
+</svg>

@@ -144,7 +144,16 @@ if ($myBest !== null) {
 
             <div class="snake-controls">
                 <button id="snake-start" class="btn btn-primary">▶ Démarrer</button>
-                <span class="muted small">Flèches / ZQSD · swipe mobile</span>
+                <span class="muted small snake-kb-hint">Flèches / ZQSD</span>
+            </div>
+
+            <div class="snake-dpad" aria-label="Contrôles directionnels">
+                <div class="dpad-grid">
+                    <button id="dpad-up"    class="dpad-btn" aria-label="Haut">▲</button>
+                    <button id="dpad-left"  class="dpad-btn" aria-label="Gauche">◀</button>
+                    <button id="dpad-right" class="dpad-btn" aria-label="Droite">▶</button>
+                    <button id="dpad-down"  class="dpad-btn" aria-label="Bas">▼</button>
+                </div>
             </div>
         </div>
     </section>
@@ -182,16 +191,10 @@ if ($myBest !== null) {
 
 <script src="../assets/js/snake.js"></script>
 <script>
-(function () {
-    // Bouton rejouer dans l'overlay
-    const startOverlay = document.getElementById('snake-start-overlay');
-    const startMain    = document.getElementById('snake-start');
-    if (startOverlay && startMain) {
-        startOverlay.addEventListener('click', () => startMain.click());
-    }
-
+function initMgForm() {
     const form = document.getElementById('mg-claim-form');
-    if (!form) return;
+    if (!form || form._mgInited) return;
+    form._mgInited = true;
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('mg-claim-btn');
@@ -216,7 +219,9 @@ if ($myBest !== null) {
             if (btn) btn.disabled = false;
         }
     });
-})();
+}
+initMgForm();
+document.addEventListener('htmx:afterSettle', initMgForm);
 </script>
 </body>
 </html>

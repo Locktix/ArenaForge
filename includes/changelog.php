@@ -8,6 +8,19 @@ declare(strict_types=1);
 
 const CHANGELOG_ENTRIES = [
     [
+        'version' => '1.6.0',
+        'date'    => '2026-05-28',
+        'title'   => 'Le Nexus des Anciens',
+        'items'   => [
+            ['icon' => '⚡', 'text' => '<strong>Nexus des Anciens</strong> : nouveau donjon endgame réservé aux niveaux 20+. Six salles aux confins du monde, gardées par des Titans primordiaux d\'une puissance inégalée. Entrée : 250 or.'],
+            ['icon' => '🗿', 'text' => '<strong>Titan Primordial</strong> : nouveau sprite de monstre exclusif — colosse de pierre armé de gantelets dorés, couronne runique et yeux cyan lumineux. Le gardien le plus imposant du jeu.'],
+            ['icon' => '💀', 'text' => '<strong>Difficulté escaladée</strong> : les Titans atteignent 350 % de PV avec 26 en force et 9 en agilité en salle finale. La dernière salle dispose de la compétence <em>Revive</em> — le Nexus Vivant refuse de mourir.'],
+            ['icon' => '💰', 'text' => '<strong>Butin endgame</strong> : jusqu\'à 368 or, 101 XP et 124 fragments pour un clear complet. Le meilleur butin par donjon du jeu.'],
+            ['icon' => '🏰', 'text' => '<strong>Coûts rééquilibrés</strong> : Forteresse Maudite 25 → 50 or, Abîsse Éternel 50 → 100 or. La progression entre donjons est désormais plus marquée.'],
+            ['icon' => '🐍', 'text' => '<strong>Snake HTMX fix</strong> : le mini-jeu Snake se lance désormais correctement sans rechargement manuel, y compris sur mobile avec un D-pad tactile. Les pommes n\'apparaissent plus sur les bords de la carte.'],
+        ],
+    ],
+    [
         'version' => '1.5.0',
         'date'    => '2026-05-26',
         'title'   => 'Les Donjons',

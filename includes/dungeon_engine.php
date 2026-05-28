@@ -20,6 +20,7 @@ const DUNGEON_DEFS = [
         'name'        => 'Crypte des Damnés',
         'icon'        => '💀',
         'desc'        => 'Trois salles de ténèbres. Les morts-vivants attendent dans les couloirs du silence.',
+        'difficulty'  => 'facile',
         'min_level'   => 1,
         'entry_cost'  => 0,   // gratuit : aucun combat bonus requis
         'rooms'       => [
@@ -33,8 +34,9 @@ const DUNGEON_DEFS = [
         'name'        => 'Forteresse Maudite',
         'icon'        => '🏰',
         'desc'        => 'Quatre salles gardées par des guerriers corrompus. Seuls les vétérans en sortent entiers.',
+        'difficulty'  => 'intermediaire',
         'min_level'   => 5,
-        'entry_cost'  => 25,  // coût en or
+        'entry_cost'  => 50,  // coût en or
         'rooms'       => [
             ['name' => 'Portail de l\'Oubli',    'hp_pct' => 105, 'str_bonus' => 2, 'agi_bonus' => 1, 'armor' => 1, 'skill' => null,            'xp' => 4,  'gold' => 8,  'frags' => 4 ],
             ['name' => 'Forge du Damné',          'hp_pct' => 125, 'str_bonus' => 3, 'agi_bonus' => 2, 'armor' => 2, 'skill' => 'dmg_bonus_pct', 'xp' => 5,  'gold' => 12, 'frags' => 6 ],
@@ -47,8 +49,9 @@ const DUNGEON_DEFS = [
         'name'        => 'Abîsse Éternel',
         'icon'        => '🌑',
         'desc'        => 'Cinq salles aux portes de l\'Enfer. Personne ne les a toutes traversées deux fois.',
+        'difficulty'  => 'difficile',
         'min_level'   => 10,
-        'entry_cost'  => 50,  // coût en or
+        'entry_cost'  => 100, // coût en or
         'rooms'       => [
             ['name' => 'Vestibule du Néant',     'hp_pct' => 115, 'str_bonus' => 3, 'agi_bonus' => 2, 'armor' => 2, 'skill' => null,            'xp' => 5,  'gold' => 10, 'frags' => 5 ],
             ['name' => 'Crypte des Anciens',     'hp_pct' => 140, 'str_bonus' => 4, 'agi_bonus' => 2, 'armor' => 2, 'skill' => 'dmg_bonus_pct', 'xp' => 7,  'gold' => 14, 'frags' => 7 ],
@@ -58,12 +61,30 @@ const DUNGEON_DEFS = [
         ],
         'final_bonus' => ['xp' => 18, 'gold' => 45, 'frags' => 18],
     ],
+    'nexus' => [
+        'name'        => 'Nexus des Anciens',
+        'icon'        => '⚡',
+        'desc'        => 'Six salles aux confins du monde. Les Titans primordiaux s\'y sont rendormis il y a des millénaires — ils ne tolèrent pas d\'être réveillés.',
+        'difficulty'  => 'legendaire',
+        'min_level'   => 20,
+        'entry_cost'  => 250,
+        'rooms'       => [
+            ['name' => 'Portail des Origines',    'hp_pct' => 170, 'str_bonus' => 15, 'agi_bonus' => 5, 'armor' => 3, 'skill' => null,             'xp' => 8,  'gold' => 22, 'frags' => 10],
+            ['name' => 'Arène des Gardiens',      'hp_pct' => 210, 'str_bonus' => 20, 'agi_bonus' => 6, 'armor' => 4, 'skill' => 'armor_flat',      'xp' => 11, 'gold' => 30, 'frags' => 14],
+            ['name' => 'Crypte Runique',          'hp_pct' => 255, 'str_bonus' => 26, 'agi_bonus' => 7, 'armor' => 5, 'skill' => 'dmg_bonus_pct',   'xp' => 14, 'gold' => 38, 'frags' => 17],
+            ['name' => 'Chambre des Anciens',     'hp_pct' => 305, 'str_bonus' => 32, 'agi_bonus' => 9, 'armor' => 5, 'skill' => 'rage_pct',        'xp' => 18, 'gold' => 48, 'frags' => 22],
+            ['name' => 'Salle du Titan Éveillé',  'hp_pct' => 360, 'str_bonus' => 39, 'agi_bonus' => 11,'armor' => 6, 'skill' => 'crit_bonus_pct',  'xp' => 22, 'gold' => 60, 'frags' => 27],
+            ['name' => 'Nexus Primordial',        'hp_pct' => 430, 'str_bonus' => 48, 'agi_bonus' => 14,'armor' => 7, 'skill' => 'ult_revive_pct',  'xp' => 28, 'gold' => 75, 'frags' => 34],
+        ],
+        'final_bonus' => ['xp' => 38, 'gold' => 95, 'frags' => 42],
+    ],
 ];
 
 const DUNGEON_BOSS_NAMES = [
     'crypte'     => ['Skeletor', 'Mort-Vivant', 'Spectre Osseux', 'Draugr Maudit', 'Liche Séculaire'],
     'forteresse' => ['Garde Corrompu', 'Chevalier Noir', 'Forgeron Damné', 'Seigneur de Guerre', 'Warlord Ténébreux'],
     'abisse'     => ['Démon Primaire', 'Archidémon', 'Seigneur des Abîsses', 'Être du Néant', 'Titan Infernal'],
+    'nexus'      => ['Ancien Éveillé', 'Gardien Primordial', 'Colosse Runique', 'Titan Ancestral', 'Père des Titans', 'Nexus Vivant'],
 ];
 
 // ============================================================
@@ -141,8 +162,10 @@ function dungeon_build_room_boss(array $roomDef, array $brute, string $code, int
     $namePool = DUNGEON_BOSS_NAMES[$code] ?? DUNGEON_BOSS_NAMES['crypte'];
     $name     = $namePool[$roomIdx % count($namePool)];
 
-    // Arme : en salle finale on prend Hache/Lance, sinon Dague/Epee
-    if ($roomIdx === 0) {
+    // Arme : nexus utilise des armes lourdes dès la salle 1
+    if ($code === 'nexus') {
+        $wFilter = $roomIdx === 0 ? "('Lance', 'Hache')" : "('Hache', 'Masse')";
+    } elseif ($roomIdx === 0) {
         $wFilter = "('Dague', 'Epee')";
     } elseif ($roomIdx >= count(DUNGEON_DEFS[$code]['rooms']) - 1) {
         $wFilter = "('Hache', 'Lance', 'Masse')";

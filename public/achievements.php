@@ -33,6 +33,7 @@ $CATEGORY_LABELS = [
     'tournament'  => ['Tournoi',       'assets/svg/quests/trophy.svg'],
     'forge'       => ['Forge',         'assets/svg/weapons/axe.svg'],
     'minigame'    => ['Mini-Jeux',     'assets/svg/ui/scroll.svg'],
+    'dungeon'     => ['Donjons',       'assets/svg/ui/trophy.svg'],
 ];
 ?>
 <!DOCTYPE html>

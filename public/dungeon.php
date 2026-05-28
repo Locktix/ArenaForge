@@ -91,13 +91,13 @@ $leaderboard = db()->query("
           SELECT dr2.id FROM dungeon_runs dr2
           WHERE dr2.brute_id = dr.brute_id AND dr2.status != 'active'
           ORDER BY
-              CASE dr2.dungeon_code WHEN 'abisse' THEN 30 WHEN 'forteresse' THEN 20 ELSE 10 END + dr2.current_room DESC,
+              CASE dr2.dungeon_code WHEN 'nexus' THEN 50 WHEN 'abisse' THEN 30 WHEN 'forteresse' THEN 20 ELSE 10 END + dr2.current_room DESC,
               CASE dr2.status WHEN 'victory' THEN 1 ELSE 0 END DESC,
               dr2.id DESC
           LIMIT 1
       )
     ORDER BY
-        CASE dr.dungeon_code WHEN 'abisse' THEN 30 WHEN 'forteresse' THEN 20 ELSE 10 END + dr.current_room DESC,
+        CASE dr.dungeon_code WHEN 'nexus' THEN 50 WHEN 'abisse' THEN 30 WHEN 'forteresse' THEN 20 ELSE 10 END + dr.current_room DESC,
         CASE dr.status WHEN 'victory' THEN 1 ELSE 0 END DESC
     LIMIT 10
 ")->fetchAll();
@@ -149,11 +149,18 @@ foreach ($stmt->fetchAll() as $row) {
     $totalXp     = array_sum(array_column($d['rooms'], 'xp'))  + (int)$d['final_bonus']['xp'];
     $totalGold   = array_sum(array_column($d['rooms'], 'gold')) + (int)$d['final_bonus']['gold'];
 ?>
-<div class="card dungeon-card <?= ($locked || $doneToday) ? 'dungeon-card--locked' : '' ?>">
+<?php
+    $diff      = $d['difficulty'] ?? 'facile';
+    $diffLabel = ['facile' => 'Facile', 'intermediaire' => 'Intermédiaire', 'difficile' => 'Difficile', 'legendaire' => 'Légendaire'][$diff] ?? $diff;
+?>
+<div class="card dungeon-card dungeon-diff-<?= h($diff) ?> <?= ($locked || $doneToday) ? 'dungeon-card--locked' : '' ?>">
     <div class="dungeon-card-head">
         <span class="dungeon-icon"><?= $d['icon'] ?></span>
-        <div>
-            <h2 class="dungeon-card-title"><?= h($d['name']) ?></h2>
+        <div class="dungeon-card-info">
+            <div class="dungeon-card-title-row">
+                <h2 class="dungeon-card-title"><?= h($d['name']) ?></h2>
+                <span class="dungeon-diff-badge"><?= h($diffLabel) ?></span>
+            </div>
             <p class="dungeon-card-desc muted"><?= h($d['desc']) ?></p>
         </div>
     </div>

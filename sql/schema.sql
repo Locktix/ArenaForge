@@ -489,7 +489,23 @@ INSERT INTO achievements (code, title, description, category, reward_xp, icon_pa
   ('snake_score_5',        'Grignoteur',              'Mange 5 pommes en une partie de Snake.',                   'minigame',    5,   'assets/svg/ui/scroll.svg',      70),
   ('snake_score_10',       'Affame',                  'Mange 10 pommes en une partie de Snake.',                  'minigame',    10,  'assets/svg/ui/scroll.svg',      71),
   ('snake_score_20',       'Insatiable',              'Mange 20 pommes en une partie de Snake.',                  'minigame',    20,  'assets/svg/ui/scroll.svg',      72),
-  ('snake_score_50',       'Serpent legendaire',      'Mange 50 pommes en une partie de Snake.',                  'minigame',    50,  'assets/svg/quests/crown.svg',   73);
+  ('snake_score_50',       'Serpent legendaire',      'Mange 50 pommes en une partie de Snake.',                  'minigame',    50,  'assets/svg/quests/crown.svg',   73),
+  -- Donjons
+  ('dungeon_first_room',   'Premiere Ombre',          'Complete ta premiere salle de donjon.',                     'dungeon',     10,  'assets/svg/ui/trophy.svg',      80),
+  ('dungeon_victory_1',    'Explorateur',             'Remporte une victoire complete en donjon.',                 'dungeon',     20,  'assets/svg/ui/trophy.svg',      81),
+  ('dungeon_victory_10',   'Briseur de Portes',       'Remporte 10 victoires completes en donjon.',               'dungeon',     40,  'assets/svg/ui/trophy.svg',      82),
+  ('dungeon_victory_50',   'Maitre des Abysses',      'Remporte 50 victoires completes en donjon.',               'dungeon',     80,  'assets/svg/ui/trophy.svg',      83),
+  ('dungeon_low_hp',       'Dernier Souffle',         'Termine un donjon avec moins de 10 PV restants.',          'dungeon',     30,  'assets/svg/ui/trophy.svg',      84),
+  ('dungeon_flawless',     'Intouchable',             'Termine un donjon sans perdre le moindre PV.',             'dungeon',     50,  'assets/svg/quests/crown.svg',   85),
+  ('crypte_clear',         'Fossoyeur',               'Termine la Crypte des Damnes.',                            'dungeon',     15,  'assets/svg/ui/trophy.svg',      86),
+  ('crypte_clear_5',       'Profanateur',             'Termine 5 fois la Crypte des Damnes.',                     'dungeon',     30,  'assets/svg/ui/trophy.svg',      87),
+  ('forteresse_clear',     'Briseur de Forteresse',   'Termine la Forteresse Maudite.',                           'dungeon',     25,  'assets/svg/ui/trophy.svg',      88),
+  ('forteresse_clear_5',   'Siege Perpetuel',         'Termine 5 fois la Forteresse Maudite.',                    'dungeon',     50,  'assets/svg/ui/trophy.svg',      89),
+  ('abisse_clear',         'Marcheur de l''Abisse',   'Termine l''Abisse Eternel.',                               'dungeon',     40,  'assets/svg/ui/trophy.svg',      90),
+  ('abisse_clear_5',       'Demon Brise',             'Termine 5 fois l''Abisse Eternel.',                        'dungeon',     80,  'assets/svg/ui/trophy.svg',      91),
+  ('nexus_clear',          'Titan Vaincu',            'Termine le Nexus des Anciens.',                            'dungeon',    100,  'assets/svg/quests/crown.svg',   92),
+  ('nexus_clear_5',        'Fleau des Anciens',       'Termine 5 fois le Nexus des Anciens.',                     'dungeon',    200,  'assets/svg/quests/crown.svg',   93),
+  ('nexus_flawless',       'Sanctuaire Profane',      'Termine le Nexus des Anciens avec plus de la moitie de tes PV.', 'dungeon', 150, 'assets/svg/quests/crown.svg', 94);
 
 -- ============================================================
 -- Données de base : armures (Forge)
