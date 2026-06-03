@@ -192,6 +192,28 @@ function check_migrations(PDO $pdo): void
             ");
         }
 
+        // --- Tour Infinie ---
+        ensure_table($pdo, 'tower_runs', "
+            id            INT AUTO_INCREMENT PRIMARY KEY,
+            brute_id      INT NOT NULL,
+            current_floor INT NOT NULL DEFAULT 1,
+            status        ENUM('active','defeat') NOT NULL DEFAULT 'active',
+            fight_id      INT NULL,
+            loot_xp       INT NOT NULL DEFAULT 0,
+            loot_gold     INT NOT NULL DEFAULT 0,
+            started_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_brute_status (brute_id, status),
+            KEY idx_brute_date   (brute_id, started_at)
+        ");
+        ensure_column($pdo, 'tower_runs', 'loot_xp',   'INT NOT NULL DEFAULT 0');
+        ensure_column($pdo, 'tower_runs', 'loot_gold',  'INT NOT NULL DEFAULT 0');
+        ensure_table($pdo, 'tower_records', "
+            brute_id    INT NOT NULL PRIMARY KEY,
+            best_floor  INT NOT NULL DEFAULT 0,
+            achieved_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ");
+
         // --- Sacrifices ---
         ensure_table($pdo, 'sacrifices', "
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

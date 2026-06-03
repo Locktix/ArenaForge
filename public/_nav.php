@@ -80,6 +80,9 @@ function nav_active(string $page, string $current): string {
             <li><a href="dungeon.php" class="<?= nav_active('dungeon', $cp) ?>">
                 <img src="../assets/svg/ui/scroll.svg" alt=""> Les Donjons
             </a></li>
+            <li><a href="tower.php" class="<?= nav_active('tower', $cp) ?>">
+                <img src="../assets/svg/ui/scroll.svg" alt=""> Tour Infinie
+            </a></li>
             <li><a href="challenges.php" class="<?= nav_active('challenges', $cp) ?>">
                 <img src="../assets/svg/weapons/sword.svg" alt=""> Salle des Défis
                 <?php if ($navInboxCount > 0): ?><span class="nav-badge"><?= $navInboxCount ?></span><?php endif; ?>

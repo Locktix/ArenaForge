@@ -33,7 +33,7 @@ $myBruteId = $me ? (int)$me['id'] : 0;
 $amInFight  = $myBruteId !== 0 && ((int)$f['brute1_id'] === $myBruteId || (int)$f['brute2_id'] === $myBruteId);
 $iLost      = $amInFight && (int)$f['winner_id'] !== $myBruteId && $f['winner_id'] !== null;
 $canRematch = $iLost
-    && !in_array((string)($f['context'] ?? ''), ['boss', 'dungeon'], true)
+    && !in_array((string)($f['context'] ?? ''), ['boss', 'dungeon', 'tower'], true)
     && (int)$f['brute1_id'] !== (int)$f['brute2_id'];
 $opponentName = '';
 if ($canRematch) {
@@ -45,7 +45,9 @@ if ($canRematch) {
 // depuis l'event `start` du log.
 $isBossFight    = ((string)($f['context'] ?? '')) === 'boss';
 $isDungeonFight = ((string)($f['context'] ?? '')) === 'dungeon';
-if ($isBossFight || $isDungeonFight) {
+$isTowerFight   = ((string)($f['context'] ?? '')) === 'tower';
+$towerRunId     = (int)($_GET['run_id'] ?? 0);
+if ($isBossFight || $isDungeonFight || $isTowerFight) {
     foreach ($log as $ev) {
         if (($ev['event'] ?? '') === 'start' && isset($ev['teams']['R']['master'])) {
             $rm = $ev['teams']['R']['master'];
@@ -91,22 +93,31 @@ if ($isBossFight || $isDungeonFight) {
             </div>
             <div class="fighter fighter-right" id="fighter2" data-slot="R0">
                 <div class="name-tag"><?= h($f['n2']) ?></div>
-                <?php if (!$isBossFight && !$isDungeonFight && ($f['t2'] ?? '')): ?>
+                <?php if (!$isBossFight && !$isDungeonFight && !$isTowerFight && ($f['t2'] ?? '')): ?>
                     <div class="fight-title"><?= title_chip_html($f['t2']) ?></div>
                 <?php endif; ?>
                 <div class="bar hp small"><div class="bar-fill" data-hp-bar></div></div>
                 <?php
                 $appearance2 = json_decode((string)$f['a2'], true) ?: [];
-                $isMonstersprite = $isDungeonFight && !empty($appearance2['monster']);
+                $isMonstersprite = ($isDungeonFight || $isTowerFight) && !empty($appearance2['monster']);
                 ?>
                 <?php if ($isMonstersprite):
                     $dungeonCode = (string)($appearance2['dungeon_code'] ?? 'crypte');
-                    $monsterFile = match($dungeonCode) {
-                        'forteresse' => 'blackknight',
-                        'abisse'     => 'demon',
-                        'nexus'      => 'titan',
-                        default      => 'skeleton',
-                    };
+                    if ($dungeonCode === 'tower') {
+                        $monsterFile = match((int)($appearance2['room_idx'] ?? 0)) {
+                            0       => 'skeleton',
+                            1       => 'blackknight',
+                            2       => 'demon',
+                            default => 'titan',
+                        };
+                    } else {
+                        $monsterFile = match($dungeonCode) {
+                            'forteresse' => 'blackknight',
+                            'abisse'     => 'demon',
+                            'nexus'      => 'titan',
+                            default      => 'skeleton',
+                        };
+                    }
                 ?>
                 <div class="sprite flip monster-sprite monster-sprite--<?= h($dungeonCode) ?>">
                     <img src="../assets/svg/monsters/<?= h($monsterFile) ?>.svg"
@@ -136,6 +147,10 @@ if ($isBossFight || $isDungeonFight) {
                 <?php /* skip-btn reste dans le DOM (caché) — fight.js le cible par ID */?>
                 <button class="btn btn-ghost" id="skip-btn" type="button" style="display:none" aria-hidden="true">skip</button>
                 <button class="btn btn-primary" id="dungeon-suivant" type="button">Suivant →</button>
+            <?php elseif ($isTowerFight && $amInFight): ?>
+                <button class="btn btn-ghost" id="skip-btn" type="button" style="display:none" aria-hidden="true">skip</button>
+                <button class="btn btn-primary" id="tower-suivant" type="button">⚡ Étage suivant →</button>
+                <a class="btn btn-ghost" href="tower.php">🗼 Quitter la Tour</a>
             <?php else: ?>
                 <button class="btn btn-ghost" id="log-toggle-btn" type="button">📋 Logs</button>
                 <button class="btn btn-ghost" id="skip-btn" type="button">Aller au résultat</button>
@@ -181,6 +196,59 @@ if ($isBossFight || $isDungeonFight) {
                 btn.textContent = 'Continuer →';
             } else {
                 (window.arenaNavigate || function (u) { window.location.href = u; })('dungeon.php');
+            }
+        });
+    })();
+    </script>
+    <?php endif; ?>
+    <?php if ($isTowerFight && $amInFight): ?>
+    <script>
+    window.TOWER_CTX = {
+        bruteId: <?= $myBruteId ?>,
+        runId:   <?= $towerRunId ?>,
+        csrf:    <?= json_encode(csrf_token()) ?>,
+    };
+    </script>
+    <script>
+    (function () {
+        const btn     = document.getElementById('tower-suivant');
+        const skipBtn = document.getElementById('skip-btn');
+        if (!btn) return;
+        let advanced = false;
+        btn.addEventListener('click', async function () {
+            const fightDone = skipBtn && skipBtn.disabled;
+            if (!fightDone) {
+                if (skipBtn) skipBtn.click();
+                btn.textContent = '⚡ Étage suivant →';
+                return;
+            }
+            if (advanced) return;
+            advanced = true;
+            btn.disabled = true;
+            btn.textContent = '⏳ Préparation…';
+            const fd = new FormData();
+            fd.append('brute_id', window.TOWER_CTX.bruteId);
+            fd.append('run_id',   window.TOWER_CTX.runId);
+            fd.append('csrf',     window.TOWER_CTX.csrf);
+            try {
+                const r    = await fetch('../api/tower_fight.php', { method: 'POST', body: fd });
+                const data = await r.json();
+                const go   = window.arenaNavigate || (u => { window.location.href = u; });
+                if (data.ok && data.redirect) {
+                    go(data.redirect);
+                } else if (data.ok && data.outcome === 'defeat') {
+                    go('tower.php');
+                } else {
+                    alert(data.error || 'Erreur inconnue');
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Étage suivant →';
+                    advanced = false;
+                }
+            } catch (e) {
+                alert('Erreur réseau');
+                btn.disabled = false;
+                btn.textContent = '⚡ Étage suivant →';
+                advanced = false;
             }
         });
     })();
