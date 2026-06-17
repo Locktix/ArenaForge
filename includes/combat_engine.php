@@ -753,6 +753,11 @@ function resolve_attack(array &$att, array &$def, int $turn, array &$log): void
             }
             $speed--;
         }
+        if ($ds = has_skill($att, 'double_strike_pct')) {
+            if (roll(1, 100) <= (int)$ds['effect_value']) {
+                $hits++;
+            }
+        }
     }
 
     for ($i = 0; $i < $hits; $i++) {
@@ -937,6 +942,24 @@ function resolve_raw_hit(array &$att, array &$def, int $turn, array &$log, ?arra
                     'actor_hp'   => $att['hp'],
                 ];
             }
+        }
+    }
+
+    // Épines (maître défenseur uniquement) — riposte passif après chaque coup reçu
+    if ($def['role'] === 'master' && $att['hp'] > 0) {
+        if ($s = has_skill($def, 'thorns_flat')) {
+            $thornsDmg = (int)$s['effect_value'];
+            $att['hp'] = max(0, $att['hp'] - $thornsDmg);
+            $log[] = [
+                'turn'          => $turn,
+                'event'         => 'thorns',
+                'attacker'      => $att['name'],
+                'attacker_slot' => $att['slot'],
+                'defender'      => $def['name'],
+                'defender_slot' => $def['slot'],
+                'damage'        => $thornsDmg,
+                'att_hp'        => $att['hp'],
+            ];
         }
     }
 }

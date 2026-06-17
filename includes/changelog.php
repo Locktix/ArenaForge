@@ -8,6 +8,20 @@ declare(strict_types=1);
 
 const CHANGELOG_ENTRIES = [
     [
+        'version' => '1.7.0',
+        'date'    => '2026-06-05',
+        'title'   => 'La Tour Infinie & l\'Arbre Étendu',
+        'items'   => [
+            ['icon' => '🗼', 'text' => '<strong>Tour Infinie</strong> : nouveau mode PvE sans plafond. Monte étage par étage contre des ennemis de plus en plus coriaces — Brigands, Champions, Élites, puis Bosses légendaires (Ancien Éveillé, Dieu de la Guerre…). HP persistants entre les étages : chaque victoire t\'affaiblit pour la suivante.'],
+            ['icon' => '🏅', 'text' => '<strong>Récompenses par palier</strong> : chaque palier de 5 étages rapporte 6 XP + 12 or. Chaque palier de 10 étages rapporte 15 XP + 30 or. Plus tu montes, plus le butin s\'accumule.'],
+            ['icon' => '📊', 'text' => '<strong>Record personnel & classement global</strong> : ton étage maximum est conservé. Un leaderboard des 10 grimpeurs les plus hauts est affiché en bas de la page.'],
+            ['icon' => '💥', 'text' => '<strong>Frappe Titanesque</strong> (Conquérant T4) : une fois par combat, quand tu passes sous 50 % PV, ton prochain coup inflige le double de dégâts. Débloque après Frénésie — 4 points.'],
+            ['icon' => '🌵', 'text' => '<strong>Épines</strong> (Rempart T2) : chaque coup reçu renvoie 3 dégâts à l\'attaquant, passif et permanent. Troisième voie du Rempart, accessible dès Peau de Fer — 2 points.'],
+            ['icon' => '🛡️', 'text' => '<strong>Cri de Guerre</strong> (Rempart T4) : le premier coup critique encaissé dans un combat déclenche un soin immédiat de 20 % de tes PV max. Débloque après Seconde Vie — 3 points.'],
+            ['icon' => '🌀', 'text' => '<strong>Tourbillon</strong> (Duelliste T4) : 35 % de chance de porter un coup supplémentaire à chaque attaque. Combiné à Lame-Fantôme, chaque esquive devient une double frappe garantie. Débloque après Lame-Fantôme — 3 points.'],
+        ],
+    ],
+    [
         'version' => '1.6.0',
         'date'    => '2026-05-28',
         'title'   => 'Le Nexus des Anciens',

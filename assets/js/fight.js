@@ -432,6 +432,18 @@
                     break;
                 }
 
+                case 'thorns': {
+                    const slot = ev.attacker_slot || null;
+                    appendLine('hit', `T${ev.turn} • 🌵 ${ev.defender} renvoie ${ev.damage} dégât${ev.damage > 1 ? 's' : ''} à ${ev.attacker} (épines)`);
+                    if (slot) {
+                        setHp(slot, ev.att_hp);
+                        await doStatusFlash(slot, 'bleed');
+                        if (ev.att_hp <= 0) await doKOAnim(slot, ev.attacker);
+                    }
+                    await wait(120);
+                    break;
+                }
+
                 case 'weather_tick': {
                     const slot = ev.target_slot || null;
                     appendLine('weather', `T${ev.turn} • 🔥 ${ev.target} subit ${ev.damage} PV (chaleur)`);
